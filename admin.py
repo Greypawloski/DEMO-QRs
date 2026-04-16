@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file
+from pathlib import Path
 from database import get_db
 from auth import login_required
 from qr_utils import generate_qr
@@ -144,6 +145,18 @@ def qr_image(equipment_id):
     if item is None or not item['qr_filename']:
         return "QR code not found", 404
     return send_from_directory('static/qrcodes', item['qr_filename'])
+
+
+@admin_bp.route('/qr/<int:equipment_id>/download')
+@login_required
+def qr_download(equipment_id):
+    db = get_db()
+    item = db.execute("SELECT name, qr_filename FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
+    if item is None or not item['qr_filename']:
+        return "QR code not found", 404
+    path = Path(current_app.root_path) / 'static' / 'qrcodes' / item['qr_filename']
+    safe_name = item['name'].replace('/', '-')
+    return send_file(path, as_attachment=True, download_name=f"{safe_name}-QR.png")
 
 
 @admin_bp.route('/qr/<int:equipment_id>/print')
