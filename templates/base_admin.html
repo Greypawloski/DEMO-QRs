@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} — Demo Checkout</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="admin-nav">
+    <span class="brand">Demo Checkout</span>
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('admin.equipment_list') }}">Equipment</a>
+    <a href="{{ url_for('admin.history') }}">History</a>
+    <a href="{{ url_for('home') }}">Kiosk View</a>
+    <a href="{{ url_for('auth.logout') }}">Log Out</a>
+  </nav>
+  <div class="admin-wrap">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

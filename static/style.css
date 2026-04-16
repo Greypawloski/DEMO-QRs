@@ -1,0 +1,440 @@
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green:      #2d6a4f;
+  --green-light:#52b788;
+  --red:        #e63946;
+  --bg:         #f4f6f4;
+  --card-bg:    #ffffff;
+  --text:       #1b2a22;
+  --muted:      #6c757d;
+  --border:     #d8e4dc;
+  --radius:     12px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+a { color: var(--green); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Kiosk layout ── */
+.kiosk-wrap {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.kiosk-header {
+  text-align: center;
+  padding: 20px 0 28px;
+}
+
+.kiosk-header h1 {
+  font-size: 2rem;
+  color: var(--green);
+  font-weight: 700;
+}
+
+.kiosk-header p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* ── Equipment card grid (home) ── */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.equipment-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  display: block;
+  color: var(--text);
+  position: relative;
+}
+
+.equipment-card:hover {
+  border-color: var(--green-light);
+  box-shadow: 0 4px 16px rgba(45,106,79,0.12);
+  text-decoration: none;
+}
+
+.equipment-card.unavailable {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.equipment-card .card-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.equipment-card .card-category {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+
+.badge-out {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 100px;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+.badge-available {
+  display: inline-block;
+  background: var(--green-light);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  border-radius: 100px;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+/* ── Checkout form / detail ── */
+.detail-card {
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  margin-bottom: 24px;
+}
+
+.detail-card h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 4px;
+}
+
+.detail-card .category-tag {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+}
+
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.specs-table td {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 1rem;
+}
+
+.specs-table td:first-child {
+  color: var(--muted);
+  width: 45%;
+  font-weight: 500;
+}
+
+.notes-text {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-top: 12px;
+  font-style: italic;
+}
+
+/* ── Form fields ── */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 1.1rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--green-light);
+  box-shadow: 0 0 0 3px rgba(82,183,136,0.2);
+}
+
+.form-group textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-block;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, opacity 0.15s;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--green);
+  color: #fff;
+  width: 100%;
+}
+
+.btn-primary:hover { background: #235c42; color: #fff; text-decoration: none; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--green);
+  border: 2px solid var(--green);
+}
+
+.btn-secondary:hover { background: var(--bg); text-decoration: none; }
+
+.btn-danger {
+  background: var(--red);
+  color: #fff;
+}
+
+.btn-danger:hover { background: #c1121f; color: #fff; text-decoration: none; }
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+/* ── Error / alert ── */
+.alert {
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.alert-error {
+  background: #fdecea;
+  color: #c0392b;
+  border: 1px solid #f5c6cb;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+/* ── Confirm / unavailable screens ── */
+.confirm-wrap {
+  text-align: center;
+  padding: 48px 20px;
+}
+
+.confirm-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+}
+
+.confirm-wrap h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 12px;
+}
+
+.confirm-wrap p {
+  color: var(--muted);
+  margin-bottom: 32px;
+}
+
+.countdown {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 24px;
+}
+
+/* ── Admin layout ── */
+.admin-nav {
+  background: var(--green);
+  color: #fff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+}
+
+.admin-nav .brand {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  margin-right: auto;
+}
+
+.admin-nav a {
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.admin-nav a:hover { color: #fff; text-decoration: none; }
+
+.admin-wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.admin-wrap h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--green);
+}
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+table.data-table th {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--border);
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+table.data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+table.data-table tr:last-child td { border-bottom: none; }
+table.data-table tr:hover td { background: var(--bg); }
+
+/* ── Spec row pair in admin form ── */
+.spec-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ── Status badges ── */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-out   { background: #fdecea; color: var(--red); }
+.status-avail { background: #d4edda; color: #155724; }
+.status-done  { background: #e2e3e5; color: #383d41; }
+.status-retired { background: #fff3cd; color: #856404; }
+
+/* ── QR print page ── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+}
+
+.qr-print-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+  text-align: center;
+}
+
+.qr-print-wrap img {
+  width: 260px;
+  height: 260px;
+}
+
+.qr-print-wrap h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-top: 16px;
+}
+
+.qr-print-wrap p {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 6px;
+}
+
+/* ── Utility ── */
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.text-muted { color: var(--muted); }
+.text-center { text-align: center; }
+.empty-state { text-align: center; padding: 48px; color: var(--muted); }

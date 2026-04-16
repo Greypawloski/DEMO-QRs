@@ -1,0 +1,62 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Equipment{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+  <h1 style="margin-bottom:0;">Equipment</h1>
+  <div style="display:flex;gap:10px;">
+    <a href="{{ url_for('admin.equipment_new') }}" class="btn btn-primary btn-sm">+ Add Equipment</a>
+    <form method="post" action="{{ url_for('admin.regenerate_all_qr') }}" style="margin:0;">
+      <button type="submit" class="btn btn-secondary btn-sm">Regenerate All QR Codes</button>
+    </form>
+  </div>
+</div>
+
+{% if equipment %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in equipment %}
+          <tr>
+            <td><strong>{{ item.name }}</strong></td>
+            <td>{{ item.category }}</td>
+            <td>
+              {% if not item.active %}
+                <span class="status-badge status-retired">Retired</span>
+              {% elif item.is_checked_out %}
+                <span class="status-badge status-out">Checked Out</span>
+              {% else %}
+                <span class="status-badge status-avail">Available</span>
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap;">
+              <a href="{{ url_for('admin.equipment_edit', equipment_id=item.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+              {% if item.qr_filename %}
+                <a href="{{ url_for('admin.qr_print', equipment_id=item.id) }}" target="_blank" class="btn btn-secondary btn-sm">Print QR</a>
+              {% endif %}
+              <form method="post" action="{{ url_for('admin.equipment_toggle', equipment_id=item.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-secondary btn-sm">
+                  {{ 'Activate' if not item.active else 'Retire' }}
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <p>No equipment yet. <a href="{{ url_for('admin.equipment_new') }}">Add your first item.</a></p>
+  </div>
+{% endif %}
+{% endblock %}

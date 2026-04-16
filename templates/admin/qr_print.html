@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR — {{ item.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="qr-print-wrap">
+    <img src="{{ url_for('admin.qr_image', equipment_id=item.id) }}" alt="QR code for {{ item.name }}">
+    <h2>{{ item.name }}</h2>
+    <p>{{ item.category }}</p>
+
+    <div class="no-print" style="margin-top:32px;display:flex;gap:12px;justify-content:center;">
+      <button onclick="window.print()" class="btn btn-primary btn-sm">Print</button>
+      <a href="{{ url_for('admin.equipment_list') }}" class="btn btn-secondary btn-sm">Back</a>
+    </div>
+  </div>
+</body>
+</html>

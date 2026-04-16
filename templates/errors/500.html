@@ -1,0 +1,14 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block content %}
+<div class="confirm-wrap">
+  <div class="confirm-icon" style="color:#e63946;">!</div>
+  <h2 style="color:#e63946;">Something Went Wrong</h2>
+  <p>Please try again or ask a staff member for assistance.</p>
+  <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
+    Back to Equipment List
+  </a>
+</div>
+{% endblock %}

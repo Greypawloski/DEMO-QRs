@@ -1,0 +1,51 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{{ 'Edit' if item else 'Add' }} Equipment{% endblock %}
+
+{% block content %}
+<h1>{{ 'Edit' if item else 'Add' }} Equipment</h1>
+
+<form method="post" style="max-width:600px;">
+  <div class="form-group">
+    <label for="name">Equipment Name *</label>
+    <input type="text" id="name" name="name" value="{{ item.name if item else '' }}" placeholder="e.g. Wilson Blade 104 v8" required autofocus>
+  </div>
+
+  <div class="form-group">
+    <label for="category">Category *</label>
+    <select id="category" name="category" required>
+      <option value="racquet" {{ 'selected' if item and item.category == 'racquet' else '' }}>Racquet</option>
+      <option value="paddle"  {{ 'selected' if item and item.category == 'paddle'  else '' }}>Paddle</option>
+    </select>
+  </div>
+
+  <p style="font-weight:600;margin-bottom:12px;">Specs <span class="text-muted">(fill in as many as apply)</span></p>
+
+  {% for i in range(1, 5) %}
+    {% set sl = 'spec' ~ i ~ '_label' %}
+    {% set sv = 'spec' ~ i ~ '_value' %}
+    <div class="spec-row" style="margin-bottom:12px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <input type="text" name="{{ sl }}" value="{{ item[sl] if item and item[sl] else '' }}"
+               placeholder="Label (e.g. Head Size)">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <input type="text" name="{{ sv }}" value="{{ item[sv] if item and item[sv] else '' }}"
+               placeholder="Value (e.g. 104 sq in)">
+      </div>
+    </div>
+  {% endfor %}
+
+  <div class="form-group">
+    <label for="notes">Notes <span class="text-muted">(optional — shown to customer)</span></label>
+    <textarea id="notes" name="notes" placeholder="Any extra info for the customer…">{{ item.notes if item and item.notes else '' }}</textarea>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:8px;">
+    <button type="submit" class="btn btn-primary" style="flex:1;">
+      {{ 'Save Changes' if item else 'Add Equipment & Generate QR' }}
+    </button>
+    <a href="{{ url_for('admin.equipment_list') }}" class="btn btn-secondary" style="flex:0 0 auto;">Cancel</a>
+  </div>
+</form>
+{% endblock %}

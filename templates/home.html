@@ -1,0 +1,38 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Demo Equipment{% endblock %}
+
+{% block content %}
+<div class="kiosk-header">
+  <h1>Demo Equipment</h1>
+  <p>Tap an item below to check it out</p>
+</div>
+
+{% if equipment %}
+  <div class="equipment-grid">
+    {% for item in equipment %}
+      {% if item.is_checked_out %}
+        <div class="equipment-card unavailable">
+          <span class="badge-out">Checked Out</span>
+          <div class="card-category">{{ item.category }}</div>
+          <div class="card-name">{{ item.name }}</div>
+        </div>
+      {% else %}
+        <a class="equipment-card" href="{{ url_for('checkout', equipment_id=item.id) }}">
+          <span class="badge-available">Available</span>
+          <div class="card-category">{{ item.category }}</div>
+          <div class="card-name">{{ item.name }}</div>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <p>No demo equipment available right now.<br>Please ask a staff member for assistance.</p>
+  </div>
+{% endif %}
+
+<p class="text-center text-muted mt-24" style="font-size:0.85rem;">
+  Staff: <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
+</p>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Check Out {{ item.name }}{% endblock %}
+
+{% block content %}
+<div class="kiosk-header">
+  <h1>Check Out Demo</h1>
+</div>
+
+<div class="detail-card">
+  <h2>{{ item.name }}</h2>
+  <div class="category-tag">{{ item.category }}</div>
+
+  {% if specs %}
+    <table class="specs-table">
+      {% for label, value in specs %}
+        <tr>
+          <td>{{ label }}</td>
+          <td>{{ value }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+
+  {% if item.notes %}
+    <p class="notes-text">{{ item.notes }}</p>
+  {% endif %}
+</div>
+
+{% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form method="post">
+  <div class="form-group">
+    <label for="customer_name">Your Name</label>
+    <input
+      type="text"
+      id="customer_name"
+      name="customer_name"
+      placeholder="First and last name"
+      autocomplete="name"
+      autofocus
+      required
+    >
+  </div>
+
+  <div class="form-group">
+    <label for="member_number">Member Number</label>
+    <input
+      type="text"
+      id="member_number"
+      name="member_number"
+      placeholder="e.g. 1234"
+      inputmode="numeric"
+      required
+    >
+  </div>
+
+  <button type="submit" class="btn btn-primary">Check Out</button>
+</form>
+
+<div class="text-center mt-24">
+  <a href="{{ url_for('home') }}" class="btn btn-secondary btn-sm">Back to Equipment List</a>
+</div>
+{% endblock %}

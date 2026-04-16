@@ -1,0 +1,14 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Not Found{% endblock %}
+
+{% block content %}
+<div class="confirm-wrap">
+  <div class="confirm-icon" style="color:#6c757d;">?</div>
+  <h2 style="color:#6c757d;">Page Not Found</h2>
+  <p>That equipment item doesn't exist or has been removed.</p>
+  <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
+    Back to Equipment List
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Item Unavailable{% endblock %}
+
+{% block content %}
+<div class="confirm-wrap">
+  <div class="confirm-icon" style="color:#e63946;">✕</div>
+  <h2 style="color:#e63946;">Currently Checked Out</h2>
+  <p>
+    <strong>{{ item.name }}</strong> is already checked out.<br>
+    Please speak with a staff member or choose another item.
+  </p>
+  <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
+    Back to Equipment List
+  </a>
+</div>
+{% endblock %}

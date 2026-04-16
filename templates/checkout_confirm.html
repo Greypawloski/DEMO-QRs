@@ -1,0 +1,27 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Checked Out{% endblock %}
+
+{% block content %}
+<div class="confirm-wrap">
+  <div class="confirm-icon">✓</div>
+  <h2>You're all set!</h2>
+  <p>
+    <strong>{{ item.name }}</strong> is now checked out to you.<br>
+    Please return it to the front desk when you're done.
+  </p>
+  <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
+    Done
+  </a>
+  <p class="countdown" id="countdown">Returning to equipment list in <span id="sec">5</span>s…</p>
+</div>
+
+<script>
+  var sec = 5;
+  var t = setInterval(function() {
+    sec--;
+    document.getElementById('sec').textContent = sec;
+    if (sec <= 0) { clearInterval(t); window.location = "{{ url_for('home') }}"; }
+  }, 1000);
+</script>
+{% endblock %}
