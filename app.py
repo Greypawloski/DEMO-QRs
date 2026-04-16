@@ -1,8 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, g
+from datetime import datetime
+from zoneinfo import ZoneInfo
 import config
 from database import get_db, init_db, init_app as db_init_app
 from auth import auth_bp
 from admin import admin_bp
+
+CENTRAL = ZoneInfo('America/Chicago')
 
 
 def create_app():
@@ -11,6 +15,13 @@ def create_app():
     app.config['ADMIN_PASSWORD'] = config.ADMIN_PASSWORD
     app.config['DB_PATH'] = config.DB_PATH
     app.config['QR_BASE_URL'] = config.QR_BASE_URL
+
+    @app.template_filter('central')
+    def to_central(dt_str):
+        if not dt_str:
+            return '—'
+        dt = datetime.fromisoformat(dt_str).replace(tzinfo=ZoneInfo('UTC'))
+        return dt.astimezone(CENTRAL).strftime('%-m/%-d/%Y %-I:%M %p')
 
     db_init_app(app)
     app.register_blueprint(auth_bp)
