@@ -173,16 +173,31 @@ def qr_print(equipment_id):
 @login_required
 def history():
     db = get_db()
-    rows = db.execute(
-        """
-        SELECT c.*, e.name AS equipment_name, e.category
-        FROM checkouts c
-        JOIN equipment e ON c.equipment_id = e.id
-        ORDER BY c.checked_out_at DESC
-        LIMIT 200
-        """
-    ).fetchall()
-    return render_template('admin/history.html', rows=rows)
+    q = request.args.get('q', '').strip()
+    if q:
+        pattern = f'%{q}%'
+        rows = db.execute(
+            """
+            SELECT c.*, e.name AS equipment_name, e.category
+            FROM checkouts c
+            JOIN equipment e ON c.equipment_id = e.id
+            WHERE c.customer_name LIKE ? OR c.member_number LIKE ?
+            ORDER BY c.checked_out_at DESC
+            LIMIT 200
+            """,
+            (pattern, pattern)
+        ).fetchall()
+    else:
+        rows = db.execute(
+            """
+            SELECT c.*, e.name AS equipment_name, e.category
+            FROM checkouts c
+            JOIN equipment e ON c.equipment_id = e.id
+            ORDER BY c.checked_out_at DESC
+            LIMIT 200
+            """
+        ).fetchall()
+    return render_template('admin/history.html', rows=rows, q=q)
 
 
 @admin_bp.route('/regenerate-all-qr', methods=['POST'])

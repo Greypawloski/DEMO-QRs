@@ -9,13 +9,29 @@ restrings_bp = Blueprint('restrings', __name__, url_prefix='/admin/restrings')
 @login_required
 def list_restrings():
     db = get_db()
-    pending = db.execute(
-        "SELECT * FROM restrings WHERE status != 'picked_up' ORDER BY date_promised ASC"
-    ).fetchall()
-    completed = db.execute(
-        "SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC LIMIT 50"
-    ).fetchall()
-    return render_template('admin/restrings_list.html', pending=pending, completed=completed)
+    q = request.args.get('q', '').strip()
+    if q:
+        pattern = f'%{q}%'
+        pending = db.execute(
+            """SELECT * FROM restrings WHERE status != 'picked_up'
+               AND (customer_name LIKE ? OR member_number LIKE ?)
+               ORDER BY date_promised ASC""",
+            (pattern, pattern)
+        ).fetchall()
+        completed = db.execute(
+            """SELECT * FROM restrings WHERE status = 'picked_up'
+               AND (customer_name LIKE ? OR member_number LIKE ?)
+               ORDER BY created_at DESC LIMIT 50""",
+            (pattern, pattern)
+        ).fetchall()
+    else:
+        pending = db.execute(
+            "SELECT * FROM restrings WHERE status != 'picked_up' ORDER BY date_promised ASC"
+        ).fetchall()
+        completed = db.execute(
+            "SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC LIMIT 50"
+        ).fetchall()
+    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q)
 
 
 @restrings_bp.route('/new', methods=['GET', 'POST'])
