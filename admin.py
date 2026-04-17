@@ -65,8 +65,9 @@ def equipment_new():
             INSERT INTO equipment
               (name, category,
                spec1_label, spec1_value, spec2_label, spec2_value,
-               spec3_label, spec3_value, spec4_label, spec4_value, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               spec3_label, spec3_value, spec4_label, spec4_value,
+               spec5_label, spec5_value, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 request.form['name'].strip(),
@@ -79,6 +80,8 @@ def equipment_new():
                 request.form.get('spec3_value', '').strip(),
                 request.form.get('spec4_label', '').strip(),
                 request.form.get('spec4_value', '').strip(),
+                request.form.get('spec5_label', '').strip(),
+                request.form.get('spec5_value', '').strip(),
                 request.form.get('notes', '').strip(),
             )
         )
@@ -105,7 +108,7 @@ def equipment_edit(equipment_id):
               name=?, category=?,
               spec1_label=?, spec1_value=?, spec2_label=?, spec2_value=?,
               spec3_label=?, spec3_value=?, spec4_label=?, spec4_value=?,
-              notes=?
+              spec5_label=?, spec5_value=?, notes=?
             WHERE id=?
             """,
             (
@@ -119,6 +122,8 @@ def equipment_edit(equipment_id):
                 request.form.get('spec3_value', '').strip(),
                 request.form.get('spec4_label', '').strip(),
                 request.form.get('spec4_value', '').strip(),
+                request.form.get('spec5_label', '').strip(),
+                request.form.get('spec5_value', '').strip(),
                 request.form.get('notes', '').strip(),
                 equipment_id,
             )

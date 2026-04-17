@@ -117,7 +117,7 @@ def create_app():
 
 def _get_specs(item):
     specs = []
-    for i in range(1, 5):
+    for i in range(1, 6):
         label = item[f'spec{i}_label']
         value = item[f'spec{i}_value']
         if label and value:

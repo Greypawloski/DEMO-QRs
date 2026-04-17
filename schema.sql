@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS equipment (
     spec2_label TEXT, spec2_value TEXT,
     spec3_label TEXT, spec3_value TEXT,
     spec4_label TEXT, spec4_value TEXT,
+    spec5_label TEXT, spec5_value TEXT,
     notes       TEXT,
     qr_filename TEXT,
     active      INTEGER NOT NULL DEFAULT 1,
