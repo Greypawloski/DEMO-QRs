@@ -110,6 +110,7 @@
           <th>Racquet</th>
           <th>String</th>
           <th>Tension</th>
+          <th>Strung By</th>
           <th>Receipt</th>
           <th>Charged</th>
         </tr>
@@ -122,6 +123,7 @@
             <td>{{ row.racquet }}</td>
             <td>{{ row.string }}</td>
             <td>{{ row.tension }}</td>
+            <td>{{ row.strung_by or '—' }}</td>
             <td>{{ row.receipt or '—' }}</td>
             <td>{{ row.charged or '—' }}</td>
           </tr>
