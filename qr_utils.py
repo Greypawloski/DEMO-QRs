@@ -1,5 +1,4 @@
 import qrcode
-import textwrap
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
@@ -26,16 +25,9 @@ def _load_font(size):
         return ImageFont.load_default()
 
 
-def _text_width(draw, text, font):
-    bbox = draw.textbbox((0, 0), text, font=font)
-    return bbox[2] - bbox[0]
-
-
-def _draw_centered(draw, y, text, font, img_w, fill='black'):
-    x = (img_w - _text_width(draw, text, font)) // 2
-    draw.text((x, y), text, font=font, fill=fill)
-    bbox = draw.textbbox((0, 0), text, font=font)
-    return bbox[3] - bbox[1]  # return text height
+def _measure(draw, text, font):
+    bb = draw.textbbox((0, 0), text, font=font)
+    return bb[2] - bb[0], bb[3] - bb[1]
 
 
 def generate_qr(equipment_id: int, base_url: str) -> str:
@@ -56,46 +48,44 @@ def generate_qr(equipment_id: int, base_url: str) -> str:
 
 
 def generate_label(equipment_id: int, equipment_name: str, base_url: str) -> str:
-    """Generate an 18mm P-touch label: SACC header + QR code + equipment name."""
+    """Landscape label: QR on left, SACC + equipment name on right."""
     qr_path = QR_DIR / f"equipment_{equipment_id}.png"
     if not qr_path.exists():
         generate_qr(equipment_id, base_url)
 
     LABEL_DIR.mkdir(parents=True, exist_ok=True)
 
-    IMG_W   = 220
-    QR_SIZE = 172
-    PAD     = 8
+    PAD      = 10
+    IMG_H    = 160
+    QR_SIZE  = IMG_H - 2 * PAD   # 140 — fills the tape height
 
-    font_title = _load_font(26)
-    font_name  = _load_font(14)
+    font_sacc = _load_font(34)
+    font_name = _load_font(22)
 
-    # Wrap name to fit label width (approx 20 chars per line at font size 14)
-    lines = textwrap.wrap(equipment_name, width=22) or [equipment_name]
+    # Measure text to size the image width to fit the name on one line
+    dummy = ImageDraw.Draw(Image.new('RGB', (10, 10)))
+    sacc_w, sacc_h = _measure(dummy, "SACC", font_sacc)
+    name_w, name_h = _measure(dummy, equipment_name, font_name)
+    gap      = 8   # vertical gap between SACC and name lines
+    text_gap = 16  # horizontal gap between QR and text block
 
-    # Measure total height
-    dummy_img  = Image.new('RGB', (IMG_W, 10))
-    dummy_draw = ImageDraw.Draw(dummy_img)
-    title_h    = dummy_draw.textbbox((0, 0), "SACC", font=font_title)[3]
-    line_h     = dummy_draw.textbbox((0, 0), "A", font=font_name)[3] + 3
-    name_block = line_h * len(lines)
+    text_section_w = max(sacc_w, name_w)
+    IMG_W = PAD + QR_SIZE + text_gap + text_section_w + PAD
 
-    total_h = PAD + title_h + PAD + QR_SIZE + PAD + name_block + PAD
-
-    img  = Image.new('RGB', (IMG_W, total_h), 'white')
+    img  = Image.new('RGB', (IMG_W, IMG_H), 'white')
     draw = ImageDraw.Draw(img)
 
-    y = PAD
-    _draw_centered(draw, y, "SACC", font_title, IMG_W)
-    y += title_h + PAD
-
+    # QR code — left side, vertically centered
     qr_img = Image.open(qr_path).convert('RGB').resize((QR_SIZE, QR_SIZE), Image.LANCZOS)
-    img.paste(qr_img, ((IMG_W - QR_SIZE) // 2, y))
-    y += QR_SIZE + PAD
+    img.paste(qr_img, (PAD, PAD))
 
-    for line in lines:
-        _draw_centered(draw, y, line, font_name, IMG_W)
-        y += line_h
+    # Text block — right side, vertically centered as a unit
+    text_x      = PAD + QR_SIZE + text_gap
+    block_h     = sacc_h + gap + name_h
+    text_y      = (IMG_H - block_h) // 2
+
+    draw.text((text_x, text_y),                   "SACC",         font=font_sacc, fill='black')
+    draw.text((text_x, text_y + sacc_h + gap),    equipment_name, font=font_name, fill='black')
 
     filename = f"label_{equipment_id}.png"
     img.save(LABEL_DIR / filename, dpi=(300, 300))
