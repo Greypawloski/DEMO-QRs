@@ -79,7 +79,8 @@
               {% if row.status == 'pending' %}
                 <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                   <input type="hidden" name="status" value="complete">
-                  <button type="submit" class="btn btn-primary btn-sm">Mark Ready</button>
+                  <button type="submit" class="btn btn-primary btn-sm"
+                          onclick="return confirm('Mark {{ row.customer_name }}\'s racquet as ready?')">Mark Ready</button>
                 </form>
               {% elif row.status == 'complete' %}
                 <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
