@@ -10,6 +10,9 @@
     <strong>{{ item.name }}</strong> is now checked out to you.<br>
     Please return it to the front desk when you're done.
   </p>
+  <p style="color:var(--red);font-weight:600;margin-bottom:24px;">
+    Please return within 72 hours to avoid any late fees.
+  </p>
   <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
     Done
   </a>
