@@ -16,6 +16,7 @@ def create_app():
     app.config['ADMIN_PASSWORD'] = config.ADMIN_PASSWORD
     app.config['DB_PATH'] = config.DB_PATH
     app.config['QR_BASE_URL'] = config.QR_BASE_URL
+    app.config['RETIRE_PIN'] = config.RETIRE_PIN
 
     @app.template_filter('central')
     def to_central(dt_str):
