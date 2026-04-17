@@ -61,6 +61,11 @@
   </div>
 
   <div class="form-group">
+    <label for="strung_by">Strung By</label>
+    <input type="text" id="strung_by" name="strung_by" value="{{ item.strung_by if item and item.strung_by else '' }}" placeholder="Staff name">
+  </div>
+
+  <div class="form-group">
     <label for="notes">Notes</label>
     <textarea id="notes" name="notes" placeholder="Any special instructions or additional info…">{{ item.notes if item and item.notes else '' }}</textarea>
   </div>

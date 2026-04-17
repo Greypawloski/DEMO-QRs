@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS restrings (
     receipt       TEXT,
     charged       TEXT,
     notes         TEXT,
+    strung_by     TEXT,
     status        TEXT NOT NULL DEFAULT 'pending',
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );

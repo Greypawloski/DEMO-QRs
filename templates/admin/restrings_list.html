@@ -7,7 +7,7 @@
   <h1 style="margin-bottom:0;">Restringing</h1>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
     <form method="get" style="display:flex;gap:8px;">
-      <input type="text" name="q" value="{{ q }}" placeholder="Search by last name or member #"
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by last name, member #, or strung by"
              style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:260px;">
       <button type="submit" class="btn btn-primary btn-sm">Search</button>
       {% if q %}<a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
@@ -35,6 +35,7 @@
           <th>String</th>
           <th>Tension</th>
           <th>Promised</th>
+          <th>Strung By</th>
           <th>Receipt</th>
           <th>Charged</th>
           <th>Status</th>
@@ -54,6 +55,7 @@
             <td>{{ row.string }}</td>
             <td>{{ row.tension }}</td>
             <td style="white-space:nowrap;">{{ row.date_promised }}</td>
+            <td>{{ row.strung_by or '—' }}</td>
             <td>{{ row.receipt or '—' }}</td>
             <td>{{ row.charged or '—' }}</td>
             <td>

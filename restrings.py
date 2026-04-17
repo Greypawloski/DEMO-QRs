@@ -14,15 +14,15 @@ def list_restrings():
         pattern = f'%{q}%'
         pending = db.execute(
             """SELECT * FROM restrings WHERE status != 'picked_up'
-               AND (customer_name LIKE ? OR member_number LIKE ?)
+               AND (customer_name LIKE ? OR member_number LIKE ? OR strung_by LIKE ?)
                ORDER BY date_promised ASC""",
-            (pattern, pattern)
+            (pattern, pattern, pattern)
         ).fetchall()
         completed = db.execute(
             """SELECT * FROM restrings WHERE status = 'picked_up'
-               AND (customer_name LIKE ? OR member_number LIKE ?)
+               AND (customer_name LIKE ? OR member_number LIKE ? OR strung_by LIKE ?)
                ORDER BY created_at DESC LIMIT 50""",
-            (pattern, pattern)
+            (pattern, pattern, pattern)
         ).fetchall()
     else:
         pending = db.execute(
@@ -43,8 +43,8 @@ def restring_new():
             """
             INSERT INTO restrings
               (date_in, customer_name, phone, member_number, racquet,
-               string, tension, date_promised, receipt, charged, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               string, tension, date_promised, receipt, charged, notes, strung_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 request.form['date_in'],
@@ -58,6 +58,7 @@ def restring_new():
                 request.form.get('receipt', '').strip(),
                 request.form.get('charged', '').strip(),
                 request.form.get('notes', '').strip(),
+                request.form.get('strung_by', '').strip(),
             )
         )
         db.commit()
@@ -78,7 +79,7 @@ def restring_edit(restring_id):
             """
             UPDATE restrings SET
               date_in=?, customer_name=?, phone=?, member_number=?, racquet=?,
-              string=?, tension=?, date_promised=?, receipt=?, charged=?, notes=?
+              string=?, tension=?, date_promised=?, receipt=?, charged=?, notes=?, strung_by=?
             WHERE id=?
             """,
             (
@@ -93,6 +94,7 @@ def restring_edit(restring_id):
                 request.form.get('receipt', '').strip(),
                 request.form.get('charged', '').strip(),
                 request.form.get('notes', '').strip(),
+                request.form.get('strung_by', '').strip(),
                 restring_id,
             )
         )
