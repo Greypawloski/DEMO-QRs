@@ -9,29 +9,37 @@ restrings_bp = Blueprint('restrings', __name__, url_prefix='/admin/restrings')
 @login_required
 def list_restrings():
     db = get_db()
-    q = request.args.get('q', '').strip()
+    q  = request.args.get('q',  '').strip()
+    qb = request.args.get('qb', '').strip()
+
+    where_pending   = "status != 'picked_up'"
+    where_completed = "status = 'picked_up'"
+    params_pending   = []
+    params_completed = []
+
     if q:
         pattern = f'%{q}%'
-        pending = db.execute(
-            """SELECT * FROM restrings WHERE status != 'picked_up'
-               AND (customer_name LIKE ? OR member_number LIKE ? OR strung_by LIKE ?)
-               ORDER BY date_promised ASC""",
-            (pattern, pattern, pattern)
-        ).fetchall()
-        completed = db.execute(
-            """SELECT * FROM restrings WHERE status = 'picked_up'
-               AND (customer_name LIKE ? OR member_number LIKE ? OR strung_by LIKE ?)
-               ORDER BY created_at DESC LIMIT 50""",
-            (pattern, pattern, pattern)
-        ).fetchall()
-    else:
-        pending = db.execute(
-            "SELECT * FROM restrings WHERE status != 'picked_up' ORDER BY date_promised ASC"
-        ).fetchall()
-        completed = db.execute(
-            "SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC LIMIT 50"
-        ).fetchall()
-    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q)
+        where_pending   += " AND (customer_name LIKE ? OR member_number LIKE ?)"
+        where_completed += " AND (customer_name LIKE ? OR member_number LIKE ?)"
+        params_pending   += [pattern, pattern]
+        params_completed += [pattern, pattern]
+
+    if qb:
+        pattern_b = f'%{qb}%'
+        where_pending   += " AND strung_by LIKE ?"
+        where_completed += " AND strung_by LIKE ?"
+        params_pending   += [pattern_b]
+        params_completed += [pattern_b]
+
+    pending = db.execute(
+        f"SELECT * FROM restrings WHERE {where_pending} ORDER BY date_promised ASC",
+        params_pending
+    ).fetchall()
+    completed = db.execute(
+        f"SELECT * FROM restrings WHERE {where_completed} ORDER BY created_at DESC LIMIT 50",
+        params_completed
+    ).fetchall()
+    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb)
 
 
 @restrings_bp.route('/new', methods=['GET', 'POST'])

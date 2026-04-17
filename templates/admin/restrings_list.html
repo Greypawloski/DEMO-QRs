@@ -6,19 +6,28 @@
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Restringing</h1>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
-    <form method="get" style="display:flex;gap:8px;">
-      <input type="text" name="q" value="{{ q }}" placeholder="Search by last name, member #, or strung by"
-             style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:260px;">
+    <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by last name or member #"
+             style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:220px;">
+      <input type="hidden" name="qb" value="{{ qb }}">
       <button type="submit" class="btn btn-primary btn-sm">Search</button>
-      {% if q %}<a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
+      {% if q or qb %}<a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
+    </form>
+    <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <input type="hidden" name="q" value="{{ q }}">
+      <input type="text" name="qb" value="{{ qb }}" placeholder="Search by strung by"
+             style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:200px;">
+      <button type="submit" class="btn btn-primary btn-sm">Search</button>
     </form>
     <a href="{{ url_for('restrings.restring_new') }}" class="btn btn-primary btn-sm">+ New Request</a>
   </div>
 </div>
 
-{% if q %}
+{% if q or qb %}
   <p class="text-muted" style="margin-bottom:16px;">
-    Results for <strong>"{{ q }}"</strong>
+    {% if q %}Customer: <strong>"{{ q }}"</strong>{% endif %}
+    {% if q and qb %} &nbsp;+&nbsp; {% endif %}
+    {% if qb %}Strung by: <strong>"{{ qb }}"</strong>{% endif %}
   </p>
 {% endif %}
 
