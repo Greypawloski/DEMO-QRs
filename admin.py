@@ -1,8 +1,10 @@
+import io
+import zipfile
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file
 from pathlib import Path
 from database import get_db
 from auth import login_required
-from qr_utils import generate_qr
+from qr_utils import generate_qr, generate_label, LABEL_DIR
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -214,6 +216,28 @@ def history():
             """
         ).fetchall()
     return render_template('admin/history.html', rows=rows, q=q)
+
+
+@admin_bp.route('/labels/download-zip')
+@login_required
+def labels_download_zip():
+    db = get_db()
+    items = db.execute(
+        "SELECT id, name FROM equipment WHERE active = 1 ORDER BY name"
+    ).fetchall()
+
+    zip_buf = io.BytesIO()
+    with zipfile.ZipFile(zip_buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for item in items:
+            label_filename = generate_label(item['id'], item['name'], current_app.config['QR_BASE_URL'])
+            label_path = LABEL_DIR / label_filename
+            safe_name = item['name'].replace('/', '-').replace('\\', '-')
+            zf.write(label_path, f"{safe_name}.png")
+
+    zip_buf.seek(0)
+    return send_file(zip_buf, as_attachment=True,
+                     download_name='SACC-labels.zip',
+                     mimetype='application/zip')
 
 
 @admin_bp.route('/regenerate-all-qr', methods=['POST'])
