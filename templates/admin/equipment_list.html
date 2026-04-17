@@ -83,7 +83,7 @@
         {% endif %}
       </div>
       <div style="display:flex;gap:12px;margin-top:8px;">
-        <button type="submit" class="btn btn-danger" style="flex:1;">Confirm Retire</button>
+        <button type="submit" id="retire-confirm-btn" class="btn btn-danger" style="flex:1;">Confirm</button>
         <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeRetireModal()">Cancel</button>
       </div>
     </form>
@@ -93,6 +93,7 @@
 <script>
   function openPinModal(id, name, action) {
     document.getElementById('retire-modal-title').textContent = action + ' Equipment';
+    document.getElementById('retire-confirm-btn').textContent = 'Confirm ' + action;
     document.getElementById('retire-modal-name').textContent = name;
     document.getElementById('retire-form').action = '/admin/equipment/' + id + '/toggle';
     document.getElementById('retire_equipment_name').value = name;
