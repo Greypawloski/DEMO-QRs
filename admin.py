@@ -133,8 +133,8 @@ def equipment_edit(equipment_id):
 def equipment_toggle(equipment_id):
     db = get_db()
     item = db.execute("SELECT active FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
-    if item and item['active']:
-        # Retiring — require PIN
+    if item:
+        # Both Retire and Activate require PIN
         if request.form.get('retire_pin') != current_app.config['RETIRE_PIN']:
             rows = db.execute(
                 """

@@ -45,14 +45,14 @@
               {% endif %}
               {% if item.active %}
                 <button type="button" class="btn btn-secondary btn-sm"
-                        onclick="openRetireModal({{ item.id }}, '{{ item.name | e }}')">
+                        onclick="openPinModal({{ item.id }}, '{{ item.name | e }}', 'Retire')">
                   Retire
                 </button>
               {% else %}
-                <form method="post" action="{{ url_for('admin.equipment_toggle', equipment_id=item.id) }}" style="display:inline;">
-                  <input type="hidden" name="retire_pin" value="">
-                  <button type="submit" class="btn btn-secondary btn-sm">Activate</button>
-                </form>
+                <button type="button" class="btn btn-secondary btn-sm"
+                        onclick="openPinModal({{ item.id }}, '{{ item.name | e }}', 'Activate')">
+                  Activate
+                </button>
               {% endif %}
             </td>
           </tr>
@@ -69,7 +69,7 @@
 <!-- PIN modal -->
 <div id="retire-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:12px;padding:32px 28px;max-width:340px;width:90%;text-align:center;">
-    <h2 style="font-size:1.2rem;margin-bottom:6px;">Retire Equipment</h2>
+    <h2 id="retire-modal-title" style="font-size:1.2rem;margin-bottom:6px;">Retire Equipment</h2>
     <p id="retire-modal-name" style="color:var(--muted);margin-bottom:20px;font-size:0.95rem;"></p>
     <form id="retire-form" method="post">
       <div class="form-group" style="text-align:left;">
@@ -91,7 +91,8 @@
 </div>
 
 <script>
-  function openRetireModal(id, name) {
+  function openPinModal(id, name, action) {
+    document.getElementById('retire-modal-title').textContent = action + ' Equipment';
     document.getElementById('retire-modal-name').textContent = name;
     document.getElementById('retire-form').action = '/admin/equipment/' + id + '/toggle';
     document.getElementById('retire_equipment_name').value = name;
@@ -103,7 +104,7 @@
     document.getElementById('retire-modal').style.display = 'none';
   }
   {% if pin_error %}
-    openRetireModal({{ pin_error }}, {{ pin_error_name | tojson }});
+    openPinModal({{ pin_error }}, {{ pin_error_name | tojson }}, 'Confirm');
   {% endif %}
 </script>
 {% endblock %}
