@@ -43,11 +43,17 @@
               {% if item.qr_filename %}
                 <a href="{{ url_for('admin.qr_print', equipment_id=item.id) }}" target="_blank" class="btn btn-secondary btn-sm">Print QR</a>
               {% endif %}
-              <form method="post" action="{{ url_for('admin.equipment_toggle', equipment_id=item.id) }}" style="display:inline;">
-                <button type="submit" class="btn btn-secondary btn-sm">
-                  {{ 'Activate' if not item.active else 'Retire' }}
+              {% if item.active %}
+                <button type="button" class="btn btn-secondary btn-sm"
+                        onclick="openRetireModal({{ item.id }}, '{{ item.name | e }}')">
+                  Retire
                 </button>
-              </form>
+              {% else %}
+                <form method="post" action="{{ url_for('admin.equipment_toggle', equipment_id=item.id) }}" style="display:inline;">
+                  <input type="hidden" name="retire_pin" value="">
+                  <button type="submit" class="btn btn-secondary btn-sm">Activate</button>
+                </form>
+              {% endif %}
             </td>
           </tr>
         {% endfor %}
@@ -59,4 +65,45 @@
     <p>No equipment yet. <a href="{{ url_for('admin.equipment_new') }}">Add your first item.</a></p>
   </div>
 {% endif %}
+
+<!-- PIN modal -->
+<div id="retire-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:32px 28px;max-width:340px;width:90%;text-align:center;">
+    <h2 style="font-size:1.2rem;margin-bottom:6px;">Retire Equipment</h2>
+    <p id="retire-modal-name" style="color:var(--muted);margin-bottom:20px;font-size:0.95rem;"></p>
+    <form id="retire-form" method="post">
+      <div class="form-group" style="text-align:left;">
+        <label for="retire_pin_input">Enter PIN to confirm</label>
+        <input type="hidden" name="equipment_name" id="retire_equipment_name">
+      <input type="password" id="retire_pin_input" name="retire_pin"
+               inputmode="numeric" maxlength="10" autofocus
+               style="font-size:1.4rem;letter-spacing:0.2em;text-align:center;">
+        {% if pin_error %}
+          <p style="color:var(--red);font-size:0.9rem;margin-top:6px;">Incorrect PIN. Try again.</p>
+        {% endif %}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-danger" style="flex:1;">Confirm Retire</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeRetireModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openRetireModal(id, name) {
+    document.getElementById('retire-modal-name').textContent = name;
+    document.getElementById('retire-form').action = '/admin/equipment/' + id + '/toggle';
+    document.getElementById('retire_equipment_name').value = name;
+    document.getElementById('retire_pin_input').value = '';
+    document.getElementById('retire-modal').style.display = 'flex';
+    document.getElementById('retire_pin_input').focus();
+  }
+  function closeRetireModal() {
+    document.getElementById('retire-modal').style.display = 'none';
+  }
+  {% if pin_error %}
+    openRetireModal({{ pin_error }}, {{ pin_error_name | tojson }});
+  {% endif %}
+</script>
 {% endblock %}

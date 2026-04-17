@@ -132,6 +132,22 @@ def equipment_edit(equipment_id):
 @login_required
 def equipment_toggle(equipment_id):
     db = get_db()
+    item = db.execute("SELECT active FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
+    if item and item['active']:
+        # Retiring — require PIN
+        if request.form.get('retire_pin') != current_app.config['RETIRE_PIN']:
+            rows = db.execute(
+                """
+                SELECT e.*,
+                       CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
+                FROM equipment e
+                LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
+                ORDER BY e.category, e.name
+                """
+            ).fetchall()
+            pin_error_name = request.form.get('equipment_name', '')
+            return render_template('admin/equipment_list.html', equipment=rows,
+                                   pin_error=equipment_id, pin_error_name=pin_error_name)
     db.execute("UPDATE equipment SET active = 1 - active WHERE id = ?", (equipment_id,))
     db.commit()
     return redirect(url_for('admin.equipment_list'))
