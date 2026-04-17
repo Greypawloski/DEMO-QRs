@@ -62,10 +62,12 @@ def generate_label(equipment_id: int, equipment_name: str, base_url: str) -> str
     font_sacc = _load_font(34)
     font_name = _load_font(22)
 
+    display_name = equipment_name + " Demo"
+
     # Measure text to size the image width to fit the name on one line
     dummy = ImageDraw.Draw(Image.new('RGB', (10, 10)))
     sacc_w, sacc_h = _measure(dummy, "SACC", font_sacc)
-    name_w, name_h = _measure(dummy, equipment_name, font_name)
+    name_w, name_h = _measure(dummy, display_name, font_name)
     gap      = 8   # vertical gap between SACC and name lines
     text_gap = 16  # horizontal gap between QR and text block
 
@@ -84,8 +86,10 @@ def generate_label(equipment_id: int, equipment_name: str, base_url: str) -> str
     block_h     = sacc_h + gap + name_h
     text_y      = (IMG_H - block_h) // 2
 
-    draw.text((text_x, text_y),                   "SACC",         font=font_sacc, fill='black')
-    draw.text((text_x, text_y + sacc_h + gap),    equipment_name, font=font_name, fill='black')
+    # SACC centered within the text section; name left-aligned
+    sacc_x = text_x + (text_section_w - sacc_w) // 2
+    draw.text((sacc_x, text_y),                "SACC",       font=font_sacc, fill='black')
+    draw.text((text_x, text_y + sacc_h + gap), display_name, font=font_name, fill='black')
 
     filename = f"label_{equipment_id}.png"
     img.save(LABEL_DIR / filename, dpi=(300, 300))
