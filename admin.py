@@ -219,6 +219,16 @@ def history():
 @admin_bp.route('/regenerate-all-qr', methods=['POST'])
 @login_required
 def regenerate_all_qr():
+    if request.form.get('regen_pin') != current_app.config['RETIRE_PIN']:
+        rows = get_db().execute(
+            """
+            SELECT e.*, CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
+            FROM equipment e
+            LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
+            ORDER BY e.category, e.name
+            """
+        ).fetchall()
+        return render_template('admin/equipment_list.html', equipment=rows, regen_pin_error=True)
     db = get_db()
     items = db.execute("SELECT id FROM equipment WHERE active = 1").fetchall()
     for item in items:
