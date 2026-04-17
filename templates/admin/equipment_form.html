@@ -13,7 +13,7 @@
 
   <div class="form-group">
     <label for="category">Category *</label>
-    <select id="category" name="category" required onchange="prefillLabels(this.value)">
+    <select id="category" name="category" required onchange="prefillLabels(this.value, true)">
       <option value="racquet" {{ 'selected' if item and item.category == 'racquet' else '' }}>Racquet</option>
       <option value="paddle"  {{ 'selected' if item and item.category == 'paddle'  else '' }}>Paddle</option>
     </select>
@@ -41,15 +41,15 @@
     racquet: ['Head Size', 'Grip Size', 'Weight (unstrung)', 'String Pattern', ''],
     paddle:  ['Surface', 'Core', 'Thickness', 'Grip Size', 'Weight']
   };
-  function prefillLabels(cat) {
+  function prefillLabels(cat, force) {
     var labels = LABELS[cat] || [];
     for (var i = 1; i <= 5; i++) {
       var el = document.getElementById('spec' + i + '_label');
-      if (el && el.value === '') el.value = labels[i - 1] || '';
+      if (el && (force || el.value === '')) el.value = labels[i - 1] || '';
     }
   }
   {% if not item %}
-  prefillLabels(document.getElementById('category').value);
+  prefillLabels(document.getElementById('category').value, false);
   {% endif %}
 </script>
 
