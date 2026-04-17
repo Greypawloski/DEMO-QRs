@@ -24,3 +24,22 @@ CREATE TABLE IF NOT EXISTS checkouts (
 
 CREATE INDEX IF NOT EXISTS idx_checkouts_equipment ON checkouts(equipment_id);
 CREATE INDEX IF NOT EXISTS idx_checkouts_returned  ON checkouts(returned_at);
+
+CREATE TABLE IF NOT EXISTS restrings (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    date_in       TEXT NOT NULL,
+    customer_name TEXT NOT NULL,
+    phone         TEXT NOT NULL,
+    member_number TEXT,
+    racquet       TEXT NOT NULL,
+    string        TEXT NOT NULL,
+    tension       TEXT NOT NULL,
+    date_promised TEXT NOT NULL,
+    receipt       TEXT,
+    charged       TEXT,
+    notes         TEXT,
+    status        TEXT NOT NULL DEFAULT 'pending',
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_restrings_status ON restrings(status);

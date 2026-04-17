@@ -1,0 +1,75 @@
+{% extends "base_admin.html" %}
+
+{% block title %}{{ 'Edit' if item else 'New' }} Restring Request{% endblock %}
+
+{% block content %}
+<h1>{{ 'Edit' if item else 'New' }} Restring Request</h1>
+
+<form method="post" style="max-width:600px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="form-group">
+      <label for="date_in">Date In *</label>
+      <input type="date" id="date_in" name="date_in" value="{{ item.date_in if item else '' }}" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="date_promised">Date Promised *</label>
+      <input type="date" id="date_promised" name="date_promised" value="{{ item.date_promised if item else '' }}" required>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="customer_name">Customer Name *</label>
+    <input type="text" id="customer_name" name="customer_name" value="{{ item.customer_name if item else '' }}" required>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="form-group">
+      <label for="phone">Phone *</label>
+      <input type="tel" id="phone" name="phone" value="{{ item.phone if item else '' }}" required>
+    </div>
+    <div class="form-group">
+      <label for="member_number">Member Number</label>
+      <input type="text" id="member_number" name="member_number" value="{{ item.member_number if item else '' }}">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="racquet">Racquet *</label>
+    <input type="text" id="racquet" name="racquet" value="{{ item.racquet if item else '' }}" placeholder="e.g. Wilson Blade 104" required>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="form-group">
+      <label for="string">String *</label>
+      <input type="text" id="string" name="string" value="{{ item.string if item else '' }}" placeholder="e.g. Luxilon Alu Power" required>
+    </div>
+    <div class="form-group">
+      <label for="tension">Tension *</label>
+      <input type="text" id="tension" name="tension" value="{{ item.tension if item else '' }}" placeholder="e.g. 55 lbs" required>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="form-group">
+      <label for="receipt">Receipt #</label>
+      <input type="text" id="receipt" name="receipt" value="{{ item.receipt if item else '' }}">
+    </div>
+    <div class="form-group">
+      <label for="charged">Charged</label>
+      <input type="text" id="charged" name="charged" value="{{ item.charged if item else '' }}" placeholder="e.g. $35">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" placeholder="Any special instructions or additional info…">{{ item.notes if item and item.notes else '' }}</textarea>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:8px;">
+    <button type="submit" class="btn btn-primary" style="flex:1;">
+      {{ 'Save Changes' if item else 'Save Request' }}
+    </button>
+    <a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary" style="flex:0 0 auto;">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -5,6 +5,7 @@ import config
 from database import get_db, init_db, init_app as db_init_app
 from auth import auth_bp
 from admin import admin_bp
+from restrings import restrings_bp
 
 CENTRAL = ZoneInfo('America/Chicago')
 
@@ -26,6 +27,7 @@ def create_app():
     db_init_app(app)
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(restrings_bp)
 
     # Auto-initialize DB on first request if it doesn't exist
     @app.before_request
