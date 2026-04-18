@@ -38,6 +38,23 @@ def create_app():
             with app.app_context():
                 init_db()
 
+    @app.route('/demos')
+    def demos():
+        db = get_db()
+        rows = db.execute(
+            """
+            SELECT e.name, e.category,
+                   CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
+            FROM equipment e
+            LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
+            WHERE e.active = 1
+            ORDER BY e.category, e.name
+            """
+        ).fetchall()
+        racquets = [r for r in rows if r['category'] == 'racquet']
+        paddles  = [r for r in rows if r['category'] == 'paddle']
+        return render_template('demos.html', racquets=racquets, paddles=paddles)
+
     @app.route('/')
     def home():
         db = get_db()
