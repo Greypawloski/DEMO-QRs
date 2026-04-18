@@ -39,6 +39,23 @@ def mark_returned(checkout_id):
     return redirect(url_for('admin.dashboard'))
 
 
+@admin_bp.route('/kiosk')
+@login_required
+def kiosk_view():
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT e.*,
+               CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
+        FROM equipment e
+        LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
+        WHERE e.active = 1
+        ORDER BY e.category, e.name
+        """
+    ).fetchall()
+    return render_template('home.html', equipment=rows)
+
+
 @admin_bp.route('/equipment')
 @login_required
 def equipment_list():
