@@ -90,7 +90,8 @@
               {% elif row.status == 'complete' %}
                 <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                   <input type="hidden" name="status" value="picked_up">
-                  <button type="submit" class="btn btn-danger btn-sm">Mark Picked Up</button>
+                  <button type="submit" class="btn btn-danger btn-sm"
+                          onclick="return confirm('Mark {{ row.customer_name | e }}\'s racquet as picked up?')">Mark Picked Up</button>
                 </form>
               {% endif %}
             </td>
