@@ -53,8 +53,11 @@
                   <img src="{{ url_for('static', filename='checkout_photos/' ~ row.photo_filename) }}"
                        style="height:48px;width:48px;object-fit:cover;border-radius:4px;border:1px solid var(--border);">
                 </a>
+                <button type="button" class="btn btn-secondary btn-sm" style="margin-top:4px;display:block;"
+                        onclick="openPhotoModal({{ row.id }}, '{{ row.equipment_name | e }}')">Replace</button>
               {% else %}
-                <span class="text-muted">—</span>
+                <button type="button" class="btn btn-secondary btn-sm"
+                        onclick="openPhotoModal({{ row.id }}, '{{ row.equipment_name | e }}')">Upload</button>
               {% endif %}
             </td>
             <td>
@@ -86,6 +89,26 @@
     <p>No items currently checked out.</p>
   </div>
 {% endif %}
+
+<!-- Photo upload modal -->
+<div id="photo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:32px 28px;max-width:380px;width:90%;text-align:center;">
+    <h2 style="font-size:1.2rem;margin-bottom:6px;">Attach Photo</h2>
+    <p id="photo-modal-name" style="color:var(--muted);margin-bottom:16px;font-size:0.95rem;"></p>
+    <form id="photo-form" method="post" enctype="multipart/form-data">
+      <div class="form-group" style="text-align:left;">
+        <label for="photo-input">Select photo</label>
+        <input type="file" id="photo-input" name="photo" accept="image/*"
+               style="width:100%;font-size:0.95rem;padding:6px 0;" required>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Upload</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('photo-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Mark Returned modal -->
 <div id="return-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
@@ -137,6 +160,12 @@
 
 <script>
   var WAITLIST_DATA = {{ waitlist_members | tojson }};
+  function openPhotoModal(checkoutId, name) {
+    document.getElementById('photo-modal-name').textContent = name;
+    document.getElementById('photo-form').action = '/admin/checkout/' + checkoutId + '/photo';
+    document.getElementById('photo-input').value = '';
+    document.getElementById('photo-modal').style.display = 'flex';
+  }
   function openReturnModal(checkoutId, name) {
     document.getElementById('return-modal-name').textContent = name;
     document.getElementById('return-form').action = '/admin/return/' + checkoutId;

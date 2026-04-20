@@ -97,6 +97,31 @@ def dashboard():
                            current_staff=session.get('staff_name', ''))
 
 
+@admin_bp.route('/checkout/<int:checkout_id>/photo', methods=['POST'])
+@login_required
+def checkout_photo_upload(checkout_id):
+    from PIL import Image as PILImage
+    photo_file = request.files.get('photo')
+    if photo_file and photo_file.filename:
+        db = get_db()
+        row = db.execute("SELECT photo_filename, equipment_id FROM checkouts WHERE id=?", (checkout_id,)).fetchone()
+        if row and row['photo_filename']:
+            old = Path(current_app.root_path) / 'static' / 'checkout_photos' / row['photo_filename']
+            if old.exists():
+                old.unlink()
+        img = PILImage.open(photo_file.stream).convert('RGB')
+        if max(img.size) > 1200:
+            img.thumbnail((1200, 1200), PILImage.LANCZOS)
+        photos_dir = Path(current_app.root_path) / 'static' / 'checkout_photos'
+        photos_dir.mkdir(parents=True, exist_ok=True)
+        fname = f"checkout_{checkout_id}.jpg"
+        img.save(photos_dir / fname, 'JPEG', quality=80)
+        db.execute("UPDATE checkouts SET photo_filename=? WHERE id=?", (fname, checkout_id))
+        _log('Upload Photo', f"Checkout #{checkout_id}")
+        db.commit()
+    return redirect(url_for('admin.dashboard'))
+
+
 @admin_bp.route('/return/<int:checkout_id>', methods=['POST'])
 @login_required
 def mark_returned(checkout_id):
