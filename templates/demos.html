@@ -38,8 +38,9 @@
     }
     .demo-item-header {
       display:flex; align-items:center; justify-content:space-between;
-      padding:12px 14px; gap:12px; cursor:pointer;
+      padding:12px 14px; gap:12px; cursor:default;
     }
+    .demo-item.has-specs .demo-item-header { cursor:pointer; }
     .demo-item-name { font-size:0.97rem; font-weight:600; flex:1; min-width:0; }
     .badge-avail {
       background:#d1fae5; color:#065f46; border-radius:20px;
@@ -91,11 +92,11 @@
         <div class="demo-item-header">
           <span class="demo-item-name">{{ item.name }}</span>
           {% if item.under_maintenance %}
-            <span class="badge-out" style="background:#fef3c7;color:#92400e;">Under Maintenance</span>
+            <span class="badge-out" style="background:#fef3c7;color:#92400e;" onclick="event.stopPropagation()">Under Maintenance</span>
           {% elif item.is_checked_out %}
-            <span class="badge-out">Checked Out</span>
+            <span class="badge-out" onclick="event.stopPropagation()">Checked Out</span>
           {% else %}
-            <span class="badge-avail">Available</span>
+            <span class="badge-avail" onclick="event.stopPropagation()">Available</span>
           {% endif %}
         </div>
         {% if specs %}
@@ -127,11 +128,11 @@
         <div class="demo-item-header">
           <span class="demo-item-name">{{ item.name }}</span>
           {% if item.under_maintenance %}
-            <span class="badge-out" style="background:#fef3c7;color:#92400e;">Under Maintenance</span>
+            <span class="badge-out" style="background:#fef3c7;color:#92400e;" onclick="event.stopPropagation()">Under Maintenance</span>
           {% elif item.is_checked_out %}
-            <span class="badge-out">Checked Out</span>
+            <span class="badge-out" onclick="event.stopPropagation()">Checked Out</span>
           {% else %}
-            <span class="badge-avail">Available</span>
+            <span class="badge-avail" onclick="event.stopPropagation()">Available</span>
           {% endif %}
         </div>
         {% if specs %}
