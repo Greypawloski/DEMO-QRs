@@ -63,7 +63,6 @@
                 <button type="button" class="btn btn-secondary btn-sm"
                         data-eid="{{ row.equipment_id }}"
                         data-ename="{{ row.equipment_name | e }}"
-                        data-members="{{ waitlist_members.get(row.equipment_id, []) | tojson | e }}"
                         onclick="openWaitlistModal(this)">
                   View
                 </button>
@@ -126,6 +125,7 @@
 </div>
 
 <script>
+  var WAITLIST_DATA = {{ waitlist_members | tojson }};
   function openReturnModal(checkoutId, name) {
     document.getElementById('return-modal-name').textContent = name;
     document.getElementById('return-form').action = '/admin/return/' + checkoutId;
@@ -136,7 +136,7 @@
   function openWaitlistModal(btn) {
     var equipmentId = btn.dataset.eid;
     var name = btn.dataset.ename;
-    var members = JSON.parse(btn.dataset.members);
+    var members = WAITLIST_DATA[equipmentId] || [];
     document.getElementById('waitlist-modal-name').textContent = name;
     document.getElementById('waitlist-clear-form').action = '/admin/waitlist/' + equipmentId + '/clear';
     var html = '<table style="width:100%;border-collapse:collapse;font-size:0.9rem;">'
