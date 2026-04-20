@@ -46,6 +46,9 @@ def create_app():
         rows = db.execute(
             """
             SELECT e.name, e.category,
+                   e.spec1_label, e.spec1_value, e.spec2_label, e.spec2_value,
+                   e.spec3_label, e.spec3_value, e.spec4_label, e.spec4_value,
+                   e.spec5_label, e.spec5_value,
                    CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
             FROM equipment e
             LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
@@ -83,9 +86,10 @@ def create_app():
                     'checkout_scan.html', item=item, specs=specs,
                     is_checked_out=bool(existing), error="Please fill in all fields."
                 )
+            notes = request.form.get('checkout_notes', '').strip()
             cur = db.execute(
-                "INSERT INTO checkouts (equipment_id, customer_name, member_number) VALUES (?, ?, ?)",
-                (equipment_id, name, member)
+                "INSERT INTO checkouts (equipment_id, customer_name, member_number, checkout_notes) VALUES (?, ?, ?, ?)",
+                (equipment_id, name, member, notes or None)
             )
             checkout_id = cur.lastrowid
             photo_file = request.files.get('condition_photo')
@@ -105,13 +109,27 @@ def create_app():
     def checkout_confirm(equipment_id):
         db = get_db()
         item = db.execute("SELECT name FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
-        return render_template('checkout_confirm.html', item=item)
+        checkout = db.execute(
+            "SELECT customer_name, checked_out_at FROM checkouts WHERE equipment_id = ? ORDER BY id DESC LIMIT 1",
+            (equipment_id,)
+        ).fetchone()
+        return render_template('checkout_confirm.html', item=item, checkout=checkout)
 
-    @app.route('/checkout/<int:equipment_id>/unavailable')
+    @app.route('/checkout/<int:equipment_id>/unavailable', methods=['GET', 'POST'])
     def checkout_unavailable(equipment_id):
         db = get_db()
         item = db.execute("SELECT name FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
-        return render_template('checkout_unavailable.html', item=item)
+        if request.method == 'POST':
+            name   = request.form.get('customer_name', '').strip()
+            member = request.form.get('member_number', '').strip()
+            if name and member:
+                db.execute(
+                    "INSERT INTO waitlist (equipment_id, customer_name, member_number) VALUES (?, ?, ?)",
+                    (equipment_id, name, member)
+                )
+                db.commit()
+            return render_template('checkout_unavailable.html', item=item, joined=True)
+        return render_template('checkout_unavailable.html', item=item, joined=False)
 
     @app.errorhandler(404)
     def not_found(e):

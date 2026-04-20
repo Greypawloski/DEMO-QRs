@@ -8,97 +8,102 @@
   <style>
     body { background: var(--bg); }
     .demos-wrap {
-      max-width: 540px;
+      max-width: 580px;
       margin: 0 auto;
       padding: 24px 16px 48px;
     }
-    .demos-header {
-      text-align: center;
-      margin-bottom: 28px;
+    .demos-header { text-align:center; margin-bottom:20px; }
+    .demos-header h1 { font-size:1.6rem; margin-bottom:4px; }
+    .demos-header p { color:var(--muted); font-size:0.95rem; margin:0; }
+    .search-bar {
+      display:flex; gap:8px; margin-bottom:24px;
     }
-    .demos-header h1 {
-      font-size: 1.6rem;
-      margin-bottom: 4px;
+    .search-bar input {
+      flex:1; padding:10px 14px; border:2px solid var(--border);
+      border-radius:8px; font-size:1rem;
     }
-    .demos-header p {
-      color: var(--muted);
-      font-size: 0.95rem;
-      margin: 0;
+    .search-bar button {
+      padding:10px 16px; border:none; background:var(--accent);
+      color:#fff; border-radius:8px; font-size:0.95rem; cursor:pointer;
     }
-    .demos-section {
-      margin-bottom: 32px;
-    }
+    .demos-section { margin-bottom:32px; }
     .demos-section h2 {
-      font-size: 1rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 8px;
-      margin-bottom: 12px;
+      font-size:1rem; font-weight:700; text-transform:uppercase;
+      letter-spacing:0.06em; color:var(--muted);
+      border-bottom:2px solid var(--border); padding-bottom:8px; margin-bottom:12px;
     }
     .demo-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 14px;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      margin-bottom: 8px;
-      gap: 12px;
+      background:#fff; border:1px solid var(--border); border-radius:8px;
+      margin-bottom:8px; overflow:hidden;
     }
-    .demo-item-name {
-      font-size: 0.97rem;
-      font-weight: 600;
-      flex: 1;
-      min-width: 0;
+    .demo-item-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 14px; gap:12px; cursor:pointer;
     }
+    .demo-item-name { font-size:0.97rem; font-weight:600; flex:1; min-width:0; }
     .badge-avail {
-      background: #d1fae5;
-      color: #065f46;
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      white-space: nowrap;
-      flex-shrink: 0;
+      background:#d1fae5; color:#065f46; border-radius:20px;
+      padding:4px 12px; font-size:0.8rem; font-weight:700; white-space:nowrap; flex-shrink:0;
     }
     .badge-out {
-      background: #fee2e2;
-      color: #991b1b;
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      white-space: nowrap;
-      flex-shrink: 0;
+      background:#fee2e2; color:#991b1b; border-radius:20px;
+      padding:4px 12px; font-size:0.8rem; font-weight:700; white-space:nowrap; flex-shrink:0;
     }
-    .empty-section {
-      color: var(--muted);
-      font-size: 0.9rem;
-      padding: 8px 0;
+    .demo-specs {
+      display:none; padding:0 14px 12px; border-top:1px solid var(--border);
+      font-size:0.88rem;
     }
+    .demo-specs table { border-collapse:collapse; width:100%; }
+    .demo-specs td { padding:3px 8px 3px 0; color:var(--muted); }
+    .demo-specs td:first-child { font-weight:600; color:var(--text); white-space:nowrap; }
+    .demo-item.has-specs .demo-item-header::after {
+      content:'›'; font-size:1.2rem; color:var(--muted); transition:transform 0.15s; flex-shrink:0;
+    }
+    .demo-item.open .demo-item-header::after { transform:rotate(90deg); }
+    .demo-item.open .demo-specs { display:block; }
+    .no-results { text-align:center; color:var(--muted); padding:24px 0; display:none; }
   </style>
 </head>
 <body>
 <div class="demos-wrap">
   <div class="demos-header">
     <h1>Demo Equipment</h1>
-    <p>See what's available to check out at the front desk.</p>
+    <p>Tap an item to see specs. Visit the front desk to check one out.</p>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search by name…" oninput="filterItems()">
+    <button onclick="document.getElementById('search-input').value='';filterItems()">Clear</button>
   </div>
 
   {% if racquets %}
-  <div class="demos-section">
+  <div class="demos-section" id="section-racquets">
     <h2>Tennis Racquets</h2>
     {% for item in racquets %}
-      <div class="demo-item">
-        <span class="demo-item-name">{{ item.name }}</span>
-        {% if item.is_checked_out %}
-          <span class="badge-out">Checked Out</span>
-        {% else %}
-          <span class="badge-avail">Available</span>
+      {% set specs = [] %}
+      {% for i in range(1, 6) %}
+        {% set lk = 'spec' ~ i ~ '_label' %}
+        {% set vk = 'spec' ~ i ~ '_value' %}
+        {% if item[lk] and item[vk] %}{% set _ = specs.append((item[lk], item[vk])) %}{% endif %}
+      {% endfor %}
+      <div class="demo-item {% if specs %}has-specs{% endif %}" data-name="{{ item.name | lower }}"
+           onclick="{% if specs %}toggleSpecs(this){% endif %}">
+        <div class="demo-item-header">
+          <span class="demo-item-name">{{ item.name }}</span>
+          {% if item.is_checked_out %}
+            <span class="badge-out">Checked Out</span>
+          {% else %}
+            <span class="badge-avail">Available</span>
+          {% endif %}
+        </div>
+        {% if specs %}
+        <div class="demo-specs">
+          <table>
+            {% for label, value in specs %}
+            <tr><td>{{ label }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+          </table>
+        </div>
         {% endif %}
       </div>
     {% endfor %}
@@ -106,15 +111,33 @@
   {% endif %}
 
   {% if paddles %}
-  <div class="demos-section">
+  <div class="demos-section" id="section-paddles">
     <h2>Pickleball Paddles</h2>
     {% for item in paddles %}
-      <div class="demo-item">
-        <span class="demo-item-name">{{ item.name }}</span>
-        {% if item.is_checked_out %}
-          <span class="badge-out">Checked Out</span>
-        {% else %}
-          <span class="badge-avail">Available</span>
+      {% set specs = [] %}
+      {% for i in range(1, 6) %}
+        {% set lk = 'spec' ~ i ~ '_label' %}
+        {% set vk = 'spec' ~ i ~ '_value' %}
+        {% if item[lk] and item[vk] %}{% set _ = specs.append((item[lk], item[vk])) %}{% endif %}
+      {% endfor %}
+      <div class="demo-item {% if specs %}has-specs{% endif %}" data-name="{{ item.name | lower }}"
+           onclick="{% if specs %}toggleSpecs(this){% endif %}">
+        <div class="demo-item-header">
+          <span class="demo-item-name">{{ item.name }}</span>
+          {% if item.is_checked_out %}
+            <span class="badge-out">Checked Out</span>
+          {% else %}
+            <span class="badge-avail">Available</span>
+          {% endif %}
+        </div>
+        {% if specs %}
+        <div class="demo-specs">
+          <table>
+            {% for label, value in specs %}
+            <tr><td>{{ label }}</td><td>{{ value }}</td></tr>
+            {% endfor %}
+          </table>
+        </div>
         {% endif %}
       </div>
     {% endfor %}
@@ -125,9 +148,33 @@
   <p style="text-align:center;color:var(--muted);">No demo equipment listed yet.</p>
   {% endif %}
 
+  <p class="no-results" id="no-results">No items match your search.</p>
+
   <p style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:16px;">
     Staff: <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
   </p>
 </div>
+
+<script>
+  function toggleSpecs(el) {
+    el.classList.toggle('open');
+  }
+  function filterItems() {
+    var q = document.getElementById('search-input').value.toLowerCase().trim();
+    var items = document.querySelectorAll('.demo-item');
+    var visible = 0;
+    items.forEach(function(item) {
+      var name = item.getAttribute('data-name') || '';
+      var show = !q || name.includes(q);
+      item.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.querySelectorAll('.demos-section').forEach(function(sec) {
+      var anyVisible = sec.querySelectorAll('.demo-item:not([style*="display: none"])').length > 0;
+      sec.style.display = anyVisible ? '' : 'none';
+    });
+    document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
+  }
+</script>
 </body>
 </html>

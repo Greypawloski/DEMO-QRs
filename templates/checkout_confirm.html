@@ -6,17 +6,31 @@
 <div class="confirm-wrap">
   <div class="confirm-icon">✓</div>
   <h2>You're all set!</h2>
-  <p>
-    <strong>{{ item.name }}</strong> is now checked out to you.<br>
-    Please return it to the front desk when you're done.
-  </p>
+
+  <div style="background:#f8f9fa;border-radius:10px;padding:16px 20px;margin:16px 0 20px;text-align:left;font-size:1rem;width:100%;max-width:320px;">
+    <div style="margin-bottom:10px;">
+      <span style="color:var(--muted);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em;">Item</span><br>
+      <strong>{{ item.name }}</strong>
+    </div>
+    {% if checkout %}
+    <div style="margin-bottom:10px;">
+      <span style="color:var(--muted);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em;">Checked Out To</span><br>
+      <strong>{{ checkout.customer_name }}</strong>
+    </div>
+    <div>
+      <span style="color:var(--muted);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em;">Date &amp; Time</span><br>
+      <strong>{{ checkout.checked_out_at | central }}</strong>
+    </div>
+    {% endif %}
+  </div>
+
   <p style="color:var(--red);font-weight:600;margin-bottom:24px;">
     Please return within 72 hours to avoid any late fees.
   </p>
   <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
     Done
   </a>
-  <p class="countdown" id="countdown">Returning to equipment list in <span id="sec">5</span>s…</p>
+  <p class="countdown" id="countdown">Returning to home in <span id="sec">5</span>s…</p>
 </div>
 
 <script>

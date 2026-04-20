@@ -1,10 +1,29 @@
 import io
+import csv
 import zipfile
+from datetime import datetime, timedelta, timezone
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file
 from pathlib import Path
 from database import get_db
 from auth import login_required
 from qr_utils import generate_qr, generate_label, LABEL_DIR
+
+
+def _due_back(checked_out_at_str):
+    """Return (label, is_overdue) for a checkout timestamp (UTC)."""
+    checked_out = datetime.fromisoformat(checked_out_at_str).replace(tzinfo=timezone.utc)
+    due = checked_out + timedelta(hours=72)
+    delta = due - datetime.now(timezone.utc)
+    total_secs = delta.total_seconds()
+    overdue = total_secs < 0
+    secs = abs(total_secs)
+    hours = int(secs // 3600)
+    mins  = int((secs % 3600) // 60)
+    if hours >= 48:
+        label = f"{hours // 24}d {hours % 24}h {'overdue' if overdue else 'left'}"
+    else:
+        label = f"{hours}h {mins}m {'overdue' if overdue else 'left'}"
+    return label, overdue
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -13,16 +32,43 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @login_required
 def dashboard():
     db = get_db()
-    active = db.execute(
+    rows = db.execute(
         """
-        SELECT c.id, c.customer_name, c.member_number, c.checked_out_at, c.photo_filename,
-               e.name AS equipment_name, e.category
+        SELECT c.id, c.customer_name, c.member_number, c.checked_out_at,
+               c.checkout_notes, c.photo_filename,
+               e.id AS equipment_id, e.name AS equipment_name, e.category
         FROM checkouts c
         JOIN equipment e ON c.equipment_id = e.id
         WHERE c.returned_at IS NULL
         ORDER BY c.checked_out_at DESC
         """
     ).fetchall()
+
+    waitlist_counts = {
+        w['equipment_id']: w['cnt']
+        for w in db.execute(
+            "SELECT equipment_id, COUNT(*) AS cnt FROM waitlist GROUP BY equipment_id"
+        ).fetchall()
+    }
+
+    active = []
+    for row in rows:
+        due_label, is_overdue = _due_back(row['checked_out_at'])
+        active.append({
+            'id':             row['id'],
+            'customer_name':  row['customer_name'],
+            'member_number':  row['member_number'],
+            'checked_out_at': row['checked_out_at'],
+            'checkout_notes': row['checkout_notes'],
+            'photo_filename': row['photo_filename'],
+            'equipment_id':   row['equipment_id'],
+            'equipment_name': row['equipment_name'],
+            'category':       row['category'],
+            'due_label':      due_label,
+            'is_overdue':     is_overdue,
+            'waitlist_count': waitlist_counts.get(row['equipment_id'], 0),
+        })
+
     return render_template('admin/dashboard.html', active=active)
 
 
@@ -265,6 +311,43 @@ def labels_download_zip():
     return send_file(zip_buf, as_attachment=True,
                      download_name='SACC-labels.zip',
                      mimetype='application/zip')
+
+
+@admin_bp.route('/history/export-csv')
+@login_required
+def history_export_csv():
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT c.id, e.name AS equipment, e.category,
+               c.customer_name, c.member_number, c.checkout_notes,
+               c.checked_out_at, c.returned_at, c.return_notes
+        FROM checkouts c
+        JOIN equipment e ON c.equipment_id = e.id
+        ORDER BY c.checked_out_at DESC
+        """
+    ).fetchall()
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(['ID', 'Equipment', 'Category', 'Member Name', 'Member #',
+                'Checkout Notes', 'Checked Out (UTC)', 'Returned (UTC)', 'Return Notes'])
+    for r in rows:
+        w.writerow([r['id'], r['equipment'], r['category'], r['customer_name'],
+                    r['member_number'], r['checkout_notes'] or '',
+                    r['checked_out_at'], r['returned_at'] or '', r['return_notes'] or ''])
+    buf.seek(0)
+    return send_file(io.BytesIO(buf.getvalue().encode()),
+                     as_attachment=True, download_name='checkout-history.csv',
+                     mimetype='text/csv')
+
+
+@admin_bp.route('/waitlist/<int:equipment_id>/clear', methods=['POST'])
+@login_required
+def waitlist_clear(equipment_id):
+    db = get_db()
+    db.execute("DELETE FROM waitlist WHERE equipment_id = ?", (equipment_id,))
+    db.commit()
+    return redirect(url_for('admin.dashboard'))
 
 
 @admin_bp.route('/regenerate-all-qr', methods=['POST'])

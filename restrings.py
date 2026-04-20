@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+import io
+import csv
+from flask import Blueprint, render_template, request, redirect, url_for, send_file
 from database import get_db
 from auth import login_required
 
@@ -109,6 +111,29 @@ def restring_edit(restring_id):
         db.commit()
         return redirect(url_for('restrings.list_restrings'))
     return render_template('admin/restring_form.html', item=item)
+
+
+@restrings_bp.route('/export-csv')
+@login_required
+def restrings_export_csv():
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM restrings ORDER BY created_at DESC"
+    ).fetchall()
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(['ID', 'Date In', 'Customer', 'Phone', 'Member #', 'Racquet',
+                'String', 'Tension', 'Date Promised', 'Strung By',
+                'Receipt', 'Charged', 'Status', 'Notes', 'Created At'])
+    for r in rows:
+        w.writerow([r['id'], r['date_in'], r['customer_name'], r['phone'],
+                    r['member_number'] or '', r['racquet'], r['string'], r['tension'],
+                    r['date_promised'], r['strung_by'] or '', r['receipt'] or '',
+                    r['charged'] or '', r['status'], r['notes'] or '', r['created_at']])
+    buf.seek(0)
+    return send_file(io.BytesIO(buf.getvalue().encode()),
+                     as_attachment=True, download_name='stringing-history.csv',
+                     mimetype='text/csv')
 
 
 @restrings_bp.route('/<int:restring_id>/status', methods=['POST'])

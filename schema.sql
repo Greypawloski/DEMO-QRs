@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS checkouts (
     checked_out_at TEXT NOT NULL DEFAULT (datetime('now')),
     returned_at    TEXT,
     return_notes   TEXT,
-    photo_filename TEXT
+    photo_filename TEXT,
+    checkout_notes TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_checkouts_equipment ON checkouts(equipment_id);
@@ -46,3 +47,12 @@ CREATE TABLE IF NOT EXISTS restrings (
 );
 
 CREATE INDEX IF NOT EXISTS idx_restrings_status ON restrings(status);
+
+CREATE TABLE IF NOT EXISTS waitlist (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    equipment_id  INTEGER NOT NULL REFERENCES equipment(id),
+    customer_name TEXT NOT NULL,
+    member_number TEXT NOT NULL,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_waitlist_equipment ON waitlist(equipment_id);
