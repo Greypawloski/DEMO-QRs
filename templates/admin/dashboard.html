@@ -21,6 +21,7 @@
           <th>Equipment</th>
           <th>Member Name</th>
           <th>Member #</th>
+          <th>Phone</th>
           <th>Checked Out</th>
           <th>Due Back</th>
           <th>Notes</th>
@@ -38,6 +39,7 @@
             </td>
             <td>{{ row.customer_name }}</td>
             <td>{{ row.member_number }}</td>
+            <td style="white-space:nowrap;">{{ row.phone or '—' }}</td>
             <td style="white-space:nowrap;">{{ row.checked_out_at | central }}</td>
             <td style="white-space:nowrap;">
               {% if row.is_overdue %}

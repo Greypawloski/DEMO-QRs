@@ -43,7 +43,7 @@ def dashboard():
     db  = get_db()
     q   = request.args.get('q', '').strip()
     sql = """
-        SELECT c.id, c.customer_name, c.member_number, c.checked_out_at,
+        SELECT c.id, c.customer_name, c.member_number, c.phone, c.checked_out_at,
                c.checkout_notes, c.photo_filename,
                e.id AS equipment_id, e.name AS equipment_name, e.category
         FROM checkouts c
@@ -80,6 +80,7 @@ def dashboard():
             'customer_name':  row['customer_name'],
             'member_number':  row['member_number'],
             'checked_out_at': row['checked_out_at'],
+            'phone':          row['phone'],
             'checkout_notes': row['checkout_notes'],
             'photo_filename': row['photo_filename'],
             'equipment_id':   row['equipment_id'],
@@ -471,7 +472,7 @@ def history_export_csv():
     rows = db.execute(
         """
         SELECT c.id, e.name AS equipment, e.category,
-               c.customer_name, c.member_number, c.checkout_notes,
+               c.customer_name, c.member_number, c.phone, c.checkout_notes,
                c.checked_out_at, c.returned_at, c.return_notes
         FROM checkouts c
         JOIN equipment e ON c.equipment_id = e.id
@@ -480,11 +481,11 @@ def history_export_csv():
     ).fetchall()
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(['ID', 'Equipment', 'Category', 'Member Name', 'Member #',
+    w.writerow(['ID', 'Equipment', 'Category', 'Member Name', 'Member #', 'Phone',
                 'Checkout Notes', 'Checked Out (CST)', 'Returned (CST)', 'Return Notes'])
     for r in rows:
         w.writerow([r['id'], r['equipment'], r['category'], r['customer_name'],
-                    r['member_number'], r['checkout_notes'] or '',
+                    r['member_number'], r['phone'] or '', r['checkout_notes'] or '',
                     _fmt_central(r['checked_out_at']), _fmt_central(r['returned_at']),
                     r['return_notes'] or ''])
     buf.seek(0)

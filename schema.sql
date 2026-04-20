@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS checkouts (
     equipment_id   INTEGER NOT NULL REFERENCES equipment(id),
     customer_name  TEXT NOT NULL,
     member_number  TEXT NOT NULL,
+    phone          TEXT,
     checked_out_at TEXT NOT NULL DEFAULT (datetime('now')),
     returned_at    TEXT,
     return_notes   TEXT,

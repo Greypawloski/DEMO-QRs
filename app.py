@@ -88,9 +88,10 @@ def create_app():
                     is_checked_out=bool(existing), error="Please fill in all fields."
                 )
             notes = request.form.get('checkout_notes', '').strip()
+            phone = request.form.get('phone', '').strip()
             cur = db.execute(
-                "INSERT INTO checkouts (equipment_id, customer_name, member_number, checkout_notes) VALUES (?, ?, ?, ?)",
-                (equipment_id, name, member, notes or None)
+                "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?, ?, ?, ?, ?)",
+                (equipment_id, name, member, phone or None, notes or None)
             )
             checkout_id = cur.lastrowid
             photo_file = request.files.get('condition_photo')
