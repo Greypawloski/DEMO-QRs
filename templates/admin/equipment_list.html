@@ -45,11 +45,10 @@
                 <a href="{{ url_for('admin.qr_print', equipment_id=item.id) }}" target="_blank" class="btn btn-secondary btn-sm">Print QR</a>
               {% endif %}
               {% if item.active %}
-                <form method="post" action="{{ url_for('admin.equipment_service', equipment_id=item.id) }}" style="display:inline;">
-                  <button type="submit" class="btn btn-secondary btn-sm">
-                    {{ 'Clear Service' if item.under_maintenance else 'Mark Service' }}
-                  </button>
-                </form>
+                <button type="button" class="btn btn-secondary btn-sm"
+                        onclick="openServiceModal({{ item.id }}, '{{ item.name | e }}', {{ item.under_maintenance | tojson }})">
+                  {{ 'Clear Service' if item.under_maintenance else 'Mark Service' }}
+                </button>
                 <button type="button" class="btn btn-secondary btn-sm"
                         onclick="openPinModal({{ item.id }}, '{{ item.name | e }}', 'Retire')">
                   Retire
@@ -71,6 +70,32 @@
     <p>No equipment yet. <a href="{{ url_for('admin.equipment_new') }}">Add your first item.</a></p>
   </div>
 {% endif %}
+
+<!-- Service modal -->
+<div id="service-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:32px 28px;max-width:380px;width:90%;text-align:center;">
+    <h2 id="service-modal-title" style="font-size:1.2rem;margin-bottom:6px;">Mark Under Maintenance</h2>
+    <p id="service-modal-name" style="color:var(--muted);margin-bottom:16px;font-size:0.95rem;"></p>
+    <form id="service-form" method="post">
+      {% if staff_names %}
+      <div class="form-group" style="text-align:left;">
+        <label for="service-staff-input">Staff member</label>
+        <select id="service-staff-input" name="staff_name" style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
+          <option value="">— Select staff —</option>
+          {% for sn in staff_names %}
+            <option value="{{ sn }}" {% if sn == current_staff %}selected{% endif %}>{{ sn }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Confirm</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('service-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- PIN modal -->
 <div id="retire-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
@@ -97,6 +122,12 @@
 </div>
 
 <script>
+  function openServiceModal(id, name, isMaintenance) {
+    document.getElementById('service-modal-title').textContent = isMaintenance ? 'Clear Maintenance' : 'Mark Under Maintenance';
+    document.getElementById('service-modal-name').textContent = name;
+    document.getElementById('service-form').action = '/admin/equipment/' + id + '/service';
+    document.getElementById('service-modal').style.display = 'flex';
+  }
   function openPinModal(id, name, action) {
     document.getElementById('retire-modal-title').textContent = action + ' Equipment';
     document.getElementById('retire-confirm-btn').textContent = 'Confirm ' + action;

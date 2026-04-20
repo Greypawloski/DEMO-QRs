@@ -158,7 +158,10 @@ def equipment_list():
         ORDER BY e.active DESC, e.category, e.name
         """
     ).fetchall()
-    return render_template('admin/equipment_list.html', equipment=rows)
+    from flask import session
+    return render_template('admin/equipment_list.html', equipment=rows,
+                           staff_names=current_app.config.get('STAFF_NAMES', []),
+                           current_staff=session.get('staff_name', ''))
 
 
 @admin_bp.route('/equipment/new', methods=['GET', 'POST'])
@@ -332,12 +335,16 @@ def history():
 @admin_bp.route('/equipment/<int:equipment_id>/service', methods=['POST'])
 @login_required
 def equipment_service(equipment_id):
+    staff = request.form.get('staff_name', '').strip()
     db = get_db()
     item = db.execute("SELECT name, under_maintenance FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
     db.execute("UPDATE equipment SET under_maintenance = 1 - under_maintenance WHERE id = ?", (equipment_id,))
     if item:
         action = 'Cleared Maintenance' if item['under_maintenance'] else 'Marked Under Maintenance'
-        _log(action, item['name'])
+        db.execute(
+            "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+            (staff or 'Unknown', action, item['name'])
+        )
     db.commit()
     return redirect(url_for('admin.equipment_list'))
 
