@@ -64,6 +64,14 @@ def dashboard():
         ).fetchall()
     }
 
+    waitlist_members = {}
+    for w in db.execute(
+        "SELECT equipment_id, customer_name, member_number FROM waitlist ORDER BY created_at"
+    ).fetchall():
+        waitlist_members.setdefault(w['equipment_id'], []).append(
+            {'name': w['customer_name'], 'member': w['member_number']}
+        )
+
     active = []
     for row in rows:
         due_label, is_overdue = _due_back(row['checked_out_at'])
@@ -82,7 +90,8 @@ def dashboard():
             'waitlist_count': waitlist_counts.get(row['equipment_id'], 0),
         })
 
-    return render_template('admin/dashboard.html', active=active, q=q)
+    return render_template('admin/dashboard.html', active=active, q=q,
+                           waitlist_members=waitlist_members)
 
 
 @admin_bp.route('/return/<int:checkout_id>', methods=['POST'])
