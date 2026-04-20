@@ -152,6 +152,10 @@ def restrings_export_csv():
 def restring_status(restring_id):
     new_status = request.form.get('status', 'pending')
     db = get_db()
-    db.execute("UPDATE restrings SET status=? WHERE id=?", (new_status, restring_id))
+    if new_status == 'complete':
+        db.execute("UPDATE restrings SET status=?, completed_at=datetime('now') WHERE id=?",
+                   (new_status, restring_id))
+    else:
+        db.execute("UPDATE restrings SET status=? WHERE id=?", (new_status, restring_id))
     db.commit()
     return redirect(url_for('restrings.list_restrings'))

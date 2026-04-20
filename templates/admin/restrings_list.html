@@ -48,6 +48,7 @@
           <th>Strung By</th>
           <th>Receipt</th>
           <th>Charged</th>
+          <th>Marked Ready</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -68,6 +69,7 @@
             <td>{{ row.strung_by or '—' }}</td>
             <td>{{ row.receipt or '—' }}</td>
             <td>{{ row.charged or '—' }}</td>
+            <td style="white-space:nowrap;">{{ row.completed_at | central if row.completed_at else '—' }}</td>
             <td>
               {% if row.status == 'pending' %}
                 <span class="status-badge status-out">Pending</span>

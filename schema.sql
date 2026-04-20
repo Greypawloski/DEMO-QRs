@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS restrings (
     notes         TEXT,
     strung_by     TEXT,
     status        TEXT NOT NULL DEFAULT 'pending',
+    completed_at  TEXT,
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
