@@ -124,6 +124,10 @@
   {% if not racquets and not paddles %}
   <p style="text-align:center;color:var(--muted);">No demo equipment listed yet.</p>
   {% endif %}
+
+  <p style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:16px;">
+    Staff: <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
+  </p>
 </div>
 </body>
 </html>
