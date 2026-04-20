@@ -28,6 +28,15 @@ def _due_back(checked_out_at_str):
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 
+def _log(action, details=None):
+    from flask import session
+    staff = session.get('staff_name', 'Unknown')
+    get_db().execute(
+        "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+        (staff, action, details)
+    )
+
+
 @admin_bp.route('/')
 @login_required
 def dashboard():
@@ -82,10 +91,19 @@ def mark_returned(checkout_id):
         photo_path = Path(current_app.root_path) / 'static' / 'checkout_photos' / row['photo_filename']
         if photo_path.exists():
             photo_path.unlink()
+    checkout = db.execute(
+        "SELECT c.return_notes, e.name AS equipment_name, c.customer_name, c.member_number "
+        "FROM checkouts c JOIN equipment e ON c.equipment_id = e.id WHERE c.id = ?",
+        (checkout_id,)
+    ).fetchone()
     db.execute(
         "UPDATE checkouts SET returned_at = datetime('now'), return_notes = ? WHERE id = ?",
         (notes, checkout_id)
     )
+    if checkout:
+        _log('Mark Returned',
+             f"{checkout['equipment_name']} — {checkout['customer_name']} (#{checkout['member_number']})"
+             + (f" — Notes: {notes}" if notes else ""))
     db.commit()
     return redirect(url_for('admin.dashboard'))
 
@@ -295,9 +313,22 @@ def history():
 @login_required
 def equipment_service(equipment_id):
     db = get_db()
+    item = db.execute("SELECT name, under_maintenance FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
     db.execute("UPDATE equipment SET under_maintenance = 1 - under_maintenance WHERE id = ?", (equipment_id,))
+    if item:
+        action = 'Cleared Maintenance' if item['under_maintenance'] else 'Marked Under Maintenance'
+        _log(action, item['name'])
     db.commit()
     return redirect(url_for('admin.equipment_list'))
+
+
+@admin_bp.route('/activity')
+@login_required
+def activity_log():
+    rows = get_db().execute(
+        "SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 200"
+    ).fetchall()
+    return render_template('admin/activity_log.html', rows=rows)
 
 
 @admin_bp.route('/reports')

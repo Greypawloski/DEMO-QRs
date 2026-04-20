@@ -17,9 +17,21 @@
     {% endif %}
 
     <form method="post">
+      {% if staff_names %}
+      <div class="form-group">
+        <label for="staff_name">Who are you?</label>
+        <select id="staff_name" name="staff_name" required>
+          <option value="" disabled selected>Select your name…</option>
+          {% for name in staff_names %}
+            <option value="{{ name }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
       <div class="form-group">
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" autofocus required>
+        <input type="password" id="password" name="password"
+               {% if not staff_names %}autofocus{% endif %} required>
       </div>
       <button type="submit" class="btn btn-primary">Log In</button>
     </form>

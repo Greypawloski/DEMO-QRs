@@ -13,8 +13,10 @@
     <a href="{{ url_for('admin.equipment_list') }}">Equipment</a>
     <a href="{{ url_for('admin.history') }}">History</a>
     <a href="{{ url_for('admin.reports') }}">Reports</a>
+    <a href="{{ url_for('admin.activity_log') }}">Activity</a>
     <a href="{{ url_for('restrings.list_restrings') }}">Restringing</a>
     <a href="{{ url_for('admin.kiosk_view') }}">Kiosk View</a>
+    {% if session.staff_name %}<span style="color:var(--muted);font-size:0.85rem;padding:0 4px;">{{ session.staff_name }}</span>{% endif %}
     <a href="{{ url_for('auth.logout') }}">Log Out</a>
   </nav>
   <div class="admin-wrap">

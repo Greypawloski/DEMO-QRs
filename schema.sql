@@ -58,3 +58,11 @@ CREATE TABLE IF NOT EXISTS waitlist (
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_waitlist_equipment ON waitlist(equipment_id);
+
+CREATE TABLE IF NOT EXISTS activity_log (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    staff_name TEXT NOT NULL,
+    action     TEXT NOT NULL,
+    details    TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
