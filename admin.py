@@ -40,18 +40,22 @@ def _log(action, details=None):
 @admin_bp.route('/')
 @login_required
 def dashboard():
-    db = get_db()
-    rows = db.execute(
-        """
+    db  = get_db()
+    q   = request.args.get('q', '').strip()
+    sql = """
         SELECT c.id, c.customer_name, c.member_number, c.checked_out_at,
                c.checkout_notes, c.photo_filename,
                e.id AS equipment_id, e.name AS equipment_name, e.category
         FROM checkouts c
         JOIN equipment e ON c.equipment_id = e.id
         WHERE c.returned_at IS NULL
-        ORDER BY c.checked_out_at DESC
-        """
-    ).fetchall()
+    """
+    params = []
+    if q:
+        sql += " AND (c.customer_name LIKE ? OR c.member_number LIKE ?)"
+        params = [f'%{q}%', f'%{q}%']
+    sql += " ORDER BY c.checked_out_at DESC"
+    rows = db.execute(sql, params).fetchall()
 
     waitlist_counts = {
         w['equipment_id']: w['cnt']
@@ -78,7 +82,7 @@ def dashboard():
             'waitlist_count': waitlist_counts.get(row['equipment_id'], 0),
         })
 
-    return render_template('admin/dashboard.html', active=active)
+    return render_template('admin/dashboard.html', active=active, q=q)
 
 
 @admin_bp.route('/return/<int:checkout_id>', methods=['POST'])

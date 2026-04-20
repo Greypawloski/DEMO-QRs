@@ -3,7 +3,15 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<h1>Active Checkouts</h1>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">Active Checkouts</h1>
+  <form method="get" style="display:flex;gap:8px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by name or member #"
+           style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:240px;">
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    {% if q %}<a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
+  </form>
+</div>
 
 {% if active %}
   <div class="table-wrap">
