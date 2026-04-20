@@ -123,6 +123,21 @@ def restring_edit(restring_id):
     return render_template('admin/restring_form.html', item=item)
 
 
+@restrings_bp.route('/<int:restring_id>/undo-pickup', methods=['POST'])
+@login_required
+def restring_undo_pickup(restring_id):
+    from flask import session
+    db = get_db()
+    job = db.execute("SELECT customer_name, racquet FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    db.execute("UPDATE restrings SET status='complete' WHERE id=?", (restring_id,))
+    if job:
+        staff = session.get('staff_name', 'Unknown')
+        db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+                   (staff, 'Undo Pickup', f"{job['customer_name']} — {job['racquet']}"))
+    db.commit()
+    return redirect(url_for('restrings.list_restrings'))
+
+
 @restrings_bp.route('/export-csv')
 @login_required
 def restrings_export_csv():
