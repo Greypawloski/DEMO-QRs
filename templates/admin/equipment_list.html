@@ -59,6 +59,10 @@
                   Activate
                 </button>
               {% endif %}
+              <button type="button" class="btn btn-danger btn-sm"
+                      onclick="openDeleteEquipModal({{ item.id }}, '{{ item.name | e }}')">
+                Delete
+              </button>
             </td>
           </tr>
         {% endfor %}
@@ -70,6 +74,29 @@
     <p>No equipment yet. <a href="{{ url_for('admin.equipment_new') }}">Add your first item.</a></p>
   </div>
 {% endif %}
+
+<!-- Delete equipment modal -->
+<div id="delete-equip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:32px 28px;max-width:340px;width:90%;text-align:center;">
+    <h2 style="font-size:1.2rem;margin-bottom:6px;">Delete Equipment</h2>
+    <p id="delete-equip-name" style="color:var(--muted);margin-bottom:4px;font-size:0.95rem;"></p>
+    <p style="color:var(--red);font-size:0.85rem;margin-bottom:20px;">This permanently deletes the item and all its checkout history.</p>
+    <form id="delete-equip-form" method="post">
+      <div class="form-group" style="text-align:left;">
+        <label for="delete-equip-pin">Enter PIN to confirm</label>
+        <input type="password" id="delete-equip-pin" name="pin"
+               inputmode="numeric" maxlength="10"
+               style="font-size:1.4rem;letter-spacing:0.2em;text-align:center;width:100%;">
+        <p id="delete-equip-pin-error" style="display:none;color:var(--red);font-size:0.9rem;margin-top:6px;">Incorrect PIN. Try again.</p>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-danger" style="flex:1;">Delete</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('delete-equip-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Service modal -->
 <div id="service-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
@@ -122,6 +149,18 @@
 </div>
 
 <script>
+  function openDeleteEquipModal(id, name) {
+    document.getElementById('delete-equip-name').textContent = name;
+    document.getElementById('delete-equip-form').action = '/admin/equipment/' + id + '/delete';
+    document.getElementById('delete-equip-pin').value = '';
+    document.getElementById('delete-equip-pin-error').style.display = 'none';
+    document.getElementById('delete-equip-modal').style.display = 'flex';
+    document.getElementById('delete-equip-pin').focus();
+  }
+  {% if delete_equip_error %}
+    openDeleteEquipModal({{ delete_equip_error_id }}, {{ delete_equip_error_name | tojson }});
+    document.getElementById('delete-equip-pin-error').style.display = 'block';
+  {% endif %}
   function openServiceModal(id, name, isMaintenance) {
     document.getElementById('service-modal-title').textContent = isMaintenance ? 'Clear Maintenance' : 'Mark Under Maintenance';
     document.getElementById('service-modal-name').textContent = name;

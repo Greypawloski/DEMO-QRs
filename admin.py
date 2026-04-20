@@ -358,6 +358,36 @@ def history():
     return render_template('admin/history.html', rows=rows, q=q)
 
 
+@admin_bp.route('/equipment/<int:equipment_id>/delete', methods=['POST'])
+@login_required
+def equipment_delete(equipment_id):
+    from flask import session
+    db = get_db()
+    item = db.execute("SELECT name FROM equipment WHERE id=?", (equipment_id,)).fetchone()
+    if item is None:
+        return redirect(url_for('admin.equipment_list'))
+    if request.form.get('pin') != current_app.config['RETIRE_PIN']:
+        rows = db.execute(
+            """SELECT e.*, CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
+               FROM equipment e
+               LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
+               ORDER BY e.active DESC, e.category, e.name"""
+        ).fetchall()
+        return render_template('admin/equipment_list.html', equipment=rows,
+                               staff_names=current_app.config.get('STAFF_NAMES', []),
+                               current_staff=session.get('staff_name', ''),
+                               delete_equip_error=True,
+                               delete_equip_error_id=equipment_id,
+                               delete_equip_error_name=item['name'])
+    db.execute("DELETE FROM checkouts WHERE equipment_id=?", (equipment_id,))
+    db.execute("DELETE FROM waitlist WHERE equipment_id=?", (equipment_id,))
+    db.execute("DELETE FROM equipment WHERE id=?", (equipment_id,))
+    db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+               (session.get('staff_name', 'Unknown'), 'Delete Equipment', item['name']))
+    db.commit()
+    return redirect(url_for('admin.equipment_list'))
+
+
 @admin_bp.route('/equipment/<int:equipment_id>/service', methods=['POST'])
 @login_required
 def equipment_service(equipment_id):
