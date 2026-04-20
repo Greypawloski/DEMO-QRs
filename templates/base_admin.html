@@ -8,6 +8,7 @@
 </head>
 <body>
   <nav class="admin-nav">
+    <img src="{{ url_for('static', filename='sacc-logo.png') }}" alt="SACC" style="height:36px;filter:brightness(0) invert(1);margin-right:4px;">
     <span class="brand">Demo Checkout</span>
     <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
     <a href="{{ url_for('admin.equipment_list') }}">Equipment</a>
