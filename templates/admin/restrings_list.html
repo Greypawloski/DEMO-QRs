@@ -93,6 +93,10 @@
                   <button type="submit" class="btn btn-danger btn-sm"
                           onclick="return confirm('Mark {{ row.customer_name | e }}\'s racquet as picked up?')">Mark Picked Up</button>
                 </form>
+                <form method="post" action="{{ url_for('restrings.restring_unmark_ready', restring_id=row.id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm"
+                          onclick="return confirm('Revert {{ row.customer_name | e }}\'s racquet back to Pending?')">Unmark Ready</button>
+                </form>
               {% endif %}
             </td>
           </tr>

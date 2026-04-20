@@ -148,6 +148,21 @@ def restring_delete(restring_id):
     return redirect(url_for('restrings.list_restrings'))
 
 
+@restrings_bp.route('/<int:restring_id>/unmark-ready', methods=['POST'])
+@login_required
+def restring_unmark_ready(restring_id):
+    from flask import session
+    db = get_db()
+    job = db.execute("SELECT customer_name, racquet FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    db.execute("UPDATE restrings SET status='pending', completed_at=NULL WHERE id=?", (restring_id,))
+    if job:
+        staff = session.get('staff_name', 'Unknown')
+        db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+                   (staff, 'Unmark Restring Ready', f"{job['customer_name']} — {job['racquet']}"))
+    db.commit()
+    return redirect(url_for('restrings.list_restrings'))
+
+
 @restrings_bp.route('/<int:restring_id>/undo-pickup', methods=['POST'])
 @login_required
 def restring_undo_pickup(restring_id):
