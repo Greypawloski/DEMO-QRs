@@ -1,8 +1,18 @@
 import io
 import csv
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from flask import Blueprint, render_template, request, redirect, url_for, send_file
 from database import get_db
 from auth import login_required
+
+_CENTRAL = ZoneInfo('America/Chicago')
+
+def _fmt_central(dt_str):
+    if not dt_str:
+        return ''
+    dt = datetime.fromisoformat(dt_str).replace(tzinfo=timezone.utc)
+    return dt.astimezone(_CENTRAL).strftime('%-m/%-d/%Y %-I:%M %p')
 
 restrings_bp = Blueprint('restrings', __name__, url_prefix='/admin/restrings')
 
@@ -129,7 +139,8 @@ def restrings_export_csv():
         w.writerow([r['id'], r['date_in'], r['customer_name'], r['phone'],
                     r['member_number'] or '', r['racquet'], r['string'], r['tension'],
                     r['date_promised'], r['strung_by'] or '', r['receipt'] or '',
-                    r['charged'] or '', r['status'], r['notes'] or '', r['created_at']])
+                    r['charged'] or '', r['status'], r['notes'] or '',
+                    _fmt_central(r['created_at'])])
     buf.seek(0)
     return send_file(io.BytesIO(buf.getvalue().encode()),
                      as_attachment=True, download_name='stringing-history.csv',

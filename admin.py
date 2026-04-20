@@ -313,6 +313,14 @@ def labels_download_zip():
                      mimetype='application/zip')
 
 
+def _fmt_central(dt_str):
+    if not dt_str:
+        return ''
+    from zoneinfo import ZoneInfo
+    dt = datetime.fromisoformat(dt_str).replace(tzinfo=timezone.utc)
+    return dt.astimezone(ZoneInfo('America/Chicago')).strftime('%-m/%-d/%Y %-I:%M %p')
+
+
 @admin_bp.route('/history/export-csv')
 @login_required
 def history_export_csv():
@@ -330,11 +338,12 @@ def history_export_csv():
     buf = io.StringIO()
     w = csv.writer(buf)
     w.writerow(['ID', 'Equipment', 'Category', 'Member Name', 'Member #',
-                'Checkout Notes', 'Checked Out (UTC)', 'Returned (UTC)', 'Return Notes'])
+                'Checkout Notes', 'Checked Out (CST)', 'Returned (CST)', 'Return Notes'])
     for r in rows:
         w.writerow([r['id'], r['equipment'], r['category'], r['customer_name'],
                     r['member_number'], r['checkout_notes'] or '',
-                    r['checked_out_at'], r['returned_at'] or '', r['return_notes'] or ''])
+                    _fmt_central(r['checked_out_at']), _fmt_central(r['returned_at']),
+                    r['return_notes'] or ''])
     buf.seek(0)
     return send_file(io.BytesIO(buf.getvalue().encode()),
                      as_attachment=True, download_name='checkout-history.csv',
