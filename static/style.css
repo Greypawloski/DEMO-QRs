@@ -74,8 +74,7 @@ a:hover { text-decoration: underline; }
 
 .equipment-card.unavailable {
   opacity: 0.6;
-  cursor: not-allowed;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .equipment-card .card-name {

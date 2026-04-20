@@ -12,11 +12,12 @@
   <div class="equipment-grid">
     {% for item in equipment %}
       {% if item.is_checked_out %}
-        <div class="equipment-card unavailable">
+        <a class="equipment-card unavailable" href="{{ url_for('checkout_unavailable', equipment_id=item.id) }}">
           <span class="badge-out">Checked Out</span>
           <div class="card-category">{{ item.category }}</div>
           <div class="card-name">{{ item.name }}</div>
-        </div>
+          <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;">Tap to join waitlist</div>
+        </a>
       {% else %}
         <a class="equipment-card" href="{{ url_for('checkout', equipment_id=item.id) }}">
           <span class="badge-available">Available</span>
