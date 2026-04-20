@@ -15,7 +15,7 @@ def dashboard():
     db = get_db()
     active = db.execute(
         """
-        SELECT c.id, c.customer_name, c.member_number, c.checked_out_at,
+        SELECT c.id, c.customer_name, c.member_number, c.checked_out_at, c.photo_filename,
                e.name AS equipment_name, e.category
         FROM checkouts c
         JOIN equipment e ON c.equipment_id = e.id
@@ -31,6 +31,11 @@ def dashboard():
 def mark_returned(checkout_id):
     notes = request.form.get('notes', '')
     db = get_db()
+    row = db.execute("SELECT photo_filename FROM checkouts WHERE id=?", (checkout_id,)).fetchone()
+    if row and row['photo_filename']:
+        photo_path = Path(current_app.root_path) / 'static' / 'checkout_photos' / row['photo_filename']
+        if photo_path.exists():
+            photo_path.unlink()
     db.execute(
         "UPDATE checkouts SET returned_at = datetime('now'), return_notes = ? WHERE id = ?",
         (notes, checkout_id)

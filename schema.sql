@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS checkouts (
     member_number  TEXT NOT NULL,
     checked_out_at TEXT NOT NULL DEFAULT (datetime('now')),
     returned_at    TEXT,
-    return_notes   TEXT
+    return_notes   TEXT,
+    photo_filename TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_checkouts_equipment ON checkouts(equipment_id);

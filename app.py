@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, g
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from pathlib import Path
+from PIL import Image as PILImage
 import config
 from database import get_db, init_db, init_app as db_init_app
 from auth import auth_bp
@@ -81,10 +83,15 @@ def create_app():
                     'checkout_scan.html', item=item, specs=specs,
                     is_checked_out=bool(existing), error="Please fill in all fields."
                 )
-            db.execute(
+            cur = db.execute(
                 "INSERT INTO checkouts (equipment_id, customer_name, member_number) VALUES (?, ?, ?)",
                 (equipment_id, name, member)
             )
+            checkout_id = cur.lastrowid
+            photo_file = request.files.get('condition_photo')
+            if item['category'] == 'paddle' and photo_file and photo_file.filename:
+                fname = _save_checkout_photo(photo_file, checkout_id)
+                db.execute("UPDATE checkouts SET photo_filename=? WHERE id=?", (fname, checkout_id))
             db.commit()
             return redirect(url_for('checkout_confirm', equipment_id=equipment_id))
 
@@ -115,6 +122,17 @@ def create_app():
         return render_template('errors/500.html'), 500
 
     return app
+
+
+def _save_checkout_photo(file, checkout_id):
+    img = PILImage.open(file.stream).convert('RGB')
+    if max(img.size) > 1200:
+        img.thumbnail((1200, 1200), PILImage.LANCZOS)
+    photos_dir = Path(app.root_path) / 'static' / 'checkout_photos'
+    photos_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"checkout_{checkout_id}.jpg"
+    img.save(photos_dir / filename, 'JPEG', quality=80)
+    return filename
 
 
 def _get_specs(item):
