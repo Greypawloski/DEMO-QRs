@@ -117,7 +117,7 @@ def equipment_list():
                CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
         FROM equipment e
         LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
-        ORDER BY e.category, e.name
+        ORDER BY e.active DESC, e.category, e.name
         """
     ).fetchall()
     return render_template('admin/equipment_list.html', equipment=rows)
@@ -289,6 +289,53 @@ def history():
             """
         ).fetchall()
     return render_template('admin/history.html', rows=rows, q=q)
+
+
+@admin_bp.route('/equipment/<int:equipment_id>/service', methods=['POST'])
+@login_required
+def equipment_service(equipment_id):
+    db = get_db()
+    db.execute("UPDATE equipment SET under_maintenance = 1 - under_maintenance WHERE id = ?", (equipment_id,))
+    db.commit()
+    return redirect(url_for('admin.equipment_list'))
+
+
+@admin_bp.route('/reports')
+@login_required
+def reports():
+    db = get_db()
+
+    popular = db.execute(
+        """
+        SELECT e.name, e.category, COUNT(c.id) AS total
+        FROM equipment e
+        LEFT JOIN checkouts c ON e.id = c.equipment_id
+        GROUP BY e.id ORDER BY total DESC LIMIT 20
+        """
+    ).fetchall()
+
+    durations = db.execute(
+        """
+        SELECT e.name, e.category, COUNT(c.id) AS total,
+               ROUND(AVG((julianday(c.returned_at) - julianday(c.checked_out_at)) * 24), 1) AS avg_hours
+        FROM equipment e
+        JOIN checkouts c ON e.id = c.equipment_id
+        WHERE c.returned_at IS NOT NULL
+        GROUP BY e.id ORDER BY total DESC
+        """
+    ).fetchall()
+
+    members = db.execute(
+        """
+        SELECT customer_name, member_number, COUNT(*) AS total,
+               MAX(checked_out_at) AS last_checkout
+        FROM checkouts
+        GROUP BY member_number
+        ORDER BY total DESC LIMIT 30
+        """
+    ).fetchall()
+
+    return render_template('admin/reports.html', popular=popular, durations=durations, members=members)
 
 
 @admin_bp.route('/labels/download-zip')

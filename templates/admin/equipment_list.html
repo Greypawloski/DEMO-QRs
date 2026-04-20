@@ -31,6 +31,8 @@
             <td>
               {% if not item.active %}
                 <span class="status-badge status-retired">Retired</span>
+              {% elif item.under_maintenance %}
+                <span class="status-badge" style="background:#fef3c7;color:#92400e;">Under Maintenance</span>
               {% elif item.is_checked_out %}
                 <span class="status-badge status-out">Checked Out</span>
               {% else %}
@@ -43,6 +45,11 @@
                 <a href="{{ url_for('admin.qr_print', equipment_id=item.id) }}" target="_blank" class="btn btn-secondary btn-sm">Print QR</a>
               {% endif %}
               {% if item.active %}
+                <form method="post" action="{{ url_for('admin.equipment_service', equipment_id=item.id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                    {{ 'Clear Service' if item.under_maintenance else 'Mark Service' }}
+                  </button>
+                </form>
                 <button type="button" class="btn btn-secondary btn-sm"
                         onclick="openPinModal({{ item.id }}, '{{ item.name | e }}', 'Retire')">
                   Retire

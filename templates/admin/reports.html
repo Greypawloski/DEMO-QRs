@@ -1,0 +1,104 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom:32px;">Reports</h1>
+
+<!-- Most Popular Demos -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Most Popular Demos</h2>
+<div class="table-wrap" style="margin-bottom:40px;">
+  {% if popular %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Equipment</th>
+        <th>Category</th>
+        <th>Total Checkouts</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in popular %}
+      <tr>
+        <td style="color:var(--muted);font-weight:700;">{{ loop.index }}</td>
+        <td><strong>{{ row.name }}</strong></td>
+        <td>{{ row.category }}</td>
+        <td>{{ row.total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No checkout data yet.</p></div>
+  {% endif %}
+</div>
+
+<!-- Average Checkout Duration -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Average Checkout Duration</h2>
+<div class="table-wrap" style="margin-bottom:40px;">
+  {% if durations %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Equipment</th>
+        <th>Category</th>
+        <th>Returned Checkouts</th>
+        <th>Avg Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in durations %}
+      <tr>
+        <td><strong>{{ row.name }}</strong></td>
+        <td>{{ row.category }}</td>
+        <td>{{ row.total }}</td>
+        <td>
+          {% if row.avg_hours %}
+            {% if row.avg_hours >= 24 %}
+              {{ (row.avg_hours / 24) | round(1) }}d
+            {% else %}
+              {{ row.avg_hours }}h
+            {% endif %}
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No returned checkouts yet.</p></div>
+  {% endif %}
+</div>
+
+<!-- Member Checkout Frequency -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Member Checkout Frequency</h2>
+<div class="table-wrap">
+  {% if members %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Member Name</th>
+        <th>Member #</th>
+        <th>Total Checkouts</th>
+        <th>Last Checkout</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in members %}
+      <tr>
+        <td style="color:var(--muted);font-weight:700;">{{ loop.index }}</td>
+        <td><strong>{{ row.customer_name }}</strong></td>
+        <td>{{ row.member_number }}</td>
+        <td>{{ row.total }}</td>
+        <td style="white-space:nowrap;">{{ row.last_checkout | central }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No checkout data yet.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -45,7 +45,7 @@ def create_app():
         db = get_db()
         rows = db.execute(
             """
-            SELECT e.name, e.category,
+            SELECT e.name, e.category, e.under_maintenance,
                    e.spec1_label, e.spec1_value, e.spec2_label, e.spec2_value,
                    e.spec3_label, e.spec3_value, e.spec4_label, e.spec4_value,
                    e.spec5_label, e.spec5_value,
@@ -98,6 +98,9 @@ def create_app():
                 db.execute("UPDATE checkouts SET photo_filename=? WHERE id=?", (fname, checkout_id))
             db.commit()
             return redirect(url_for('checkout_confirm', equipment_id=equipment_id))
+
+        if item['under_maintenance']:
+            return render_template('checkout_unavailable.html', item=item, joined=False, maintenance=True)
 
         if existing:
             return redirect(url_for('checkout_unavailable', equipment_id=equipment_id))

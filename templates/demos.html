@@ -90,7 +90,9 @@
            onclick="{% if specs %}toggleSpecs(this){% endif %}">
         <div class="demo-item-header">
           <span class="demo-item-name">{{ item.name }}</span>
-          {% if item.is_checked_out %}
+          {% if item.under_maintenance %}
+            <span class="badge-out" style="background:#fef3c7;color:#92400e;">Under Maintenance</span>
+          {% elif item.is_checked_out %}
             <span class="badge-out">Checked Out</span>
           {% else %}
             <span class="badge-avail">Available</span>
@@ -124,7 +126,9 @@
            onclick="{% if specs %}toggleSpecs(this){% endif %}">
         <div class="demo-item-header">
           <span class="demo-item-name">{{ item.name }}</span>
-          {% if item.is_checked_out %}
+          {% if item.under_maintenance %}
+            <span class="badge-out" style="background:#fef3c7;color:#92400e;">Under Maintenance</span>
+          {% elif item.is_checked_out %}
             <span class="badge-out">Checked Out</span>
           {% else %}
             <span class="badge-avail">Available</span>

@@ -4,14 +4,27 @@
 
 {% block content %}
 <div class="confirm-wrap">
+  {% if maintenance %}
+  <div class="confirm-icon" style="color:#d97706;">⚙</div>
+  <h2 style="color:#d97706;">Under Maintenance</h2>
+  <p>
+    <strong>{{ item.name }}</strong> is currently out for service.<br>
+    Please choose another item or speak with a staff member.
+  </p>
+  {% else %}
   <div class="confirm-icon" style="color:#e63946;">✕</div>
   <h2 style="color:#e63946;">Currently Checked Out</h2>
   <p>
     <strong>{{ item.name }}</strong> is already checked out.<br>
     Please choose another item or join the waitlist below.
   </p>
+  {% endif %}
 
-  {% if joined %}
+  {% if maintenance %}
+    <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
+      Back to Equipment List
+    </a>
+  {% elif joined %}
     <div style="background:#d1fae5;border-radius:10px;padding:16px 20px;margin:16px 0 24px;color:#065f46;font-weight:600;">
       You've been added to the waitlist! Staff will let you know when it's available.
     </div>
@@ -34,6 +47,7 @@
     <a href="{{ url_for('home') }}" class="btn btn-secondary" style="max-width:280px;display:inline-block;">
       Back to Equipment List
     </a>
+  {% endif %}
   {% endif %}
 </div>
 {% endblock %}

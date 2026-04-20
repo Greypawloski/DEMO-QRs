@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS equipment (
     notes       TEXT,
     qr_filename TEXT,
     active      INTEGER NOT NULL DEFAULT 1,
+    under_maintenance INTEGER NOT NULL DEFAULT 0,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
