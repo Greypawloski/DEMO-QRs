@@ -90,14 +90,18 @@ def dashboard():
             'waitlist_count': waitlist_counts.get(row['equipment_id'], 0),
         })
 
+    from flask import session
     return render_template('admin/dashboard.html', active=active, q=q,
-                           waitlist_members=waitlist_members)
+                           waitlist_members=waitlist_members,
+                           staff_names=current_app.config.get('STAFF_NAMES', []),
+                           current_staff=session.get('staff_name', ''))
 
 
 @admin_bp.route('/return/<int:checkout_id>', methods=['POST'])
 @login_required
 def mark_returned(checkout_id):
     notes = request.form.get('notes', '')
+    staff = request.form.get('staff_name', '').strip()
     db = get_db()
     row = db.execute("SELECT photo_filename FROM checkouts WHERE id=?", (checkout_id,)).fetchone()
     if row and row['photo_filename']:
@@ -114,9 +118,12 @@ def mark_returned(checkout_id):
         (notes, checkout_id)
     )
     if checkout:
-        _log('Mark Returned',
-             f"{checkout['equipment_name']} — {checkout['customer_name']} (#{checkout['member_number']})"
-             + (f" — Notes: {notes}" if notes else ""))
+        detail = (f"{checkout['equipment_name']} — {checkout['customer_name']} (#{checkout['member_number']})"
+                  + (f" — Notes: {notes}" if notes else ""))
+        get_db().execute(
+            "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+            (staff or 'Unknown', 'Mark Returned', detail)
+        )
     db.commit()
     return redirect(url_for('admin.dashboard'))
 

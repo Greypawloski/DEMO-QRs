@@ -93,6 +93,17 @@
     <h2 style="font-size:1.2rem;margin-bottom:6px;">Mark Returned</h2>
     <p id="return-modal-name" style="color:var(--muted);margin-bottom:16px;font-size:0.95rem;"></p>
     <form id="return-form" method="post">
+      {% if staff_names %}
+      <div class="form-group" style="text-align:left;">
+        <label for="return-staff-input">Returned by</label>
+        <select id="return-staff-input" name="staff_name" style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
+          <option value="">— Select staff —</option>
+          {% for sn in staff_names %}
+            <option value="{{ sn }}" {% if sn == current_staff %}selected{% endif %}>{{ sn }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
       <div class="form-group" style="text-align:left;">
         <label for="return-notes-input">Damage / Condition Notes <span class="text-muted">(optional)</span></label>
         <textarea id="return-notes-input" name="notes" rows="3"
