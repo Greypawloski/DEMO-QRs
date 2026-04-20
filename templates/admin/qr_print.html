@@ -15,6 +15,7 @@
     <div class="no-print" style="margin-top:32px;display:flex;gap:12px;justify-content:center;">
       <button onclick="window.print()" class="btn btn-primary btn-sm">Print</button>
       <a href="{{ url_for('admin.qr_download', equipment_id=item.id) }}" class="btn btn-secondary btn-sm">Download PNG</a>
+      <a href="{{ url_for('admin.label_download', equipment_id=item.id) }}" class="btn btn-secondary btn-sm">Download Label</a>
       <a href="{{ url_for('admin.equipment_list') }}" class="btn btn-secondary btn-sm">Back</a>
     </div>
   </div>

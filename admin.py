@@ -421,6 +421,19 @@ def reports():
     return render_template('admin/reports.html', popular=popular, durations=durations, members=members)
 
 
+@admin_bp.route('/label/<int:equipment_id>/download')
+@login_required
+def label_download(equipment_id):
+    db = get_db()
+    item = db.execute("SELECT name FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
+    if item is None:
+        return redirect(url_for('admin.equipment_list'))
+    label_filename = generate_label(equipment_id, item['name'], current_app.config['QR_BASE_URL'])
+    label_path = LABEL_DIR / label_filename
+    safe_name = item['name'].replace('/', '-').replace('\\', '-')
+    return send_file(label_path, as_attachment=True, download_name=f"{safe_name}-label.png")
+
+
 @admin_bp.route('/labels/download-zip')
 @login_required
 def labels_download_zip():
