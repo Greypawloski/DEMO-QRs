@@ -123,6 +123,31 @@ def restring_edit(restring_id):
     return render_template('admin/restring_form.html', item=item)
 
 
+@restrings_bp.route('/<int:restring_id>/delete', methods=['POST'])
+@login_required
+def restring_delete(restring_id):
+    from flask import session, current_app
+    db = get_db()
+    job = db.execute("SELECT customer_name, racquet, status FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    if job is None or job['status'] != 'pending':
+        return redirect(url_for('restrings.list_restrings'))
+    pin = request.form.get('pin', '')
+    from flask import current_app
+    if pin != current_app.config.get('RETIRE_PIN', ''):
+        pending = db.execute("SELECT * FROM restrings WHERE status != 'picked_up' ORDER BY date_promised ASC").fetchall()
+        completed = db.execute("SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC LIMIT 50").fetchall()
+        return render_template('admin/restrings_list.html', pending=pending, completed=completed,
+                               q='', qb='', delete_pin_error=True,
+                               delete_pin_error_id=restring_id,
+                               delete_pin_error_name=f"{job['customer_name']} — {job['racquet']}")
+    db.execute("DELETE FROM restrings WHERE id=?", (restring_id,))
+    staff = session.get('staff_name', 'Unknown')
+    db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+               (staff, 'Delete Restring', f"{job['customer_name']} — {job['racquet']}"))
+    db.commit()
+    return redirect(url_for('restrings.list_restrings'))
+
+
 @restrings_bp.route('/<int:restring_id>/undo-pickup', methods=['POST'])
 @login_required
 def restring_undo_pickup(restring_id):

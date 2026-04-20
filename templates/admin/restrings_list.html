@@ -85,6 +85,8 @@
                   <button type="submit" class="btn btn-primary btn-sm"
                           onclick="return confirm('Mark {{ row.customer_name }}\'s racquet as ready?')">Mark Ready</button>
                 </form>
+                <button type="button" class="btn btn-danger btn-sm"
+                        onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
               {% elif row.status == 'complete' %}
                 <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                   <input type="hidden" name="status" value="picked_up">
@@ -143,4 +145,41 @@
     </table>
   </div>
 {% endif %}
+
+<!-- Delete restring modal -->
+<div id="delete-restring-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:32px 28px;max-width:340px;width:90%;text-align:center;">
+    <h2 style="font-size:1.2rem;margin-bottom:6px;">Delete Restring</h2>
+    <p id="delete-restring-name" style="color:var(--muted);margin-bottom:20px;font-size:0.95rem;"></p>
+    <form id="delete-restring-form" method="post">
+      <div class="form-group" style="text-align:left;">
+        <label for="delete-restring-pin">Enter PIN to confirm</label>
+        <input type="password" id="delete-restring-pin" name="pin"
+               inputmode="numeric" maxlength="10"
+               style="font-size:1.4rem;letter-spacing:0.2em;text-align:center;width:100%;">
+        <p id="delete-restring-pin-error" style="display:none;color:var(--red);font-size:0.9rem;margin-top:6px;">Incorrect PIN. Try again.</p>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-danger" style="flex:1;">Delete</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('delete-restring-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openDeleteModal(id, name) {
+    document.getElementById('delete-restring-name').textContent = name;
+    document.getElementById('delete-restring-form').action = '/admin/restrings/' + id + '/delete';
+    document.getElementById('delete-restring-pin').value = '';
+    document.getElementById('delete-restring-pin-error').style.display = 'none';
+    document.getElementById('delete-restring-modal').style.display = 'flex';
+    document.getElementById('delete-restring-pin').focus();
+  }
+  {% if delete_pin_error %}
+    openDeleteModal({{ delete_pin_error_id }}, {{ delete_pin_error_name | tojson }});
+    document.getElementById('delete-restring-pin-error').style.display = 'block';
+  {% endif %}
+</script>
 {% endblock %}
