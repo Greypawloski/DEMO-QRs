@@ -61,7 +61,7 @@
               {% if row.waitlist_count > 0 %}
                 <span style="font-weight:700;color:var(--accent);">{{ row.waitlist_count }}</span>
                 <button type="button" class="btn btn-secondary btn-sm"
-                        onclick="openWaitlistModal({{ row.equipment_id }}, '{{ row.equipment_name | e }}', {{ waitlist_members.get(row.equipment_id, []) | tojson | e }})">
+                        onclick="openWaitlistModal({{ row.equipment_id }}, '{{ row.equipment_name | e }}', {{ waitlist_members.get(row.equipment_id, []) | tojson }})">
                   View
                 </button>
               {% else %}
