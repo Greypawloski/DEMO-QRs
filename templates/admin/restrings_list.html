@@ -49,6 +49,7 @@
           <th>Receipt</th>
           <th>Charged</th>
           <th>Marked Ready</th>
+          <th>Notes</th>
           <th>Status</th>
           <th>Actions</th>
         </tr>
@@ -70,6 +71,13 @@
             <td>{{ row.receipt or '—' }}</td>
             <td>{{ row.charged or '—' }}</td>
             <td style="white-space:nowrap;">{{ row.completed_at | central if row.completed_at else '—' }}</td>
+            <td style="max-width:180px;">
+              {% if row.notes %}
+                <span style="background:#fef9c3;color:#854d0e;padding:3px 8px;border-radius:6px;font-size:0.85rem;display:inline-block;">{{ row.notes }}</span>
+              {% else %}
+                —
+              {% endif %}
+            </td>
             <td>
               {% if row.status == 'pending' %}
                 <span class="status-badge status-out">Pending</span>
