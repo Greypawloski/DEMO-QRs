@@ -127,10 +127,11 @@ def create_app():
         if request.method == 'POST':
             name   = request.form.get('customer_name', '').strip()
             member = request.form.get('member_number', '').strip()
+            phone  = request.form.get('phone', '').strip()
             if name and member:
                 db.execute(
-                    "INSERT INTO waitlist (equipment_id, customer_name, member_number) VALUES (?, ?, ?)",
-                    (equipment_id, name, member)
+                    "INSERT INTO waitlist (equipment_id, customer_name, member_number, phone) VALUES (?, ?, ?, ?)",
+                    (equipment_id, name, member, phone or None)
                 )
                 db.commit()
             return render_template('checkout_unavailable.html', item=item, joined=True)

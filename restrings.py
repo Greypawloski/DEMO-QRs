@@ -208,7 +208,7 @@ def restring_status(restring_id):
     from flask import session
     new_status = request.form.get('status', 'pending')
     db = get_db()
-    job = db.execute("SELECT customer_name, racquet FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    job = db.execute("SELECT customer_name, racquet, phone FROM restrings WHERE id=?", (restring_id,)).fetchone()
     if new_status == 'complete':
         db.execute("UPDATE restrings SET status=?, completed_at=datetime('now') WHERE id=?",
                    (new_status, restring_id))
@@ -219,5 +219,10 @@ def restring_status(restring_id):
         label = 'Marked Restring Ready' if new_status == 'complete' else 'Marked Restring Picked Up'
         db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
                    (staff, label, f"{job['customer_name']} — {job['racquet']}"))
+        if new_status == 'complete' and job['phone']:
+            from sms import send_sms
+            send_sms(job['phone'],
+                     f"Hi {job['customer_name'].split()[0]}, your racquet is ready for pickup at the SACC Tennis Shop. "
+                     f"Please stop by during business hours. Reply STOP to opt out.")
     db.commit()
     return redirect(url_for('restrings.list_restrings'))

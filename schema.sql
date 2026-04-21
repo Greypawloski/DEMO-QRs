@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS waitlist (
     equipment_id  INTEGER NOT NULL REFERENCES equipment(id),
     customer_name TEXT NOT NULL,
     member_number TEXT NOT NULL,
+    phone         TEXT,
     created_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX IF NOT EXISTS idx_waitlist_equipment ON waitlist(equipment_id);

@@ -129,7 +129,7 @@ def mark_returned(checkout_id):
     notes = request.form.get('notes', '')
     staff = request.form.get('staff_name', '').strip()
     db = get_db()
-    row = db.execute("SELECT photo_filename FROM checkouts WHERE id=?", (checkout_id,)).fetchone()
+    row = db.execute("SELECT photo_filename, equipment_id FROM checkouts WHERE id=?", (checkout_id,)).fetchone()
     if row and row['photo_filename']:
         photo_path = Path(current_app.root_path) / 'static' / 'checkout_photos' / row['photo_filename']
         if photo_path.exists():
@@ -146,10 +146,23 @@ def mark_returned(checkout_id):
     if checkout:
         detail = (f"{checkout['equipment_name']} — {checkout['customer_name']} (#{checkout['member_number']})"
                   + (f" — Notes: {notes}" if notes else ""))
-        get_db().execute(
+        db.execute(
             "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
             (staff or 'Unknown', 'Mark Returned', detail)
         )
+        # Notify waitlist members
+        if row:
+            waitlist = db.execute(
+                "SELECT customer_name, phone FROM waitlist WHERE equipment_id=? ORDER BY created_at",
+                (row['equipment_id'],)
+            ).fetchall()
+            if waitlist:
+                from sms import send_sms
+                for w in waitlist:
+                    if w['phone']:
+                        send_sms(w['phone'],
+                                 f"Hi {w['customer_name'].split()[0]}, the {checkout['equipment_name']} demo is now "
+                                 f"available at the SACC Tennis Shop. Stop by the front desk to check it out. Reply STOP to opt out.")
     db.commit()
     return redirect(url_for('admin.dashboard'))
 
