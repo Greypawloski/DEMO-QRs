@@ -151,6 +151,8 @@
                 <button type="submit" class="btn btn-secondary btn-sm"
                         onclick="return confirm('Move {{ row.customer_name }}\'s racquet back to Ready?')">Undo</button>
               </form>
+              <button type="button" class="btn btn-danger btn-sm"
+                      onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
             </td>
           </tr>
         {% endfor %}

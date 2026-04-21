@@ -129,7 +129,7 @@ def restring_delete(restring_id):
     from flask import session, current_app
     db = get_db()
     job = db.execute("SELECT customer_name, racquet, status FROM restrings WHERE id=?", (restring_id,)).fetchone()
-    if job is None or job['status'] != 'pending':
+    if job is None:
         return redirect(url_for('restrings.list_restrings'))
     pin = request.form.get('pin', '')
     from flask import current_app
