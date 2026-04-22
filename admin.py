@@ -178,7 +178,7 @@ def kiosk_view():
         FROM equipment e
         LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
         WHERE e.active = 1
-        ORDER BY e.category, e.name
+        ORDER BY CASE e.category WHEN 'racquet' THEN 0 ELSE 1 END, e.name
         """
     ).fetchall()
     return render_template('home.html', equipment=rows)
