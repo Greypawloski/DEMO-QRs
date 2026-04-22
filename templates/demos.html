@@ -41,7 +41,7 @@
       padding:12px 14px; gap:12px; cursor:default;
     }
     .demo-item.has-specs .demo-item-header { cursor:pointer; }
-    .demo-item-name { font-size:0.97rem; font-weight:600; flex:1; min-width:0; }
+    .demo-item-name { font-size:0.97rem; font-weight:600; }
     .badge-avail {
       background:#d1fae5; color:#065f46; border-radius:20px;
       padding:4px 12px; font-size:0.8rem; font-weight:700; white-space:nowrap; flex-shrink:0;
@@ -93,7 +93,12 @@
       <div class="demo-item {% if specs %}has-specs{% endif %}" data-name="{{ item.name | lower }}"
            onclick="{% if specs %}toggleSpecs(this){% endif %}">
         <div class="demo-item-header">
-          <span class="demo-item-name">{{ item.name }}</span>
+          <div style="flex:1;min-width:0;">
+            <span class="demo-item-name">{{ item.name }}</span>
+            {% if item.notes %}
+              <div style="color:#e63946;font-size:0.82rem;margin-top:2px;">{{ item.notes }}</div>
+            {% endif %}
+          </div>
           {% if item.under_maintenance %}
             <span class="badge-out" style="background:#fef3c7;color:#92400e;" onclick="event.stopPropagation()">Under Maintenance</span>
           {% elif item.is_checked_out %}
@@ -129,7 +134,12 @@
       <div class="demo-item {% if specs %}has-specs{% endif %}" data-name="{{ item.name | lower }}"
            onclick="{% if specs %}toggleSpecs(this){% endif %}">
         <div class="demo-item-header">
-          <span class="demo-item-name">{{ item.name }}</span>
+          <div style="flex:1;min-width:0;">
+            <span class="demo-item-name">{{ item.name }}</span>
+            {% if item.notes %}
+              <div style="color:#e63946;font-size:0.82rem;margin-top:2px;">{{ item.notes }}</div>
+            {% endif %}
+          </div>
           {% if item.under_maintenance %}
             <span class="badge-out" style="background:#fef3c7;color:#92400e;" onclick="event.stopPropagation()">Under Maintenance</span>
           {% elif item.is_checked_out %}
