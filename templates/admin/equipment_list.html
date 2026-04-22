@@ -26,7 +26,12 @@
       <tbody>
         {% for item in equipment %}
           <tr>
-            <td><strong>{{ item.name }}</strong></td>
+            <td>
+              <strong>{{ item.name }}</strong>
+              {% if item.notes %}
+                <div style="color:#e63946;font-size:0.82rem;margin-top:2px;">{{ item.notes }}</div>
+              {% endif %}
+            </td>
             <td>{{ item.category }}</td>
             <td>
               {% if not item.active %}

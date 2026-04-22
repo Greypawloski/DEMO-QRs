@@ -46,7 +46,7 @@ def create_app():
         db = get_db()
         rows = db.execute(
             """
-            SELECT e.name, e.category, e.under_maintenance, e.notes,
+            SELECT e.name, e.category, e.under_maintenance,
                    e.spec1_label, e.spec1_value, e.spec2_label, e.spec2_value,
                    e.spec3_label, e.spec3_value, e.spec4_label, e.spec4_value,
                    e.spec5_label, e.spec5_value,
