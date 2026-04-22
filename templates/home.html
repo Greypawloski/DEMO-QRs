@@ -10,29 +10,60 @@
 </div>
 
 {% if equipment %}
-  <div class="equipment-grid">
+  <div style="max-width:600px;margin:0 auto 24px;display:flex;gap:10px;">
+    <input type="text" id="kiosk-search" placeholder="Search by name…"
+           oninput="filterKioskItems()"
+           style="flex:1;padding:14px 18px;border:2px solid var(--border);border-radius:12px;font-size:1.1rem;">
+    <button onclick="document.getElementById('kiosk-search').value='';filterKioskItems()"
+            style="padding:14px 20px;border:none;background:var(--accent);color:#fff;border-radius:12px;font-size:1rem;cursor:pointer;">Clear</button>
+  </div>
+  <div class="equipment-grid" id="kiosk-grid">
     {% for item in equipment %}
       {% if item.is_checked_out %}
-        <a class="equipment-card unavailable" href="{{ url_for('checkout_unavailable', equipment_id=item.id) }}">
+        <a class="equipment-card unavailable" href="{{ url_for('checkout_unavailable', equipment_id=item.id) }}"
+           data-name="{{ item.name | lower }}">
           <span class="badge-out">Checked Out</span>
           <div class="card-category">{{ item.category }}</div>
           <div class="card-name">{{ item.name }}</div>
+          {% if item.notes %}
+            <div style="color:#e63946;font-size:0.8rem;margin-top:4px;line-height:1.3;">{{ item.notes }}</div>
+          {% endif %}
           <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;">Tap to join waitlist</div>
         </a>
       {% else %}
-        <a class="equipment-card" href="{{ url_for('checkout', equipment_id=item.id) }}">
+        <a class="equipment-card" href="{{ url_for('checkout', equipment_id=item.id) }}"
+           data-name="{{ item.name | lower }}">
           <span class="badge-available">Available</span>
           <div class="card-category">{{ item.category }}</div>
           <div class="card-name">{{ item.name }}</div>
+          {% if item.notes %}
+            <div style="color:#e63946;font-size:0.8rem;margin-top:4px;line-height:1.3;">{{ item.notes }}</div>
+          {% endif %}
         </a>
       {% endif %}
     {% endfor %}
   </div>
+  <p id="kiosk-no-results" style="display:none;text-align:center;color:var(--muted);padding:24px 0;">No items match your search.</p>
 {% else %}
   <div class="empty-state">
     <p>No demo equipment available right now.<br>Please ask a staff member for assistance.</p>
   </div>
 {% endif %}
+
+<script>
+  function filterKioskItems() {
+    var q = document.getElementById('kiosk-search').value.toLowerCase().trim();
+    var cards = document.querySelectorAll('#kiosk-grid .equipment-card');
+    var visible = 0;
+    cards.forEach(function(card) {
+      var name = card.getAttribute('data-name') || '';
+      var show = !q || name.includes(q);
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+    document.getElementById('kiosk-no-results').style.display = visible === 0 ? 'block' : 'none';
+  }
+</script>
 
 <p class="text-center text-muted mt-24" style="font-size:0.85rem;">
   Staff: <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
