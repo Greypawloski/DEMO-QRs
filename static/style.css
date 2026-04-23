@@ -437,3 +437,13 @@ table.data-table tr:hover td { background: var(--bg); }
 .text-muted { color: var(--muted); }
 .text-center { text-align: center; }
 .empty-state { text-align: center; padding: 48px; color: var(--muted); }
+
+/* ── Mobile nav fix ── */
+@media (max-width: 768px) {
+  .admin-nav {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 8px 16px;
+    gap: 8px 16px;
+  }
+}
