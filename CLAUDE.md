@@ -14,6 +14,7 @@ Structure:
 - templates/ = Jinja UI
 - static/ = assets
 - SQLite DB already exists and is in use
+- App is deployed on PythonAnywhere (not local-first)
 
 Core flows:
 - Demo flow: QR scan → checkout → active demo → return
@@ -39,3 +40,4 @@ Guidance:
 - Read this file before making changes
 - Use existing code as source of truth
 - Do not scan the entire repo unless necessary
+- Do not assume the app runs locally; it is deployed on PythonAnywhere
