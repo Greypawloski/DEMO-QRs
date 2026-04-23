@@ -46,7 +46,15 @@
   </div>
 
   <div class="form-group">
-    <label for="member_number">Member Number</label>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <label for="member_number" style="margin-bottom:0;">Member Number</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.95rem;font-weight:400;cursor:pointer;">
+        <input type="checkbox" id="non_member_check" name="non_member" value="1"
+               onchange="toggleMemberField(this)"
+               style="width:20px;height:20px;cursor:pointer;">
+        Non-member
+      </label>
+    </div>
     <input
       type="text"
       id="member_number"
@@ -56,6 +64,23 @@
       required
     >
   </div>
+  <script>
+    function toggleMemberField(cb) {
+      var field = document.getElementById('member_number');
+      if (cb.checked) {
+        field.value = '';
+        field.disabled = true;
+        field.required = false;
+        field.style.opacity = '0.4';
+        field.style.cursor = 'not-allowed';
+      } else {
+        field.disabled = false;
+        field.required = true;
+        field.style.opacity = '';
+        field.style.cursor = '';
+      }
+    }
+  </script>
 
   <div class="form-group">
     <label for="phone">Phone Number</label>

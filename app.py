@@ -80,7 +80,8 @@ def create_app():
             if existing:
                 return redirect(url_for('checkout_unavailable', equipment_id=equipment_id))
             name = request.form.get('customer_name', '').strip()
-            member = request.form.get('member_number', '').strip()
+            non_member = request.form.get('non_member') == '1'
+            member = 'Non-member' if non_member else request.form.get('member_number', '').strip()
             if not name or not member:
                 specs = _get_specs(item)
                 return render_template(
