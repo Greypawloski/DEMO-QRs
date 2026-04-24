@@ -185,7 +185,7 @@ def restring_undo_pickup(restring_id):
 def restrings_export_csv():
     db = get_db()
     rows = db.execute(
-        "SELECT * FROM restrings ORDER BY created_at DESC"
+        "SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC"
     ).fetchall()
     buf = io.StringIO()
     w = csv.writer(buf)
