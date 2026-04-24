@@ -122,7 +122,7 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     else:
         string_date = datetime.now().strftime('%B %-d, %Y')
 
-    W, H   = 1050, 300
+    W, H   = 1300, 300
     PAD    = 18
     BW     = 4   # border width
 
@@ -149,18 +149,14 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
         bg.paste(logo, (0, 0), logo)
         img.paste(bg.convert('RGB'), (logo_x, logo_y))
 
-    # Vertical divider
-    div_x = logo_x + logo_size + PAD
-    draw.line([(div_x, PAD + BW + 4), (div_x, H - PAD - BW - 4)], fill=BLUE, width=2)
-
-    # Text area
-    text_x = div_x + PAD
+    # Text area starts right after logo (no divider line)
+    text_x = logo_x + logo_size + PAD
     text_area_w = W - text_x - PAD - BW
     text_area_h = H - 2 * PAD - 2 * BW
 
     font_name  = _load_font(42, bold=True)
     font_body  = _load_font(29, bold=True)
-    font_small = _load_font(25, bold=True)
+    font_small = _load_font(27, bold=True)
 
     def wrap_text(text, font, max_w):
         words = text.split()
@@ -210,11 +206,11 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     draw.text((cx(date_line, font_body), y), date_line, font=font_body, fill=BLACK)
     y += h_body + GAP
 
-    # Bottom row: phone left, stringer right
-    wl, _ = _measure(draw, last_l, font_small)
+    # Bottom row: phone slightly inset from left, stringer slightly inset from right
+    INSET = 40
+    draw.text((text_x + INSET, y), last_l, font=font_small, fill=BLACK)
     wr, _ = _measure(draw, last_r, font_small)
-    draw.text((text_x, y), last_l, font=font_small, fill=BLACK)
-    draw.text((text_x + text_area_w - wr, y), last_r, font=font_small, fill=BLACK)
+    draw.text((text_x + text_area_w - wr - INSET, y), last_r, font=font_small, fill=BLACK)
 
     filename = f"string_label_{restring_id}.png"
     img.save(LABEL_DIR / filename, dpi=(300, 300))
