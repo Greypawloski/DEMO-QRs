@@ -39,6 +39,18 @@
   </style>
 
   <div class="month-tabs" id="month-tabs"></div>
+
+  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+    <input type="text" id="search-name" placeholder="Search by name or member #"
+           oninput="applyFilters()"
+           style="flex:1;min-width:200px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
+    <input type="text" id="search-stringer" placeholder="Search by stringer"
+           oninput="applyFilters()"
+           style="flex:1;min-width:160px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
+    <button onclick="document.getElementById('search-name').value='';document.getElementById('search-stringer').value='';applyFilters();"
+            class="btn btn-secondary btn-sm">Clear</button>
+  </div>
+
   <p id="tab-count" style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;"></p>
 
   <div class="table-wrap">
@@ -58,7 +70,9 @@
       </thead>
       <tbody id="history-tbody">
         {% for r in rows %}
-          <tr data-month="{{ r.date_in[:7] }}">
+          <tr data-month="{{ r.date_in[:7] }}"
+              data-name="{{ (r.customer_name ~ ' ' ~ (r.member_number or '')) | lower }}"
+              data-stringer="{{ (r.strung_by or '') | lower }}">
             <td>{{ r.customer_name }}</td>
             <td>{{ r.racquet }}</td>
             <td>
@@ -82,30 +96,30 @@
   <script>
     var MONTH_NAMES = ['January','February','March','April','May','June',
                        'July','August','September','October','November','December'];
+    var activeYm = null;
 
     function formatTab(ym) {
       var parts = ym.split('-');
       return MONTH_NAMES[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
     }
 
-    // Collect unique months in order
-    var rows = document.querySelectorAll('#history-tbody tr');
+    var allRows = document.querySelectorAll('#history-tbody tr');
+
+    // Collect unique months
     var months = [];
     var seen = {};
-    rows.forEach(function(r) {
+    allRows.forEach(function(r) {
       var m = r.getAttribute('data-month');
       if (!seen[m]) { seen[m] = true; months.push(m); }
     });
-
-    // Sort descending (newest first)
     months.sort(function(a, b) { return b.localeCompare(a); });
 
     // Build tabs
     var tabsEl = document.getElementById('month-tabs');
     var allBtn = document.createElement('button');
     allBtn.className = 'month-tab active';
-    allBtn.textContent = 'All (' + rows.length + ')';
-    allBtn.onclick = function() { selectTab(null, allBtn); };
+    allBtn.textContent = 'All (' + allRows.length + ')';
+    allBtn.onclick = function() { activeYm = null; setActiveTab(allBtn); applyFilters(); };
     tabsEl.appendChild(allBtn);
 
     months.forEach(function(ym) {
@@ -114,28 +128,33 @@
       btn.className = 'month-tab';
       btn.textContent = formatTab(ym) + ' (' + count + ')';
       btn.setAttribute('data-ym', ym);
-      btn.onclick = function() { selectTab(ym, btn); };
+      btn.onclick = function() { activeYm = ym; setActiveTab(btn); applyFilters(); };
       tabsEl.appendChild(btn);
     });
 
-    updateCount(null);
-
-    function selectTab(ym, btn) {
+    function setActiveTab(btn) {
       document.querySelectorAll('.month-tab').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      rows.forEach(function(r) {
-        r.style.display = (!ym || r.getAttribute('data-month') === ym) ? '' : 'none';
-      });
-      updateCount(ym);
     }
 
-    function updateCount(ym) {
-      var visible = ym
-        ? document.querySelectorAll('#history-tbody tr[data-month="' + ym + '"]').length
-        : rows.length;
+    function applyFilters() {
+      var qName     = document.getElementById('search-name').value.toLowerCase().trim();
+      var qStringer = document.getElementById('search-stringer').value.toLowerCase().trim();
+      var visible   = 0;
+      allRows.forEach(function(r) {
+        var matchTab     = !activeYm || r.getAttribute('data-month') === activeYm;
+        var matchName    = !qName     || r.getAttribute('data-name').includes(qName);
+        var matchString  = !qStringer || r.getAttribute('data-stringer').includes(qStringer);
+        var show = matchTab && matchName && matchString;
+        r.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
       document.getElementById('tab-count').textContent =
-        visible + ' job' + (visible !== 1 ? 's' : '') + (ym ? ' in ' + formatTab(ym) : ' total');
+        visible + ' job' + (visible !== 1 ? 's' : '')
+        + (activeYm ? ' in ' + formatTab(activeYm) : ' total');
     }
+
+    applyFilters();
   </script>
 
 {% else %}
