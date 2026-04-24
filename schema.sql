@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS restrings (
     receipt       TEXT,
     charged       TEXT,
     additional_charges TEXT,
+    customer_own_string INTEGER NOT NULL DEFAULT 0,
     notes         TEXT,
     strung_by     TEXT,
     status        TEXT NOT NULL DEFAULT 'pending',

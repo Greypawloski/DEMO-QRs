@@ -63,8 +63,8 @@ def restring_new():
             """
             INSERT INTO restrings
               (date_in, customer_name, phone, member_number, racquet,
-               string, tension, date_promised, receipt, charged, additional_charges, notes, strung_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               string, tension, date_promised, receipt, charged, additional_charges, notes, strung_by, customer_own_string)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 request.form['date_in'],
@@ -80,6 +80,7 @@ def restring_new():
                 request.form.get('additional_charges', '').strip(),
                 request.form.get('notes', '').strip(),
                 request.form.get('strung_by', '').strip(),
+                1 if request.form.get('customer_own_string') else 0,
             )
         )
         db.commit()
@@ -100,7 +101,7 @@ def restring_edit(restring_id):
             """
             UPDATE restrings SET
               date_in=?, customer_name=?, phone=?, member_number=?, racquet=?,
-              string=?, tension=?, date_promised=?, receipt=?, charged=?, additional_charges=?, notes=?, strung_by=?
+              string=?, tension=?, date_promised=?, receipt=?, charged=?, additional_charges=?, notes=?, strung_by=?, customer_own_string=?
             WHERE id=?
             """,
             (
@@ -117,6 +118,7 @@ def restring_edit(restring_id):
                 request.form.get('additional_charges', '').strip(),
                 request.form.get('notes', '').strip(),
                 request.form.get('strung_by', '').strip(),
+                1 if request.form.get('customer_own_string') else 0,
                 restring_id,
             )
         )

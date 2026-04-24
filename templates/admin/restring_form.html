@@ -49,6 +49,15 @@
     </div>
   </div>
 
+  <div class="form-group" style="margin-top:4px;">
+    <label style="display:flex;align-items:center;gap:10px;font-weight:400;cursor:pointer;">
+      <input type="checkbox" name="customer_own_string" value="1"
+             {% if item and item.customer_own_string %}checked{% endif %}
+             style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);appearance:auto;-webkit-appearance:checkbox;">
+      <span><strong>Customer's own string</strong> <span style="color:var(--muted);font-size:0.88rem;">(customer supplied the string)</span></span>
+    </label>
+  </div>
+
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
     <div class="form-group">
       <label for="receipt">Receipt #</label>
