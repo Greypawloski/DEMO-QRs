@@ -122,7 +122,7 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     else:
         string_date = datetime.now().strftime('%B %-d, %Y')
 
-    W, H   = 1050, 320
+    W, H   = 1050, 300
     PAD    = 18
     BW     = 4   # border width
 
@@ -132,10 +132,11 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     # Outer border
     draw.rectangle([BW//2, BW//2, W - BW//2 - 1, H - BW//2 - 1], outline=BLUE, width=BW)
 
-    # Logo — left section
-    logo_size = H - 2 * PAD - 2 * BW
+    # Logo — left section (fixed smaller size)
+    logo_size = 180
     logo_path = Path(__file__).parent / "static" / "sacc-logo.png"
     logo_x = PAD + BW
+    logo_y = PAD + BW + (H - 2 * PAD - 2 * BW - logo_size) // 2
     if logo_path.exists():
         logo = Image.open(logo_path).convert('RGBA')
         # Make near-black pixels transparent so logo sits on white background
@@ -146,7 +147,7 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
         logo = logo.resize((logo_size, logo_size), Image.LANCZOS)
         bg = Image.new('RGBA', (logo_size, logo_size), (255, 255, 255, 255))
         bg.paste(logo, (0, 0), logo)
-        img.paste(bg.convert('RGB'), (logo_x, PAD + BW))
+        img.paste(bg.convert('RGB'), (logo_x, logo_y))
 
     # Vertical divider
     div_x = logo_x + logo_size + PAD
@@ -157,33 +158,59 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     text_area_w = W - text_x - PAD - BW
     text_area_h = H - 2 * PAD - 2 * BW
 
-    font_name  = _load_font(40, bold=True)
-    font_body  = _load_font(28, bold=True)
-    font_small = _load_font(24, bold=True)
+    font_name  = _load_font(34, bold=True)
+    font_body  = _load_font(24, bold=True)
+    font_small = _load_font(21, bold=True)
 
-    lines = [
-        (customer_name,                        font_name,  BLUE),
-        (f"{string} @ {tension}",              font_body,  BLACK),
-        (f"String Date: {string_date}",        font_body,  BLACK),
-    ]
+    def wrap_text(text, font, max_w):
+        words = text.split()
+        lines_out, current = [], ""
+        for word in words:
+            test = (current + " " + word).strip()
+            if _measure(draw, test, font)[0] <= max_w:
+                current = test
+            else:
+                if current:
+                    lines_out.append(current)
+                current = word
+        if current:
+            lines_out.append(current)
+        return lines_out or [text]
+
+    string_line = f"{string} @ {tension}"
+    string_wrapped = wrap_text(string_line, font_body, text_area_w)
+    date_line = f"String Date: {string_date}"
     last_l = SACC_PHONE
     last_r = f"Stringer: {strung_by or 'N/A'}"
 
-    GAP = 7
-    _, h_last = _measure(draw, last_l, font_small)
-    total_h = sum(_measure(draw, t, f)[1] for t, f, _ in lines) + len(lines) * GAP + h_last
+    GAP = 6
+    _, h_name  = _measure(draw, customer_name, font_name)
+    _, h_body  = _measure(draw, "Ag", font_body)
+    _, h_small = _measure(draw, last_l, font_small)
+    total_h = (h_name + GAP
+               + h_body * len(string_wrapped) + GAP * (len(string_wrapped) - 1) + GAP
+               + h_body + GAP
+               + h_small)
     y = PAD + BW + (text_area_h - total_h) // 2
 
     def cx(text, font):
         tw, _ = _measure(draw, text, font)
         return text_x + (text_area_w - tw) // 2
 
-    for text, font, color in lines:
-        _, th = _measure(draw, text, font)
-        draw.text((cx(text, font), y), text, font=font, fill=color)
-        y += th + GAP
+    # Name
+    draw.text((cx(customer_name, font_name), y), customer_name, font=font_name, fill=BLUE)
+    y += h_name + GAP
 
-    # Bottom row: phone left, stringer right, spaced across text area
+    # String (possibly wrapped)
+    for part in string_wrapped:
+        draw.text((cx(part, font_body), y), part, font=font_body, fill=BLACK)
+        y += h_body + GAP
+
+    # Date
+    draw.text((cx(date_line, font_body), y), date_line, font=font_body, fill=BLACK)
+    y += h_body + GAP
+
+    # Bottom row: phone left, stringer right
     wl, _ = _measure(draw, last_l, font_small)
     wr, _ = _measure(draw, last_r, font_small)
     draw.text((text_x, y), last_l, font=font_small, fill=BLACK)
