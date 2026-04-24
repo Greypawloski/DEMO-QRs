@@ -180,6 +180,16 @@ def restring_undo_pickup(restring_id):
     return redirect(url_for('restrings.list_restrings'))
 
 
+@restrings_bp.route('/history')
+@login_required
+def restrings_history_view():
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY date_in DESC"
+    ).fetchall()
+    return render_template('admin/restrings_history.html', rows=rows)
+
+
 @restrings_bp.route('/export-csv')
 @login_required
 def restrings_export_csv():
