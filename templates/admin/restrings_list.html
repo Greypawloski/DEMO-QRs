@@ -3,6 +3,34 @@
 {% block title %}Restringing{% endblock %}
 
 {% block content %}
+
+<div id="month-end-alert" style="display:none;background:#eff6ff;border:2px solid #3b82f6;border-radius:10px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+  <div>
+    <strong style="color:#1e40af;font-size:1rem;">📋 New month, new export!</strong>
+    <p style="margin:4px 0 0;color:#1e40af;font-size:0.9rem;">We're at the start of a new month — don't forget to export last month's stringing history.</p>
+  </div>
+  <a href="{{ url_for('restrings.restrings_export_csv') }}"
+     class="btn btn-primary btn-sm"
+     onclick="dismissMonthAlert()"
+     style="white-space:nowrap;">Export CSV</a>
+</div>
+
+<script>
+  (function() {
+    var today = new Date();
+    if (today.getDate() !== 1) return;
+    var key = 'restring_alert_dismissed_' + today.getFullYear() + '_' + today.getMonth();
+    if (localStorage.getItem(key)) return;
+    document.getElementById('month-end-alert').style.display = 'flex';
+  })();
+  function dismissMonthAlert() {
+    var today = new Date();
+    var key = 'restring_alert_dismissed_' + today.getFullYear() + '_' + today.getMonth();
+    localStorage.setItem(key, '1');
+    document.getElementById('month-end-alert').style.display = 'none';
+  }
+</script>
+
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Restringing</h1>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
