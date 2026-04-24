@@ -67,9 +67,21 @@
             <td>{{ row.string }}</td>
             <td>{{ row.tension }}</td>
             <td style="white-space:nowrap;">{{ row.date_promised }}</td>
-            <td>{{ row.strung_by or '—' }}</td>
-            <td>{{ row.receipt or '—' }}</td>
-            <td>{{ row.charged or '—' }}</td>
+            <td>
+              {% if row.strung_by %}{{ row.strung_by }}{% else %}
+                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'strung_by')">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.receipt %}{{ row.receipt }}{% else %}
+                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'receipt')">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.charged %}{{ row.charged }}{% else %}
+                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'charged')">—</span>
+              {% endif %}
+            </td>
             <td style="white-space:nowrap;">{{ row.completed_at | central if row.completed_at else '—' }}</td>
             <td style="max-width:180px;">
               {% if row.notes %}
@@ -196,5 +208,41 @@
     openDeleteModal({{ delete_pin_error_id }}, {{ delete_pin_error_name | tojson }});
     document.getElementById('delete-restring-pin-error').style.display = 'block';
   {% endif %}
+  function openQuickEdit(trigger, id, field) {
+    var labels = { strung_by: 'Strung By', receipt: 'Receipt', charged: 'Charged' };
+    document.getElementById('quick-edit-title').textContent = labels[field] || field;
+    document.getElementById('quick-edit-input').value = '';
+    document.getElementById('quick-edit-form').action = '/admin/restrings/' + id + '/quick-update';
+    document.getElementById('quick-edit-field').value = field;
+    document.getElementById('quick-edit-modal').style.display = 'flex';
+    document.getElementById('quick-edit-input').focus();
+  }
 </script>
+
+<style>
+  .quick-edit-trigger {
+    cursor: pointer;
+    color: var(--accent);
+    border-bottom: 1px dashed var(--accent);
+    padding: 0 2px;
+  }
+  .quick-edit-trigger:hover { opacity: 0.7; }
+</style>
+
+<!-- Quick edit modal -->
+<div id="quick-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:90%;text-align:center;">
+    <h2 id="quick-edit-title" style="font-size:1.1rem;margin-bottom:16px;"></h2>
+    <form id="quick-edit-form" method="post">
+      <input type="hidden" id="quick-edit-field" name="field">
+      <input type="text" id="quick-edit-input" name="value"
+             style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:16px;">
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('quick-edit-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

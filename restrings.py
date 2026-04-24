@@ -226,3 +226,16 @@ def restring_status(restring_id):
                      f"Please stop by during business hours. Reply STOP to opt out.")
     db.commit()
     return redirect(url_for('restrings.list_restrings'))
+
+
+@restrings_bp.route('/<int:restring_id>/quick-update', methods=['POST'])
+@login_required
+def restring_quick_update(restring_id):
+    field = request.form.get('field')
+    value = request.form.get('value', '').strip()
+    if field not in ('strung_by', 'receipt', 'charged'):
+        return redirect(url_for('restrings.list_restrings'))
+    db = get_db()
+    db.execute(f"UPDATE restrings SET {field}=? WHERE id=?", (value or None, restring_id))
+    db.commit()
+    return redirect(url_for('restrings.list_restrings'))
