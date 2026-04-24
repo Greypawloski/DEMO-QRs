@@ -12,9 +12,17 @@ _FONT_PATHS = [
     "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
 ]
 
+_FONT_PATHS_REGULAR = [
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
+    "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
+]
 
-def _load_font(size):
-    for path in _FONT_PATHS:
+
+def _load_font(size, bold=True):
+    paths = _FONT_PATHS if bold else _FONT_PATHS_REGULAR
+    for path in paths:
         try:
             return ImageFont.truetype(path, size)
         except (IOError, OSError):
@@ -92,5 +100,95 @@ def generate_label(equipment_id: int, equipment_name: str, base_url: str) -> str
     draw.text((text_x, text_y + sacc_h + gap), display_name, font=font_name, fill='black')
 
     filename = f"label_{equipment_id}.png"
+    img.save(LABEL_DIR / filename, dpi=(300, 300))
+    return filename
+
+
+def generate_string_label(restring_id: int, customer_name: str, string: str,
+                           tension: str, strung_by: str, completed_at: str) -> str:
+    """Generate a horizontal string label PNG for a completed restring job."""
+    from datetime import datetime, timezone
+    from zoneinfo import ZoneInfo
+
+    LABEL_DIR.mkdir(parents=True, exist_ok=True)
+
+    BLUE  = (0, 48, 135)
+    BLACK = (20, 20, 20)
+    SACC_PHONE = "(210) 824-5951"
+
+    if completed_at:
+        dt = datetime.fromisoformat(completed_at).replace(tzinfo=timezone.utc)
+        string_date = dt.astimezone(ZoneInfo('America/Chicago')).strftime('%B %-d, %Y')
+    else:
+        string_date = datetime.now().strftime('%B %-d, %Y')
+
+    W, H   = 950, 270
+    PAD    = 18
+    BW     = 4   # border width
+
+    img  = Image.new('RGB', (W, H), 'white')
+    draw = ImageDraw.Draw(img)
+
+    # Outer border
+    draw.rectangle([BW//2, BW//2, W - BW//2 - 1, H - BW//2 - 1], outline=BLUE, width=BW)
+
+    # Logo — left section
+    logo_size = H - 2 * PAD - 2 * BW
+    logo_path = Path(__file__).parent / "static" / "sacc-logo.png"
+    logo_x = PAD + BW
+    if logo_path.exists():
+        logo = Image.open(logo_path).convert('RGBA')
+        # Make near-black pixels transparent so logo sits on white background
+        data = logo.getdata()
+        new_data = [(255, 255, 255, 0) if (r < 60 and g < 60 and b < 60) else (r, g, b, a)
+                    for r, g, b, a in data]
+        logo.putdata(new_data)
+        logo = logo.resize((logo_size, logo_size), Image.LANCZOS)
+        bg = Image.new('RGBA', (logo_size, logo_size), (255, 255, 255, 255))
+        bg.paste(logo, (0, 0), logo)
+        img.paste(bg.convert('RGB'), (logo_x, PAD + BW))
+
+    # Vertical divider
+    div_x = logo_x + logo_size + PAD
+    draw.line([(div_x, PAD + BW + 4), (div_x, H - PAD - BW - 4)], fill=BLUE, width=2)
+
+    # Text area
+    text_x = div_x + PAD
+    text_area_w = W - text_x - PAD - BW
+    text_area_h = H - 2 * PAD - 2 * BW
+
+    font_name  = _load_font(30, bold=True)
+    font_body  = _load_font(22, bold=False)
+    font_small = _load_font(19, bold=False)
+
+    lines = [
+        (customer_name,                        font_name,  BLUE),
+        (f"{string} @ {tension}",              font_body,  BLACK),
+        (f"String Date: {string_date}",        font_body,  BLACK),
+    ]
+    last_l = SACC_PHONE
+    last_r = f"Stringer: {strung_by or 'N/A'}"
+
+    GAP = 7
+    _, h_last = _measure(draw, last_l, font_small)
+    total_h = sum(_measure(draw, t, f)[1] for t, f, _ in lines) + len(lines) * GAP + h_last
+    y = PAD + BW + (text_area_h - total_h) // 2
+
+    def cx(text, font):
+        tw, _ = _measure(draw, text, font)
+        return text_x + (text_area_w - tw) // 2
+
+    for text, font, color in lines:
+        _, th = _measure(draw, text, font)
+        draw.text((cx(text, font), y), text, font=font, fill=color)
+        y += th + GAP
+
+    # Bottom row: phone left, stringer right, spaced across text area
+    wl, _ = _measure(draw, last_l, font_small)
+    wr, _ = _measure(draw, last_r, font_small)
+    draw.text((text_x, y), last_l, font=font_small, fill=BLACK)
+    draw.text((text_x + text_area_w - wr, y), last_r, font=font_small, fill=BLACK)
+
+    filename = f"string_label_{restring_id}.png"
     img.save(LABEL_DIR / filename, dpi=(300, 300))
     return filename

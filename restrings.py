@@ -228,6 +228,28 @@ def restring_status(restring_id):
     return redirect(url_for('restrings.list_restrings'))
 
 
+@restrings_bp.route('/<int:restring_id>/string-label')
+@login_required
+def restring_string_label(restring_id):
+    db = get_db()
+    job = db.execute("SELECT * FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    if job is None:
+        return redirect(url_for('restrings.list_restrings'))
+    from qr_utils import generate_string_label, LABEL_DIR
+    filename = generate_string_label(
+        restring_id,
+        job['customer_name'],
+        job['string'],
+        job['tension'],
+        job['strung_by'],
+        job['completed_at'],
+    )
+    safe_name = job['customer_name'].replace(' ', '_')
+    return send_file(str(LABEL_DIR / filename), as_attachment=True,
+                     download_name=f"{safe_name}_string_label.png",
+                     mimetype='image/png')
+
+
 @restrings_bp.route('/<int:restring_id>/quick-update', methods=['POST'])
 @login_required
 def restring_quick_update(restring_id):
