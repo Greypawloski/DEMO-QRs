@@ -189,11 +189,12 @@ def restrings_export_csv():
     ).fetchall()
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(['Name', 'Racquet', 'String', 'Tension', 'Stringer', 'Date', 'Chit Number', 'Total'])
+    w.writerow(['Name', 'Racquet', 'String', 'Tension', 'Stringer', 'Date', 'Chit Number', 'Total', 'Additional Charges'])
     for r in rows:
         w.writerow([r['customer_name'], r['racquet'], r['string'], r['tension'],
                     r['strung_by'] or '', r['date_in'],
-                    r['receipt'] or '', r['charged'] or ''])
+                    r['receipt'] or '', r['charged'] or '',
+                    r['additional_charges'] or ''])
     buf.seek(0)
     return send_file(io.BytesIO(buf.getvalue().encode()),
                      as_attachment=True, download_name='stringing-history.csv',
