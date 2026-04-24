@@ -41,3 +41,10 @@ Guidance:
 - Use existing code as source of truth
 - Do not scan the entire repo unless necessary
 - Do not assume the app runs locally; it is deployed on PythonAnywhere
+
+Git / Deployment Rules:
+- Only work on the current active branch unless explicitly instructed.
+- Before git operations, confirm the branch with `git branch --show-current`.
+- Do not pull from branches suggested by other Claude windows.
+- Do not run merge, rebase, checkout, or pull commands without confirmation.
+- PythonAnywhere `config.py` contains server-specific settings and should not be overwritten unless explicitly requested.
