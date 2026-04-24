@@ -48,6 +48,7 @@
           <th>Strung By</th>
           <th>Receipt</th>
           <th>Charged</th>
+          <th>Additional Charges</th>
           <th>Marked Ready</th>
           <th>Notes</th>
           <th>Status</th>
@@ -80,6 +81,11 @@
             <td>
               {% if row.charged %}{{ row.charged }}{% else %}
                 <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'charged')">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.additional_charges %}{{ row.additional_charges }}{% else %}
+                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'additional_charges')">—</span>
               {% endif %}
             </td>
             <td style="white-space:nowrap;">{{ row.completed_at | central if row.completed_at else '—' }}</td>
@@ -210,7 +216,7 @@
     document.getElementById('delete-restring-pin-error').style.display = 'block';
   {% endif %}
   function openQuickEdit(trigger, id, field) {
-    var labels = { strung_by: 'Strung By', receipt: 'Receipt', charged: 'Charged' };
+    var labels = { strung_by: 'Strung By', receipt: 'Receipt', charged: 'Charged', additional_charges: 'Additional Charges' };
     document.getElementById('quick-edit-title').textContent = labels[field] || field;
     document.getElementById('quick-edit-input').value = '';
     document.getElementById('quick-edit-form').action = '/admin/restrings/' + id + '/quick-update';

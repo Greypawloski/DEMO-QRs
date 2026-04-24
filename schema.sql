@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS restrings (
     date_promised TEXT NOT NULL,
     receipt       TEXT,
     charged       TEXT,
+    additional_charges TEXT,
     notes         TEXT,
     strung_by     TEXT,
     status        TEXT NOT NULL DEFAULT 'pending',

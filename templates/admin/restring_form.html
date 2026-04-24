@@ -49,7 +49,7 @@
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
     <div class="form-group">
       <label for="receipt">Receipt #</label>
       <input type="text" id="receipt" name="receipt" value="{{ item.receipt if item else '' }}">
@@ -57,6 +57,10 @@
     <div class="form-group">
       <label for="charged">Charged</label>
       <input type="text" id="charged" name="charged" value="{{ item.charged if item else '' }}" placeholder="e.g. $35">
+    </div>
+    <div class="form-group">
+      <label for="additional_charges">Additional Charges</label>
+      <input type="text" id="additional_charges" name="additional_charges" value="{{ item.additional_charges if item and item.additional_charges else '' }}" placeholder="e.g. $5">
     </div>
   </div>
 

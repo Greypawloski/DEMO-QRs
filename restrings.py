@@ -63,8 +63,8 @@ def restring_new():
             """
             INSERT INTO restrings
               (date_in, customer_name, phone, member_number, racquet,
-               string, tension, date_promised, receipt, charged, notes, strung_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               string, tension, date_promised, receipt, charged, additional_charges, notes, strung_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 request.form['date_in'],
@@ -77,6 +77,7 @@ def restring_new():
                 request.form['date_promised'],
                 request.form.get('receipt', '').strip(),
                 request.form.get('charged', '').strip(),
+                request.form.get('additional_charges', '').strip(),
                 request.form.get('notes', '').strip(),
                 request.form.get('strung_by', '').strip(),
             )
@@ -99,7 +100,7 @@ def restring_edit(restring_id):
             """
             UPDATE restrings SET
               date_in=?, customer_name=?, phone=?, member_number=?, racquet=?,
-              string=?, tension=?, date_promised=?, receipt=?, charged=?, notes=?, strung_by=?
+              string=?, tension=?, date_promised=?, receipt=?, charged=?, additional_charges=?, notes=?, strung_by=?
             WHERE id=?
             """,
             (
@@ -113,6 +114,7 @@ def restring_edit(restring_id):
                 request.form['date_promised'],
                 request.form.get('receipt', '').strip(),
                 request.form.get('charged', '').strip(),
+                request.form.get('additional_charges', '').strip(),
                 request.form.get('notes', '').strip(),
                 request.form.get('strung_by', '').strip(),
                 restring_id,
@@ -251,7 +253,7 @@ def restring_string_label(restring_id):
 def restring_quick_update(restring_id):
     field = request.form.get('field')
     value = request.form.get('value', '').strip()
-    if field not in ('strung_by', 'receipt', 'charged'):
+    if field not in ('strung_by', 'receipt', 'charged', 'additional_charges'):
         return redirect(url_for('restrings.list_restrings'))
     db = get_db()
     db.execute(f"UPDATE restrings SET {field}=? WHERE id=?", (value or None, restring_id))
