@@ -48,7 +48,7 @@ def list_restrings():
         params_pending
     ).fetchall()
     completed = db.execute(
-        f"SELECT * FROM restrings WHERE {where_completed} ORDER BY created_at DESC LIMIT 50",
+        f"SELECT * FROM restrings WHERE {where_completed} ORDER BY created_at DESC",
         params_completed
     ).fetchall()
     return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb)
@@ -135,7 +135,7 @@ def restring_delete(restring_id):
     from flask import current_app
     if pin != current_app.config.get('RETIRE_PIN', ''):
         pending = db.execute("SELECT * FROM restrings WHERE status != 'picked_up' ORDER BY date_promised ASC").fetchall()
-        completed = db.execute("SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC LIMIT 50").fetchall()
+        completed = db.execute("SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC").fetchall()
         return render_template('admin/restrings_list.html', pending=pending, completed=completed,
                                q='', qb='', delete_pin_error=True,
                                delete_pin_error_id=restring_id,
