@@ -154,39 +154,29 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     text_area_w = W - text_x - PAD - BW
     text_area_h = H - 2 * PAD - 2 * BW
 
-    font_name  = _load_font(42, bold=True)
-    font_body  = _load_font(29, bold=True)
-    font_small = _load_font(27, bold=True)
-
-    def wrap_text(text, font, max_w):
-        words = text.split()
-        lines_out, current = [], ""
-        for word in words:
-            test = (current + " " + word).strip()
-            if _measure(draw, test, font)[0] <= max_w:
-                current = test
-            else:
-                if current:
-                    lines_out.append(current)
-                current = word
-        if current:
-            lines_out.append(current)
-        return lines_out or [text]
-
     string_line = f"{string} @ {tension}"
-    string_wrapped = wrap_text(string_line, font_body, text_area_w)
-    date_line = f"String Date: {string_date}"
-    last_l = SACC_PHONE
-    last_r = f"Stringer: {strung_by or 'N/A'}"
+    date_line   = f"String Date: {string_date}"
+    last_l      = SACC_PHONE
+    last_r      = f"Stringer: {strung_by or 'N/A'}"
 
-    GAP = 6
+    # Auto-scale body font: as large as possible without any line overflowing
+    def best_font_size(texts, max_w, start=60, min_s=16, bold=True):
+        for size in range(start, min_s - 1, -1):
+            font = _load_font(size, bold=bold)
+            if all(_measure(draw, t, font)[0] <= max_w for t in texts):
+                return font, size
+        return _load_font(min_s, bold=bold), min_s
+
+    body_candidates = [string_line, date_line, last_l + "    " + last_r]
+    font_body, body_size = best_font_size(body_candidates, text_area_w, start=60)
+    font_name  = _load_font(int(body_size * 1.45), bold=True)
+    font_small = _load_font(int(body_size * 0.95), bold=True)
+
+    GAP = 8
     _, h_name  = _measure(draw, customer_name, font_name)
     _, h_body  = _measure(draw, "Ag", font_body)
     _, h_small = _measure(draw, last_l, font_small)
-    total_h = (h_name + GAP
-               + h_body * len(string_wrapped) + GAP * (len(string_wrapped) - 1) + GAP
-               + h_body + GAP
-               + h_small)
+    total_h = h_name + GAP + h_body + GAP + h_body + GAP + h_small
     y = PAD + BW + (text_area_h - total_h) // 2
 
     def cx(text, font):
@@ -197,10 +187,9 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     draw.text((cx(customer_name, font_name), y), customer_name, font=font_name, fill=BLUE)
     y += h_name + GAP
 
-    # String (possibly wrapped)
-    for part in string_wrapped:
-        draw.text((cx(part, font_body), y), part, font=font_body, fill=BLACK)
-        y += h_body + GAP
+    # String @ Tension
+    draw.text((cx(string_line, font_body), y), string_line, font=font_body, fill=BLACK)
+    y += h_body + GAP
 
     # Date
     draw.text((cx(date_line, font_body), y), date_line, font=font_body, fill=BLACK)
