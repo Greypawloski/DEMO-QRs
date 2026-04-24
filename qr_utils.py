@@ -122,7 +122,7 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     else:
         string_date = datetime.now().strftime('%B %-d, %Y')
 
-    W, H   = 950, 270
+    W, H   = 1050, 320
     PAD    = 18
     BW     = 4   # border width
 
@@ -157,9 +157,9 @@ def generate_string_label(restring_id: int, customer_name: str, string: str,
     text_area_w = W - text_x - PAD - BW
     text_area_h = H - 2 * PAD - 2 * BW
 
-    font_name  = _load_font(30, bold=True)
-    font_body  = _load_font(22, bold=False)
-    font_small = _load_font(19, bold=False)
+    font_name  = _load_font(40, bold=True)
+    font_body  = _load_font(28, bold=True)
+    font_small = _load_font(24, bold=True)
 
     lines = [
         (customer_name,                        font_name,  BLUE),
