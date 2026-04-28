@@ -63,111 +63,94 @@
 
 {% if pending %}
   <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--green);">Active</h2>
-  <div class="table-wrap" style="margin-bottom:40px;">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Date In</th>
-          <th>Customer</th>
-          <th>Phone</th>
-          <th>Racquet</th>
-          <th>String</th>
-          <th>Tension</th>
-          <th>Promised</th>
-          <th>Strung By</th>
-          <th>Receipt</th>
-          <th>Charged</th>
-          <th>Additional Charges</th>
-          <th>Marked Ready</th>
-          <th>Notes</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in pending %}
-          <tr>
-            <td style="white-space:nowrap;">{{ row.date_in }}</td>
-            <td>
-              <strong>{{ row.customer_name }}</strong>
-              {% if row.member_number == 'Non-member' %}
-                <br><span style="background:#fce7f3;color:#9d174d;font-size:0.75rem;padding:2px 6px;border-radius:4px;white-space:nowrap;">Non-member</span>
-              {% elif row.member_number %}
-                <br><span class="text-muted" style="font-size:0.85rem;">#{{ row.member_number }}</span>
-              {% endif %}
-            </td>
-            <td style="white-space:nowrap;">{{ row.phone }}</td>
-            <td>{{ row.racquet }}</td>
-            <td>
-              {{ row.string }}
-              {% if row.customer_own_string %}
-                <span style="background:#fef3c7;color:#92400e;font-size:0.75rem;padding:2px 6px;border-radius:4px;margin-left:4px;white-space:nowrap;">Own String</span>
-              {% endif %}
-            </td>
-            <td>{{ row.tension }}</td>
-            <td style="white-space:nowrap;">{{ row.date_promised }}</td>
-            <td>
-              {% if row.strung_by %}{{ row.strung_by }}{% else %}
-                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'strung_by')">—</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if row.receipt %}{{ row.receipt }}{% else %}
-                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'receipt')">—</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if row.charged %}{{ row.charged }}{% else %}
-                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'charged')">—</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if row.additional_charges %}{{ row.additional_charges }}{% else %}
-                <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'additional_charges')">—</span>
-              {% endif %}
-            </td>
-            <td style="white-space:nowrap;">{{ row.completed_at | central if row.completed_at else '—' }}</td>
-            <td style="max-width:180px;">
-              {% if row.notes %}
-                <span style="background:#fef9c3;color:#854d0e;padding:3px 8px;border-radius:6px;font-size:0.85rem;display:inline-block;">{{ row.notes }}</span>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>
-              {% if row.status == 'pending' %}
-                <span class="status-badge status-out">Pending</span>
-              {% elif row.status == 'complete' %}
-                <span class="status-badge status-avail">Ready</span>
-              {% endif %}
-            </td>
-            <td style="white-space:nowrap;">
-              <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
-              {% if row.status == 'pending' %}
-                <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
-                  <input type="hidden" name="status" value="complete">
-                  <button type="submit" class="btn btn-primary btn-sm"
-                          onclick="return confirm('Mark {{ row.customer_name }}\'s racquet as ready?')">Mark Ready</button>
-                </form>
-                <button type="button" class="btn btn-danger btn-sm"
-                        onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
-              {% elif row.status == 'complete' %}
-                <a href="{{ url_for('restrings.restring_string_label', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Download Label</a>
-                <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
-                  <input type="hidden" name="status" value="picked_up">
-                  <button type="submit" class="btn btn-danger btn-sm"
-                          onclick="return confirm('Mark {{ row.customer_name | e }}\'s racquet as picked up?')">Mark Picked Up</button>
-                </form>
-                <form method="post" action="{{ url_for('restrings.restring_unmark_ready', restring_id=row.id) }}" style="display:inline;">
-                  <button type="submit" class="btn btn-secondary btn-sm"
-                          onclick="return confirm('Revert {{ row.customer_name | e }}\'s racquet back to Pending?')">Unmark Ready</button>
-                </form>
-              {% endif %}
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:40px;">
+    {% for row in pending %}
+      <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+
+        <!-- Top: status + customer + actions -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            {% if row.status == 'pending' %}
+              <span class="status-badge status-out">Pending</span>
+            {% elif row.status == 'complete' %}
+              <span class="status-badge status-avail">Ready</span>
+            {% endif %}
+            <strong style="font-size:1rem;">{{ row.customer_name }}</strong>
+            {% if row.member_number == 'Non-member' %}
+              <span style="background:#fce7f3;color:#9d174d;font-size:0.75rem;padding:2px 6px;border-radius:4px;white-space:nowrap;">Non-member</span>
+            {% elif row.member_number %}
+              <span class="text-muted" style="font-size:0.85rem;">#{{ row.member_number }}</span>
+            {% endif %}
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
+            <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+            {% if row.status == 'pending' %}
+              <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
+                <input type="hidden" name="status" value="complete">
+                <button type="submit" class="btn btn-primary btn-sm"
+                        onclick="return confirm('Mark {{ row.customer_name | e }}\'s racquet as ready?')">Mark Ready</button>
+              </form>
+              <button type="button" class="btn btn-danger btn-sm"
+                      onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
+            {% elif row.status == 'complete' %}
+              <a href="{{ url_for('restrings.restring_string_label', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Download Label</a>
+              <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
+                <input type="hidden" name="status" value="picked_up">
+                <button type="submit" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Mark {{ row.customer_name | e }}\'s racquet as picked up?')">Mark Picked Up</button>
+              </form>
+              <form method="post" action="{{ url_for('restrings.restring_unmark_ready', restring_id=row.id) }}" style="display:inline;">
+                <button type="submit" class="btn btn-secondary btn-sm"
+                        onclick="return confirm('Revert {{ row.customer_name | e }}\'s racquet back to Pending?')">Unmark Ready</button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Racquet + string details -->
+        <div style="font-size:0.92rem;margin-bottom:8px;">
+          <span style="color:var(--muted);">Racquet:</span> <strong>{{ row.racquet }}</strong>
+          &nbsp;·&nbsp;
+          <span style="color:var(--muted);">String:</span> {{ row.string }}
+          {% if row.customer_own_string %}
+            <span style="background:#fef3c7;color:#92400e;font-size:0.75rem;padding:2px 6px;border-radius:4px;margin-left:4px;white-space:nowrap;">Own String</span>
+          {% endif %}
+          &nbsp;·&nbsp;
+          <span style="color:var(--muted);">Tension:</span> {{ row.tension }}
+        </div>
+
+        <!-- Dates + phone -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px 20px;font-size:0.88rem;margin-bottom:8px;color:var(--text);">
+          <span><span style="color:var(--muted);">In:</span> {{ row.date_in }}</span>
+          <span><span style="color:var(--muted);">Promised:</span> {{ row.date_promised }}</span>
+          {% if row.phone %}<span><span style="color:var(--muted);">Phone:</span> {{ row.phone }}</span>{% endif %}
+          {% if row.completed_at %}<span><span style="color:var(--muted);">Marked Ready:</span> {{ row.completed_at | central }}</span>{% endif %}
+        </div>
+
+        <!-- Staff / receipt / charges (quick-edit) -->
+        <div style="display:flex;flex-wrap:wrap;gap:6px 20px;font-size:0.88rem;padding-top:8px;border-top:1px solid var(--border);">
+          <span><span style="color:var(--muted);">Strung By:</span>
+            {% if row.strung_by %}{{ row.strung_by }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'strung_by')">—</span>{% endif %}
+          </span>
+          <span><span style="color:var(--muted);">Receipt:</span>
+            {% if row.receipt %}{{ row.receipt }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'receipt')">—</span>{% endif %}
+          </span>
+          <span><span style="color:var(--muted);">Charged:</span>
+            {% if row.charged %}{{ row.charged }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'charged')">—</span>{% endif %}
+          </span>
+          <span><span style="color:var(--muted);">Additional:</span>
+            {% if row.additional_charges %}{{ row.additional_charges }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'additional_charges')">—</span>{% endif %}
+          </span>
+        </div>
+
+        {% if row.notes %}
+        <div style="margin-top:8px;">
+          <span style="background:#fef9c3;color:#854d0e;padding:3px 8px;border-radius:6px;font-size:0.85rem;display:inline-block;">{{ row.notes }}</span>
+        </div>
+        {% endif %}
+
+      </div>
+    {% endfor %}
   </div>
 {% else %}
   <div class="empty-state" style="margin-bottom:40px;">
