@@ -3,6 +3,10 @@
 {% block title %}Demo Equipment{% endblock %}
 
 {% block content %}
+<div style="position:fixed;top:12px;right:12px;z-index:100;">
+  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">← Admin Dashboard</a>
+</div>
+
 <div class="kiosk-header">
   <img src="{{ url_for('static', filename='sacc-logo.png') }}" alt="SACC" style="height:90px;margin-bottom:10px;">
   <h1>Demo Equipment</h1>
