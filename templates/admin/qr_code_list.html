@@ -81,6 +81,12 @@
       width: 110px;
       height: 110px;
     }
+    .qr-item .item-notes {
+      font-size: 0.78rem;
+      color: #e63946;
+      margin-top: 6px;
+      line-height: 1.3;
+    }
     .qr-item .no-qr {
       width: 110px;
       height: 110px;
@@ -126,6 +132,9 @@
       {% else %}
         <div class="no-qr">No QR</div>
       {% endif %}
+      {% if item.notes %}
+        <div class="item-notes">{{ item.notes }}</div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
@@ -141,6 +150,9 @@
         <img src="data:image/png;base64,{{ item.qr_b64 }}" alt="QR">
       {% else %}
         <div class="no-qr">No QR</div>
+      {% endif %}
+      {% if item.notes %}
+        <div class="item-notes">{{ item.notes }}</div>
       {% endif %}
     </div>
     {% endfor %}

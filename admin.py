@@ -483,7 +483,7 @@ def qr_code_list():
     from pathlib import Path
     db = get_db()
     rows = db.execute(
-        "SELECT id, name, category, qr_filename FROM equipment WHERE active = 1 ORDER BY category, name"
+        "SELECT id, name, category, qr_filename, notes FROM equipment WHERE active = 1 ORDER BY category, name"
     ).fetchall()
     qr_dir = Path(current_app.root_path) / 'static' / 'qrcodes'
     items = []
@@ -493,7 +493,7 @@ def qr_code_list():
             path = qr_dir / r['qr_filename']
             if path.exists():
                 b64 = base64.b64encode(path.read_bytes()).decode()
-        items.append({'name': r['name'], 'category': r['category'], 'qr_b64': b64})
+        items.append({'name': r['name'], 'category': r['category'], 'qr_b64': b64, 'notes': r['notes']})
     racquets = [i for i in items if i['category'] == 'racquet']
     paddles  = [i for i in items if i['category'] == 'paddle']
     from datetime import datetime
