@@ -27,18 +27,17 @@
   <p style="color:var(--red);font-weight:600;margin-bottom:24px;">
     Please return within 72 hours to avoid any late fees.
   </p>
-  <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;">
+
+  {% if checkout %}
+  {% set prefill = '?prefill_name=' ~ checkout.customer_name | urlencode ~ '&prefill_member=' ~ (checkout.member_number or '') | urlencode ~ '&prefill_phone=' ~ (checkout.phone or '') | urlencode %}
+  <a href="{{ url_for('admin.kiosk_view') ~ prefill }}"
+     class="btn btn-primary" style="max-width:280px;display:inline-block;margin-bottom:12px;">
+    Check Out Another Demo (Same Customer)
+  </a>
+  {% endif %}
+
+  <a href="{{ url_for('home') }}" class="btn btn-secondary" style="max-width:280px;display:inline-block;">
     Done
   </a>
-  <p class="countdown" id="countdown">Returning to home in <span id="sec">5</span>s…</p>
 </div>
-
-<script>
-  var sec = 5;
-  var t = setInterval(function() {
-    sec--;
-    document.getElementById('sec').textContent = sec;
-    if (sec <= 0) { clearInterval(t); window.location = "{{ url_for('home') }}"; }
-  }, 1000);
-</script>
 {% endblock %}

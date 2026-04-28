@@ -118,4 +118,26 @@
   <a href="{{ url_for('home') }}" class="btn btn-secondary btn-sm">Back to Equipment List</a>
   <a href="{{ url_for('admin.kiosk_view') }}" class="btn btn-secondary btn-sm">Back to Admin Kiosk</a>
 </div>
+
+<script>
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var name   = params.get('prefill_name');
+    var member = params.get('prefill_member');
+    var phone  = params.get('prefill_phone');
+    if (name) {
+      var nameEl = document.getElementById('customer_name');
+      var memberEl = document.getElementById('member_number');
+      var phoneEl  = document.getElementById('phone');
+      if (nameEl   && !nameEl.value)   nameEl.value   = name;
+      if (memberEl && !memberEl.value) memberEl.value = member || '';
+      if (phoneEl  && !phoneEl.value)  phoneEl.value  = phone  || '';
+      // If non-member was stored
+      if (member === 'Non-member') {
+        var cb = document.getElementById('non_member_check');
+        if (cb) { cb.checked = true; toggleMemberField(cb); }
+      }
+    }
+  })();
+</script>
 {% endblock %}

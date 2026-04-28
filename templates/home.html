@@ -10,6 +10,11 @@
 </div>
 
 {% if equipment %}
+  <div id="prefill-banner" style="display:none;background:#d1fae5;border:2px solid #059669;border-radius:10px;padding:14px 18px;margin-bottom:20px;max-width:600px;margin-left:auto;margin-right:auto;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+    <span style="color:#065f46;font-weight:600;font-size:1rem;">Checking out for: <span id="prefill-name-display"></span></span>
+    <button onclick="clearPrefill()" style="border:none;background:#059669;color:#fff;padding:6px 14px;border-radius:8px;font-size:0.9rem;cursor:pointer;">Clear</button>
+  </div>
+
   <div style="max-width:600px;margin:0 auto 24px;display:flex;gap:10px;">
     <input type="text" id="kiosk-search" placeholder="Search by name…"
            oninput="filterKioskItems()"
@@ -21,7 +26,8 @@
     {% for item in equipment %}
       {% if item.is_checked_out %}
         <a class="equipment-card unavailable" href="{{ url_for('checkout_unavailable', equipment_id=item.id) }}"
-           data-name="{{ item.name | lower }}">
+           data-name="{{ item.name | lower }}"
+           data-checkout-url="{{ url_for('checkout', equipment_id=item.id) }}">
           <span class="badge-out">Checked Out</span>
           <div class="card-category">{{ item.category }}</div>
           <div class="card-name">{{ item.name }}</div>
@@ -36,7 +42,8 @@
         </a>
       {% else %}
         <a class="equipment-card" href="{{ url_for('checkout', equipment_id=item.id) }}"
-           data-name="{{ item.name | lower }}">
+           data-name="{{ item.name | lower }}"
+           data-checkout-url="{{ url_for('checkout', equipment_id=item.id) }}">
           <span class="badge-available">Available</span>
           <div class="card-category">{{ item.category }}</div>
           <div class="card-name">{{ item.name }}</div>
@@ -59,6 +66,53 @@
 {% endif %}
 
 <script>
+  // Read prefill params from URL and store in sessionStorage
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var name   = params.get('prefill_name');
+    var member = params.get('prefill_member');
+    var phone  = params.get('prefill_phone');
+    if (name) {
+      sessionStorage.setItem('prefill_name',   name);
+      sessionStorage.setItem('prefill_member', member || '');
+      sessionStorage.setItem('prefill_phone',  phone  || '');
+      // Clean URL without reload
+      history.replaceState({}, '', window.location.pathname);
+    }
+  })();
+
+  function applyPrefill() {
+    var name   = sessionStorage.getItem('prefill_name');
+    var member = sessionStorage.getItem('prefill_member') || '';
+    var phone  = sessionStorage.getItem('prefill_phone')  || '';
+    var banner = document.getElementById('prefill-banner');
+    if (name) {
+      document.getElementById('prefill-name-display').textContent = name;
+      banner.style.display = 'flex';
+      // Append prefill params to all available card links
+      var suffix = '?prefill_name=' + encodeURIComponent(name)
+                 + '&prefill_member=' + encodeURIComponent(member)
+                 + '&prefill_phone='  + encodeURIComponent(phone);
+      document.querySelectorAll('#kiosk-grid .equipment-card[data-checkout-url]').forEach(function(card) {
+        var base = card.getAttribute('data-checkout-url');
+        if (base) card.href = base + suffix;
+      });
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  function clearPrefill() {
+    sessionStorage.removeItem('prefill_name');
+    sessionStorage.removeItem('prefill_member');
+    sessionStorage.removeItem('prefill_phone');
+    // Reset card hrefs
+    document.querySelectorAll('#kiosk-grid .equipment-card[data-checkout-url]').forEach(function(card) {
+      card.href = card.getAttribute('data-checkout-url');
+    });
+    document.getElementById('prefill-banner').style.display = 'none';
+  }
+
   function filterKioskItems() {
     var q = document.getElementById('kiosk-search').value.toLowerCase().trim();
     var cards = document.querySelectorAll('#kiosk-grid .equipment-card');
@@ -71,6 +125,8 @@
     });
     document.getElementById('kiosk-no-results').style.display = visible === 0 ? 'block' : 'none';
   }
+
+  applyPrefill();
 </script>
 
 <p class="text-center text-muted mt-24" style="font-size:0.85rem;">

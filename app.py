@@ -116,7 +116,7 @@ def create_app():
         db = get_db()
         item = db.execute("SELECT name FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
         checkout = db.execute(
-            "SELECT customer_name, checked_out_at FROM checkouts WHERE equipment_id = ? ORDER BY id DESC LIMIT 1",
+            "SELECT customer_name, member_number, phone, checked_out_at FROM checkouts WHERE equipment_id = ? ORDER BY id DESC LIMIT 1",
             (equipment_id,)
         ).fetchone()
         return render_template('checkout_confirm.html', item=item, checkout=checkout)
