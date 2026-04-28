@@ -476,6 +476,31 @@ def label_download(equipment_id):
     return send_file(label_path, as_attachment=True, download_name=f"{safe_name}-label.png")
 
 
+@admin_bp.route('/qr-code-list')
+@login_required
+def qr_code_list():
+    import base64
+    from pathlib import Path
+    db = get_db()
+    rows = db.execute(
+        "SELECT id, name, category, qr_filename FROM equipment WHERE active = 1 ORDER BY category, name"
+    ).fetchall()
+    qr_dir = Path(current_app.root_path) / 'static' / 'qrcodes'
+    items = []
+    for r in rows:
+        b64 = None
+        if r['qr_filename']:
+            path = qr_dir / r['qr_filename']
+            if path.exists():
+                b64 = base64.b64encode(path.read_bytes()).decode()
+        items.append({'name': r['name'], 'category': r['category'], 'qr_b64': b64})
+    racquets = [i for i in items if i['category'] == 'racquet']
+    paddles  = [i for i in items if i['category'] == 'paddle']
+    from datetime import datetime
+    now = datetime.now().strftime('%B %-d, %Y')
+    return render_template('admin/qr_code_list.html', racquets=racquets, paddles=paddles, now=now)
+
+
 @admin_bp.route('/labels/download-zip')
 @login_required
 def labels_download_zip():

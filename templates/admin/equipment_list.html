@@ -8,6 +8,7 @@
   <div style="display:flex;gap:10px;">
     <a href="{{ url_for('admin.equipment_new') }}" class="btn btn-primary btn-sm">+ Add Equipment</a>
     <a href="{{ url_for('admin.labels_download_zip') }}" class="btn btn-secondary btn-sm">Download All Labels (ZIP)</a>
+    <a href="{{ url_for('admin.qr_code_list') }}" class="btn btn-secondary btn-sm" target="_blank">Print QR Code List</a>
     <button type="button" class="btn btn-secondary btn-sm" onclick="openRegenModal()">Regenerate All QR Codes</button>
   </div>
 </div>
