@@ -81,7 +81,13 @@ def create_app():
                 return redirect(url_for('checkout_unavailable', equipment_id=equipment_id))
             name = request.form.get('customer_name', '').strip()
             non_member = request.form.get('non_member') == '1'
-            member = 'Non-member' if non_member else request.form.get('member_number', '').strip()
+            if non_member:
+                member = 'Non-member'
+            else:
+                member = request.form.get('member_number', '').strip()
+                suffix = request.form.get('member_suffix', '').strip()
+                if suffix:
+                    member = member + suffix
             if not name or not member:
                 specs = _get_specs(item)
                 return render_template(
