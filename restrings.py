@@ -59,6 +59,7 @@ def list_restrings():
 def restring_new():
     if request.method == 'POST':
         db = get_db()
+        member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
         db.execute(
             """
             INSERT INTO restrings
@@ -70,7 +71,7 @@ def restring_new():
                 request.form['date_in'],
                 request.form['customer_name'].strip(),
                 request.form['phone'].strip(),
-                request.form.get('member_number', '').strip(),
+                member,
                 request.form['racquet'].strip(),
                 request.form['string'].strip(),
                 request.form['tension'].strip(),
@@ -97,6 +98,7 @@ def restring_edit(restring_id):
         return redirect(url_for('restrings.list_restrings'))
 
     if request.method == 'POST':
+        member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
         db.execute(
             """
             UPDATE restrings SET
@@ -108,7 +110,7 @@ def restring_edit(restring_id):
                 request.form['date_in'],
                 request.form['customer_name'].strip(),
                 request.form['phone'].strip(),
-                request.form.get('member_number', '').strip(),
+                member,
                 request.form['racquet'].strip(),
                 request.form['string'].strip(),
                 request.form['tension'].strip(),

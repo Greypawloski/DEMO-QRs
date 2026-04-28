@@ -28,9 +28,35 @@
       <input type="tel" id="phone" name="phone" value="{{ item.phone if item else '' }}" required>
     </div>
     <div class="form-group">
-      <label for="member_number">Member Number</label>
-      <input type="text" id="member_number" name="member_number" value="{{ item.member_number if item else '' }}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <label for="member_number" style="margin-bottom:0;">Member Number</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;font-weight:400;cursor:pointer;">
+          <input type="checkbox" id="non_member_check" name="non_member" value="1"
+                 onchange="toggleMemberField(this)"
+                 {% if item and item.member_number == 'Non-member' %}checked{% endif %}
+                 style="width:17px;height:17px;cursor:pointer;accent-color:var(--accent);appearance:auto;-webkit-appearance:checkbox;">
+          Non-member
+        </label>
+      </div>
+      <input type="text" id="member_number" name="member_number"
+             value="{{ '' if item and item.member_number == 'Non-member' else (item.member_number if item else '') }}"
+             {% if item and item.member_number == 'Non-member' %}disabled style="opacity:0.4;cursor:not-allowed;"{% endif %}>
     </div>
+    <script>
+      function toggleMemberField(cb) {
+        var field = document.getElementById('member_number');
+        if (cb.checked) {
+          field.value = '';
+          field.disabled = true;
+          field.style.opacity = '0.4';
+          field.style.cursor = 'not-allowed';
+        } else {
+          field.disabled = false;
+          field.style.opacity = '';
+          field.style.cursor = '';
+        }
+      }
+    </script>
   </div>
 
   <div class="form-group">

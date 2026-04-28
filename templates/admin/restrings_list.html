@@ -90,7 +90,11 @@
             <td style="white-space:nowrap;">{{ row.date_in }}</td>
             <td>
               <strong>{{ row.customer_name }}</strong>
-              {% if row.member_number %}<br><span class="text-muted" style="font-size:0.85rem;">#{{ row.member_number }}</span>{% endif %}
+              {% if row.member_number == 'Non-member' %}
+                <br><span style="background:#f1f5f9;color:#475569;font-size:0.75rem;padding:2px 6px;border-radius:4px;white-space:nowrap;">Non-member</span>
+              {% elif row.member_number %}
+                <br><span class="text-muted" style="font-size:0.85rem;">#{{ row.member_number }}</span>
+              {% endif %}
             </td>
             <td style="white-space:nowrap;">{{ row.phone }}</td>
             <td>{{ row.racquet }}</td>
@@ -192,7 +196,12 @@
         {% for row in completed %}
           <tr>
             <td style="white-space:nowrap;">{{ row.date_in }}</td>
-            <td>{{ row.customer_name }}</td>
+            <td>
+              {{ row.customer_name }}
+              {% if row.member_number == 'Non-member' %}
+                <br><span style="background:#f1f5f9;color:#475569;font-size:0.75rem;padding:2px 6px;border-radius:4px;white-space:nowrap;">Non-member</span>
+              {% endif %}
+            </td>
             <td>{{ row.racquet }}</td>
             <td>
               {{ row.string }}
