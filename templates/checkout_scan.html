@@ -114,7 +114,8 @@
   <button type="submit" class="btn btn-primary">Check Out</button>
 </form>
 
-<div class="text-center mt-24">
+<div class="text-center mt-24" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
   <a href="{{ url_for('home') }}" class="btn btn-secondary btn-sm">Back to Equipment List</a>
+  <a href="{{ url_for('admin.kiosk_view') }}" class="btn btn-secondary btn-sm">Back to Admin Kiosk</a>
 </div>
 {% endblock %}
