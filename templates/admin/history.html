@@ -33,6 +33,7 @@
           <th>Checked Out</th>
           <th>Returned</th>
           <th>Status</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -51,6 +52,16 @@
                 <span class="status-badge status-done">Returned</span>
               {% else %}
                 <span class="status-badge status-out">Out</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if row.returned_at %}
+                <form method="post" action="{{ url_for('admin.unmark_returned', checkout_id=row.id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm"
+                          onclick="return confirm('Revert this return? The item will go back to active checkout.')">
+                    Unmark Returned
+                  </button>
+                </form>
               {% endif %}
             </td>
           </tr>

@@ -369,6 +369,22 @@ def history():
     return render_template('admin/history.html', rows=rows, q=q)
 
 
+@admin_bp.route('/checkout/<int:checkout_id>/unmark-returned', methods=['POST'])
+@login_required
+def unmark_returned(checkout_id):
+    db = get_db()
+    row = db.execute("SELECT equipment_id FROM checkouts WHERE id = ?", (checkout_id,)).fetchone()
+    if row:
+        conflict = db.execute(
+            "SELECT id FROM checkouts WHERE equipment_id = ? AND returned_at IS NULL AND id != ?",
+            (row['equipment_id'], checkout_id)
+        ).fetchone()
+        if not conflict:
+            db.execute("UPDATE checkouts SET returned_at = NULL, return_notes = NULL WHERE id = ?", (checkout_id,))
+            db.commit()
+    return redirect(url_for('admin.history'))
+
+
 @admin_bp.route('/equipment/<int:equipment_id>/delete', methods=['POST'])
 @login_required
 def equipment_delete(equipment_id):
