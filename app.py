@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, g
+from flask import Flask, render_template, request, redirect, url_for, g, session
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from pathlib import Path
@@ -143,6 +143,83 @@ def create_app():
                 db.commit()
             return render_template('checkout_unavailable.html', item=item, joined=True)
         return render_template('checkout_unavailable.html', item=item, joined=False)
+
+    @app.route('/checkout/multi', methods=['GET', 'POST'])
+    def checkout_multi():
+        db = get_db()
+        if request.method == 'POST':
+            ids_raw = request.form.get('ids', '')
+            ids = [int(x) for x in ids_raw.split(',') if x.strip().isdigit()]
+            name = request.form.get('customer_name', '').strip()
+            non_member = request.form.get('non_member') == '1'
+            if non_member:
+                member = 'Non-member'
+            else:
+                member = request.form.get('member_number', '').strip()
+                suffix = request.form.get('member_suffix', '').strip()
+                if suffix:
+                    member = member + suffix
+            phone = request.form.get('phone', '').strip()
+            notes = request.form.get('checkout_notes', '').strip()
+            if not ids:
+                return redirect(url_for('home'))
+            if not name or not member:
+                items = db.execute(
+                    'SELECT id, name, category FROM equipment WHERE id IN ({}) AND active = 1'.format(
+                        ','.join('?' * len(ids))), ids
+                ).fetchall()
+                return render_template('checkout_multi_form.html', items=items, ids_str=ids_raw,
+                                       error="Please fill in your name and member number.")
+            checked_out = []
+            skipped = []
+            for equipment_id in ids:
+                existing = db.execute(
+                    "SELECT id FROM checkouts WHERE equipment_id = ? AND returned_at IS NULL",
+                    (equipment_id,)
+                ).fetchone()
+                if existing:
+                    row = db.execute("SELECT name FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
+                    skipped.append(row['name'] if row else str(equipment_id))
+                    continue
+                row = db.execute("SELECT name FROM equipment WHERE id = ?", (equipment_id,)).fetchone()
+                db.execute(
+                    "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?, ?, ?, ?, ?)",
+                    (equipment_id, name, member, phone or None, notes or None)
+                )
+                checked_out.append(row['name'] if row else str(equipment_id))
+            db.commit()
+            session['multi_confirm'] = {
+                'customer_name': name,
+                'member_number': member,
+                'phone': phone,
+                'checked_out': checked_out,
+                'skipped': skipped,
+            }
+            return redirect(url_for('checkout_multi_confirm'))
+
+        ids_raw = request.args.get('ids', '')
+        ids = [int(x) for x in ids_raw.split(',') if x.strip().isdigit()]
+        if not ids:
+            return redirect(url_for('home'))
+        items = db.execute(
+            'SELECT id, name, category FROM equipment WHERE id IN ({}) AND active = 1'.format(
+                ','.join('?' * len(ids))), ids
+        ).fetchall()
+        if not items:
+            return redirect(url_for('home'))
+        prefill = {
+            'name':   request.args.get('prefill_name',   ''),
+            'member': request.args.get('prefill_member', ''),
+            'phone':  request.args.get('prefill_phone',  ''),
+        }
+        return render_template('checkout_multi_form.html', items=items, ids_str=ids_raw, prefill=prefill)
+
+    @app.route('/checkout/multi/confirm')
+    def checkout_multi_confirm():
+        data = session.pop('multi_confirm', None)
+        if not data:
+            return redirect(url_for('home'))
+        return render_template('checkout_multi_confirm.html', data=data)
 
     @app.errorhandler(404)
     def not_found(e):

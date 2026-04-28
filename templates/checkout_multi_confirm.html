@@ -1,0 +1,55 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Checked Out{% endblock %}
+
+{% block content %}
+<div class="confirm-wrap">
+  <div class="confirm-icon">✓</div>
+  <h2>All Set!</h2>
+
+  <div style="background:#f8f9fa;border-radius:10px;padding:16px 20px;margin:16px 0 20px;text-align:left;font-size:1rem;width:100%;max-width:360px;">
+    <div style="margin-bottom:12px;">
+      <span style="color:var(--muted);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em;">Checked Out To</span><br>
+      <strong>{{ data.customer_name }}</strong>
+    </div>
+
+    {% if data.checked_out %}
+    <div style="margin-bottom:{% if data.skipped %}12px{% else %}0{% endif %};">
+      <span style="color:var(--muted);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em;">Items Checked Out</span>
+      {% for name in data.checked_out %}
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--green);font-weight:700;font-size:1.1rem;">✓</span>
+          <span style="font-weight:600;">{{ name }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if data.skipped %}
+    <div>
+      <span style="color:var(--muted);font-size:0.82rem;text-transform:uppercase;letter-spacing:0.04em;">Already Checked Out (Skipped)</span>
+      {% for name in data.skipped %}
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+          <span style="color:var(--red);font-weight:700;font-size:1.1rem;">✗</span>
+          <span style="color:var(--muted);">{{ name }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <p style="color:var(--red);font-weight:600;margin-bottom:24px;">
+    Please return within 72 hours to avoid any late fees.
+  </p>
+
+  {% set prefill = '?prefill_name=' ~ data.customer_name | urlencode ~ '&prefill_member=' ~ (data.member_number or '') | urlencode ~ '&prefill_phone=' ~ (data.phone or '') | urlencode %}
+  <a href="{{ url_for('admin.kiosk_view') ~ prefill }}"
+     class="btn btn-primary" style="max-width:300px;display:inline-block;margin-bottom:12px;">
+    Check Out Another Demo (Same Customer)
+  </a>
+
+  <a href="{{ url_for('home') }}" class="btn btn-secondary" style="max-width:300px;display:inline-block;">
+    Done
+  </a>
+</div>
+{% endblock %}

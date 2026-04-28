@@ -19,18 +19,27 @@
     <button onclick="clearPrefill()" style="border:none;background:#059669;color:#fff;padding:6px 14px;border-radius:8px;font-size:0.9rem;cursor:pointer;">Clear</button>
   </div>
 
-  <div style="max-width:600px;margin:0 auto 24px;display:flex;gap:10px;">
+  <div style="max-width:600px;margin:0 auto 12px;display:flex;gap:10px;">
     <input type="text" id="kiosk-search" placeholder="Search by name…"
            oninput="filterKioskItems()"
            style="flex:1;padding:14px 18px;border:2px solid var(--border);border-radius:12px;font-size:1.1rem;">
     <button onclick="document.getElementById('kiosk-search').value='';filterKioskItems()"
             style="padding:14px 20px;border:none;background:var(--accent);color:#fff;border-radius:12px;font-size:1rem;cursor:pointer;">Clear</button>
   </div>
+
+  <div style="max-width:600px;margin:0 auto 20px;text-align:right;">
+    <button id="select-multi-btn" onclick="enterSelectionMode()"
+            style="padding:10px 20px;border:2px solid var(--border);background:#fff;color:var(--text);border-radius:10px;font-size:0.95rem;cursor:pointer;">
+      ☑ Select Multiple for Checkout
+    </button>
+  </div>
+
   <div class="equipment-grid" id="kiosk-grid">
     {% for item in equipment %}
       {% if item.is_checked_out %}
         <a class="equipment-card unavailable" href="{{ url_for('checkout_unavailable', equipment_id=item.id) }}"
            data-name="{{ item.name | lower }}"
+           data-id="{{ item.id }}"
            data-checkout-url="{{ url_for('checkout', equipment_id=item.id) }}">
           <span class="badge-out">Checked Out</span>
           <div class="card-category">{{ item.category }}</div>
@@ -47,6 +56,7 @@
       {% else %}
         <a class="equipment-card" href="{{ url_for('checkout', equipment_id=item.id) }}"
            data-name="{{ item.name | lower }}"
+           data-id="{{ item.id }}"
            data-checkout-url="{{ url_for('checkout', equipment_id=item.id) }}">
           <span class="badge-available">Available</span>
           <div class="card-category">{{ item.category }}</div>
@@ -136,4 +146,119 @@
 <p class="text-center text-muted mt-24" style="font-size:0.85rem;">
   Staff: <a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a>
 </p>
+
+<!-- Selection mode bottom bar -->
+<div id="selection-bar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#1a3c6e;padding:14px 20px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;box-shadow:0 -2px 12px rgba(0,0,0,0.2);">
+  <span id="selection-count" style="color:#fff;font-size:1rem;font-weight:600;">0 items selected</span>
+  <div style="display:flex;gap:10px;">
+    <button onclick="exitSelectionMode()"
+            style="padding:10px 20px;border:2px solid rgba(255,255,255,0.5);background:transparent;color:#fff;border-radius:10px;font-size:0.95rem;cursor:pointer;">
+      Cancel
+    </button>
+    <button id="continue-checkout-btn" onclick="continueToCheckout()" disabled
+            style="padding:10px 24px;border:none;background:#fff;color:#1a3c6e;border-radius:10px;font-size:0.95rem;font-weight:700;cursor:pointer;opacity:0.5;">
+      Checkout Selected →
+    </button>
+  </div>
+</div>
+
+<style>
+  .equipment-card.selectable { cursor:pointer; }
+  .equipment-card.selectable.selected-card {
+    border: 3px solid var(--accent);
+    background: #eef4ff;
+    position: relative;
+  }
+  .equipment-card.selectable.selected-card::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--accent);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .equipment-card.not-selectable { opacity: 0.35; pointer-events: none; }
+  body.selection-active { padding-bottom: 72px; }
+</style>
+
+<script>
+  var selectionMode = false;
+  var selectedIds = {};
+
+  function enterSelectionMode() {
+    selectionMode = true;
+    document.body.classList.add('selection-active');
+    document.getElementById('select-multi-btn').style.display = 'none';
+    document.getElementById('selection-bar').style.display = 'flex';
+    document.querySelectorAll('#kiosk-grid .equipment-card').forEach(function(card) {
+      if (card.classList.contains('unavailable')) {
+        card.classList.add('not-selectable');
+      } else {
+        card.classList.add('selectable');
+        card.addEventListener('click', handleCardClick);
+      }
+    });
+    updateSelectionBar();
+  }
+
+  function exitSelectionMode() {
+    selectionMode = false;
+    selectedIds = {};
+    document.body.classList.remove('selection-active');
+    document.getElementById('select-multi-btn').style.display = '';
+    document.getElementById('selection-bar').style.display = 'none';
+    document.querySelectorAll('#kiosk-grid .equipment-card').forEach(function(card) {
+      card.classList.remove('selectable', 'selected-card', 'not-selectable');
+      card.removeEventListener('click', handleCardClick);
+    });
+  }
+
+  function handleCardClick(e) {
+    e.preventDefault();
+    var card = this;
+    var id = card.getAttribute('data-id');
+    if (!id) return;
+    if (selectedIds[id]) {
+      delete selectedIds[id];
+      card.classList.remove('selected-card');
+    } else {
+      selectedIds[id] = true;
+      card.classList.add('selected-card');
+    }
+    updateSelectionBar();
+  }
+
+  function updateSelectionBar() {
+    var count = Object.keys(selectedIds).length;
+    document.getElementById('selection-count').textContent =
+      count + ' item' + (count !== 1 ? 's' : '') + ' selected';
+    var btn = document.getElementById('continue-checkout-btn');
+    btn.disabled = count === 0;
+    btn.style.opacity = count === 0 ? '0.5' : '1';
+    btn.style.cursor = count === 0 ? 'default' : 'pointer';
+  }
+
+  function continueToCheckout() {
+    var ids = Object.keys(selectedIds).join(',');
+    if (!ids) return;
+    var url = '/checkout/multi?ids=' + ids;
+    var name   = sessionStorage.getItem('prefill_name');
+    var member = sessionStorage.getItem('prefill_member') || '';
+    var phone  = sessionStorage.getItem('prefill_phone')  || '';
+    if (name) {
+      url += '&prefill_name='   + encodeURIComponent(name)
+           + '&prefill_member=' + encodeURIComponent(member)
+           + '&prefill_phone='  + encodeURIComponent(phone);
+    }
+    window.location.href = url;
+  }
+</script>
 {% endblock %}

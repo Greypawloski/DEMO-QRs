@@ -1,0 +1,117 @@
+{% extends "base_kiosk.html" %}
+
+{% block title %}Check Out Multiple Demos{% endblock %}
+
+{% block content %}
+<div class="kiosk-header">
+  <h1>Check Out Demos</h1>
+</div>
+
+<div class="detail-card" style="margin-bottom:20px;">
+  <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--accent);">Items Being Checked Out</h2>
+  {% for item in items %}
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="background:var(--accent);color:#fff;font-size:0.75rem;padding:2px 8px;border-radius:6px;white-space:nowrap;">{{ item.category }}</span>
+      <span style="font-weight:600;font-size:1rem;">{{ item.name }}</span>
+    </div>
+  {% endfor %}
+</div>
+
+{% if error %}
+  <div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('checkout_multi') }}">
+  <input type="hidden" name="ids" value="{{ ids_str }}">
+
+  <div class="form-group">
+    <label for="customer_name">Your Name</label>
+    <input type="text" id="customer_name" name="customer_name"
+           placeholder="First and last name"
+           autocomplete="name" autofocus required
+           value="{{ prefill.name if prefill else '' }}">
+  </div>
+
+  <div class="form-group">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <label for="member_number" style="margin-bottom:0;">Member Number</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.95rem;font-weight:400;cursor:pointer;">
+        <input type="checkbox" id="non_member_check" name="non_member" value="1"
+               onchange="toggleMemberField(this)"
+               style="width:20px;height:20px;cursor:pointer;accent-color:var(--accent);
+                      appearance:auto;-webkit-appearance:checkbox;flex-shrink:0;">
+        Non-member
+      </label>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="member_number" name="member_number"
+             placeholder="e.g. 1234"
+             inputmode="numeric" required style="flex:1;"
+             value="{{ prefill.member if prefill and prefill.member and prefill.member != 'Non-member' else '' }}">
+      <select id="member_suffix" name="member_suffix"
+              style="width:72px;padding:10px 6px;border:2px solid var(--border);border-radius:12px;font-size:1.1rem;text-align:center;">
+        <option value="">—</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+        <option value="E">E</option>
+        <option value="F">F</option>
+        <option value="G">G</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="phone">Phone Number</label>
+    <input type="tel" id="phone" name="phone"
+           placeholder="e.g. 210-555-1234"
+           autocomplete="tel"
+           value="{{ prefill.phone if prefill else '' }}">
+  </div>
+
+  <div class="form-group">
+    <label for="checkout_notes">Notes <span class="text-muted">(optional)</span></label>
+    <textarea id="checkout_notes" name="checkout_notes" rows="2"
+              placeholder="Any notes for this checkout…"
+              style="font-size:1rem;"></textarea>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Check Out {{ items | length }} Item{{ 's' if items | length != 1 }}</button>
+</form>
+
+<div class="text-center mt-24">
+  <a href="{{ url_for('admin.kiosk_view') }}" class="btn btn-secondary btn-sm">← Back to Kiosk</a>
+</div>
+
+<script>
+  function toggleMemberField(cb) {
+    var field = document.getElementById('member_number');
+    var suffix = document.getElementById('member_suffix');
+    if (cb.checked) {
+      field.value = '';
+      field.disabled = true;
+      field.required = false;
+      field.style.opacity = '0.4';
+      field.style.cursor = 'not-allowed';
+      suffix.disabled = true;
+      suffix.style.opacity = '0.4';
+    } else {
+      field.disabled = false;
+      field.required = true;
+      field.style.opacity = '';
+      field.style.cursor = '';
+      suffix.disabled = false;
+      suffix.style.opacity = '';
+    }
+  }
+
+  // Handle prefill Non-member case
+  (function() {
+    {% if prefill and prefill.member == 'Non-member' %}
+      var cb = document.getElementById('non_member_check');
+      if (cb) { cb.checked = true; toggleMemberField(cb); }
+    {% endif %}
+  })();
+</script>
+{% endblock %}
