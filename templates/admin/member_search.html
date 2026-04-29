@@ -1,0 +1,105 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Member Search{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">Member Search</h1>
+</div>
+
+<form method="get" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name or member number…" autofocus
+         style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;">
+  <button type="submit" class="btn btn-primary">Search</button>
+  {% if q %}<a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary">Clear</a>{% endif %}
+</form>
+
+{% if q and not rows %}
+  <div class="empty-state"><p>No members found for "<strong>{{ q }}</strong>".</p></div>
+{% elif rows %}
+  <p class="text-muted" style="margin-bottom:12px;font-size:0.9rem;">{{ rows|length }} result{{ 's' if rows|length != 1 }} for "<strong>{{ q }}</strong>"</p>
+  <div class="table-wrap">
+    <table class="data-table" style="min-width:700px;">
+      <thead>
+        <tr style="background:var(--green,#059669);color:#fff;">
+          <th style="color:#fff;">Member Name</th>
+          <th style="color:#fff;">Member #</th>
+          <th style="color:#fff;">Email 1</th>
+          <th style="color:#fff;">Email 2</th>
+          <th style="color:#fff;">Phone 1</th>
+          <th style="color:#fff;">Phone 2</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td><strong>{{ row.member_name }}</strong></td>
+            <td>{{ row.member_number }}</td>
+            <td>
+              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email1', {{ (row.email1 or '') | tojson }})">
+                {{ row.email1 if row.email1 else '—' }}
+              </span>
+            </td>
+            <td>
+              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email2', {{ (row.email2 or '') | tojson }})">
+                {{ row.email2 if row.email2 else '—' }}
+              </span>
+            </td>
+            <td>
+              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone1', {{ (row.phone1 or '') | tojson }})">
+                {{ row.phone1 if row.phone1 else '—' }}
+              </span>
+            </td>
+            <td>
+              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone2', {{ (row.phone2 or '') | tojson }})">
+                {{ row.phone2 if row.phone2 else '—' }}
+              </span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+<!-- Quick-edit modal -->
+<div id="contact-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:340px;width:90%;text-align:center;">
+    <h2 id="contact-edit-title" style="font-size:1.1rem;margin-bottom:16px;"></h2>
+    <form id="contact-edit-form" method="post">
+      <input type="hidden" name="field" id="contact-edit-field">
+      <input type="hidden" name="q" value="{{ q }}">
+      <input type="text" id="contact-edit-input" name="value"
+             style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:16px;">
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('contact-edit-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .contact-edit-trigger {
+    cursor: pointer;
+    border-bottom: 1px dashed var(--accent);
+    padding: 0 2px;
+    color: var(--text);
+  }
+  .contact-edit-trigger:hover { opacity: 0.7; }
+</style>
+
+<script>
+  var FIELD_LABELS = { email1: 'Email 1', email2: 'Email 2', phone1: 'Phone 1', phone2: 'Phone 2' };
+
+  function openContactEdit(id, field, currentValue) {
+    document.getElementById('contact-edit-title').textContent = 'Edit ' + FIELD_LABELS[field];
+    document.getElementById('contact-edit-field').value = field;
+    document.getElementById('contact-edit-input').value = currentValue || '';
+    document.getElementById('contact-edit-form').action = '/admin/members/' + id + '/update';
+    document.getElementById('contact-edit-modal').style.display = 'flex';
+    document.getElementById('contact-edit-input').focus();
+  }
+</script>
+{% endblock %}

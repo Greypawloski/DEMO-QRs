@@ -72,6 +72,20 @@ CREATE TABLE IF NOT EXISTS members (
 CREATE INDEX IF NOT EXISTS idx_members_name   ON members(member_name);
 CREATE INDEX IF NOT EXISTS idx_members_number ON members(member_number);
 
+CREATE TABLE IF NOT EXISTS members_contact (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_name   TEXT NOT NULL,
+    member_number TEXT NOT NULL UNIQUE,
+    email1        TEXT,
+    email2        TEXT,
+    phone1        TEXT,
+    phone2        TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_members_contact_name   ON members_contact(member_name);
+CREATE INDEX IF NOT EXISTS idx_members_contact_number ON members_contact(member_number);
+
+CREATE TABLE IF NOT EXISTS activity_log (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_name TEXT NOT NULL,
     action     TEXT NOT NULL,

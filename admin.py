@@ -360,6 +360,40 @@ def member_search():
     return jsonify([{'name': r['member_name'], 'number': r['member_number']} for r in rows])
 
 
+@admin_bp.route('/members')
+@login_required
+def member_search_page():
+    db = get_db()
+    q = request.args.get('q', '').strip()
+    rows = []
+    if q:
+        pattern = f'%{q}%'
+        rows = db.execute(
+            """
+            SELECT id, member_name, member_number, email1, email2, phone1, phone2
+            FROM members_contact
+            WHERE member_name LIKE ? OR member_number LIKE ?
+            ORDER BY member_name
+            """,
+            (pattern, pattern)
+        ).fetchall()
+    return render_template('admin/member_search.html', rows=rows, q=q)
+
+
+@admin_bp.route('/members/<int:member_id>/update', methods=['POST'])
+@login_required
+def member_contact_update(member_id):
+    field = request.form.get('field', '')
+    value = request.form.get('value', '').strip() or None
+    allowed = {'email1', 'email2', 'phone1', 'phone2'}
+    if field in allowed:
+        db = get_db()
+        db.execute(f"UPDATE members_contact SET {field} = ? WHERE id = ?", (value, member_id))
+        db.commit()
+    q = request.form.get('q', '')
+    return redirect(url_for('admin.member_search_page', q=q))
+
+
 @admin_bp.route('/history')
 @login_required
 def history():
