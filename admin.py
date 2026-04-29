@@ -14,6 +14,25 @@ def _due_back(checked_out_at_str):
     checked_out = datetime.fromisoformat(checked_out_at_str).replace(tzinfo=timezone.utc)
     due = checked_out + timedelta(hours=72)
     delta = due - datetime.now(timezone.utc)
+
+
+def _member_name_patterns(q):
+    """Build LIKE patterns for member name search against "Last, First" stored format.
+
+    Single token  ("Trey")   → last-name prefix OR first-name prefix
+    Two+ tokens   ("Trey F") → "First LastPrefix" → pattern "F%, Trey%"
+    Returns (name_patterns_list, number_pattern_or_None).
+    """
+    clean = q.replace(',', '').strip()
+    tokens = clean.split()
+    if not tokens:
+        return [], None
+    if len(tokens) == 1:
+        t = tokens[0]
+        return [f'{t}%', f'%, {t}%'], f'{t}%'
+    first = tokens[0]
+    last_prefix = ' '.join(tokens[1:])
+    return [f'{last_prefix}%, {first}%'], None
     total_secs = delta.total_seconds()
     overdue = total_secs < 0
     secs = abs(total_secs)
@@ -346,16 +365,19 @@ def member_search():
     q = request.args.get('q', '').strip()
     if len(q) < 1:
         return jsonify([])
+    name_patterns, number_pattern = _member_name_patterns(q)
+    if not name_patterns:
+        return jsonify([])
     db = get_db()
-    pattern = f'%{q}%'
+    or_clauses = ['member_name LIKE ?' for _ in name_patterns]
+    params = list(name_patterns)
+    if number_pattern:
+        or_clauses.append('member_number LIKE ?')
+        params.append(number_pattern)
+    where = ' OR '.join(or_clauses)
     rows = db.execute(
-        """
-        SELECT member_name, member_number FROM members
-        WHERE member_name LIKE ? OR member_number LIKE ?
-        ORDER BY member_name
-        LIMIT 50
-        """,
-        (pattern, pattern)
+        f'SELECT member_name, member_number FROM members WHERE {where} ORDER BY member_name LIMIT 50',
+        params
     ).fetchall()
     return jsonify([{'name': r['member_name'], 'number': r['member_number']} for r in rows])
 
@@ -367,17 +389,18 @@ def member_search_page():
     q = request.args.get('q', '').strip()
     rows = []
     if q:
-        name_pattern   = f'{q}%'
-        number_pattern = f'{q}%'
-        rows = db.execute(
-            """
-            SELECT id, member_name, member_number, email1, email2, phone1, phone2
-            FROM members_contact
-            WHERE member_name LIKE ? OR member_number LIKE ?
-            ORDER BY member_name
-            """,
-            (name_pattern, number_pattern)
-        ).fetchall()
+        name_patterns, number_pattern = _member_name_patterns(q)
+        if name_patterns:
+            or_clauses = ['member_name LIKE ?' for _ in name_patterns]
+            params = list(name_patterns)
+            if number_pattern:
+                or_clauses.append('member_number LIKE ?')
+                params.append(number_pattern)
+            where = ' OR '.join(or_clauses)
+            rows = db.execute(
+                f'SELECT id, member_name, member_number, email1, email2, phone1, phone2 FROM members_contact WHERE {where} ORDER BY member_name',
+                params
+            ).fetchall()
     return render_template('admin/member_search.html', rows=rows, q=q)
 
 
