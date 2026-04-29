@@ -17,48 +17,50 @@
 {% if q and not rows %}
   <div class="empty-state"><p>No members found for "<strong>{{ q }}</strong>".</p></div>
 {% elif rows %}
-  <p class="text-muted" style="margin-bottom:12px;font-size:0.9rem;">{{ rows|length }} result{{ 's' if rows|length != 1 }} for "<strong>{{ q }}</strong>"</p>
-  <div class="table-wrap">
-    <table class="data-table" style="min-width:700px;">
-      <thead>
-        <tr style="background:var(--green,#059669);color:#fff;">
-          <th style="color:#fff;">Member Name</th>
-          <th style="color:#fff;">Member #</th>
-          <th style="color:#fff;">Email 1</th>
-          <th style="color:#fff;">Email 2</th>
-          <th style="color:#fff;">Phone 1</th>
-          <th style="color:#fff;">Phone 2</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
-          <tr>
-            <td><strong>{{ row.member_name }}</strong></td>
-            <td>{{ row.member_number }}</td>
-            <td>
-              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email1', {{ (row.email1 or '') | tojson }})">
-                {{ row.email1 if row.email1 else '—' }}
-              </span>
-            </td>
-            <td>
-              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email2', {{ (row.email2 or '') | tojson }})">
-                {{ row.email2 if row.email2 else '—' }}
-              </span>
-            </td>
-            <td>
-              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone1', {{ (row.phone1 or '') | tojson }})">
-                {{ row.phone1 if row.phone1 else '—' }}
-              </span>
-            </td>
-            <td>
-              <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone2', {{ (row.phone2 or '') | tojson }})">
-                {{ row.phone2 if row.phone2 else '—' }}
-              </span>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <p class="text-muted" style="margin-bottom:16px;font-size:0.9rem;">
+    {{ rows|length }} result{{ 's' if rows|length != 1 }} for "<strong>{{ q }}</strong>"
+  </p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;">
+    {% for row in rows %}
+      <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+
+        <!-- Card header -->
+        <div style="background:var(--green,#059669);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <strong style="color:#fff;font-size:0.95rem;">{{ row.member_name }}</strong>
+          <span style="color:rgba(255,255,255,0.85);font-size:0.85rem;white-space:nowrap;">#{{ row.member_number }}</span>
+        </div>
+
+        <!-- Contact fields -->
+        <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:0.88rem;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span style="color:var(--muted);min-width:64px;">Email 1</span>
+            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email1', {{ (row.email1 or '') | tojson }})">
+              {{ row.email1 if row.email1 else '—' }}
+            </span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span style="color:var(--muted);min-width:64px;">Email 2</span>
+            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email2', {{ (row.email2 or '') | tojson }})">
+              {{ row.email2 if row.email2 else '—' }}
+            </span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;padding-top:4px;border-top:1px solid var(--border);">
+            <span style="color:var(--muted);min-width:64px;">Phone 1</span>
+            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone1', {{ (row.phone1 or '') | tojson }})">
+              {{ row.phone1 if row.phone1 else '—' }}
+            </span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span style="color:var(--muted);min-width:64px;">Phone 2</span>
+            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone2', {{ (row.phone2 or '') | tojson }})">
+              {{ row.phone2 if row.phone2 else '—' }}
+            </span>
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}
   </div>
 {% endif %}
 
@@ -85,7 +87,7 @@
     cursor: pointer;
     border-bottom: 1px dashed var(--accent);
     padding: 0 2px;
-    color: var(--text);
+    word-break: break-all;
   }
   .contact-edit-trigger:hover { opacity: 0.7; }
 </style>

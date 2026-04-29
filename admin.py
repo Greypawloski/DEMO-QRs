@@ -367,7 +367,8 @@ def member_search_page():
     q = request.args.get('q', '').strip()
     rows = []
     if q:
-        pattern = f'%{q}%'
+        name_pattern   = f'%{q}%'
+        number_pattern = f'{q}%'
         rows = db.execute(
             """
             SELECT id, member_name, member_number, email1, email2, phone1, phone2
@@ -375,7 +376,7 @@ def member_search_page():
             WHERE member_name LIKE ? OR member_number LIKE ?
             ORDER BY member_name
             """,
-            (pattern, pattern)
+            (name_pattern, number_pattern)
         ).fetchall()
     return render_template('admin/member_search.html', rows=rows, q=q)
 
