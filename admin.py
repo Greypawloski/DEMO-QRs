@@ -14,6 +14,16 @@ def _due_back(checked_out_at_str):
     checked_out = datetime.fromisoformat(checked_out_at_str).replace(tzinfo=timezone.utc)
     due = checked_out + timedelta(hours=72)
     delta = due - datetime.now(timezone.utc)
+    total_secs = delta.total_seconds()
+    overdue = total_secs < 0
+    secs = abs(total_secs)
+    hours = int(secs // 3600)
+    mins  = int((secs % 3600) // 60)
+    if hours >= 48:
+        label = f"{hours // 24}d {hours % 24}h {'overdue' if overdue else 'left'}"
+    else:
+        label = f"{hours}h {mins}m {'overdue' if overdue else 'left'}"
+    return label, overdue
 
 
 def _member_name_patterns(q):
@@ -33,16 +43,6 @@ def _member_name_patterns(q):
     first = tokens[0]
     last_prefix = ' '.join(tokens[1:])
     return [f'{last_prefix}%, {first}%'], None
-    total_secs = delta.total_seconds()
-    overdue = total_secs < 0
-    secs = abs(total_secs)
-    hours = int(secs // 3600)
-    mins  = int((secs % 3600) // 60)
-    if hours >= 48:
-        label = f"{hours // 24}d {hours % 24}h {'overdue' if overdue else 'left'}"
-    else:
-        label = f"{hours}h {mins}m {'overdue' if overdue else 'left'}"
-    return label, overdue
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
