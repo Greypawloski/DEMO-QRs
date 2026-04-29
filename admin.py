@@ -367,7 +367,7 @@ def member_search_page():
     q = request.args.get('q', '').strip()
     rows = []
     if q:
-        name_pattern   = f'%{q}%'
+        name_pattern   = f'{q}%'
         number_pattern = f'{q}%'
         rows = db.execute(
             """
