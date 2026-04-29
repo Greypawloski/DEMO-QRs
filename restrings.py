@@ -3,7 +3,7 @@ import csv
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from flask import Blueprint, render_template, request, redirect, url_for, send_file
-from database import get_db, sync_member_phone
+from database import get_db, sync_member_phone, format_phone
 from auth import login_required
 
 _CENTRAL = ZoneInfo('America/Chicago')
@@ -60,6 +60,7 @@ def restring_new():
     if request.method == 'POST':
         db = get_db()
         member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
+        phone = format_phone(request.form.get('phone', '').strip())
         db.execute(
             """
             INSERT INTO restrings
@@ -70,7 +71,7 @@ def restring_new():
             (
                 request.form['date_in'],
                 request.form['customer_name'].strip(),
-                request.form['phone'].strip(),
+                phone,
                 member,
                 request.form['racquet'].strip(),
                 request.form['string'].strip(),
@@ -85,7 +86,7 @@ def restring_new():
             )
         )
         db.commit()
-        sync_member_phone(db, member, request.form.get('phone', '').strip())
+        sync_member_phone(db, member, phone)
         return redirect(url_for('restrings.list_restrings'))
     return render_template('admin/restring_form.html', item=None)
 
@@ -100,6 +101,7 @@ def restring_edit(restring_id):
 
     if request.method == 'POST':
         member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
+        phone = format_phone(request.form.get('phone', '').strip())
         db.execute(
             """
             UPDATE restrings SET
@@ -110,7 +112,7 @@ def restring_edit(restring_id):
             (
                 request.form['date_in'],
                 request.form['customer_name'].strip(),
-                request.form['phone'].strip(),
+                phone,
                 member,
                 request.form['racquet'].strip(),
                 request.form['string'].strip(),
@@ -126,7 +128,7 @@ def restring_edit(restring_id):
             )
         )
         db.commit()
-        sync_member_phone(db, member, request.form.get('phone', '').strip())
+        sync_member_phone(db, member, phone)
         return redirect(url_for('restrings.list_restrings'))
     return render_template('admin/restring_form.html', item=item)
 

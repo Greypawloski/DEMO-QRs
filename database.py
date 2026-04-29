@@ -39,6 +39,16 @@ def init_app(app):
     app.cli.add_command(init_db_command)
 
 
+def format_phone(phone):
+    """Format a phone string as XXX-XXX-XXXX for 10-digit US numbers; pass others through unchanged."""
+    if not phone:
+        return phone
+    d = re.sub(r'\D', '', phone)
+    if len(d) == 10:
+        return f'{d[:3]}-{d[3:6]}-{d[6:]}'
+    return phone
+
+
 def sync_member_phone(db, member_number, submitted_phone):
     """Update members_contact phone fields when a new phone is submitted during checkout/restring."""
     if not member_number or member_number == 'Non-member' or not submitted_phone:
@@ -64,8 +74,9 @@ def sync_member_phone(db, member_number, submitted_phone):
     if submitted_digits == p1_digits or submitted_digits == p2_digits:
         return  # already recorded
 
+    formatted = format_phone(submitted_phone)
     if not p1_digits:
-        db.execute("UPDATE members_contact SET phone1 = ? WHERE id = ?", (submitted_phone, row['id']))
+        db.execute("UPDATE members_contact SET phone1 = ? WHERE id = ?", (formatted, row['id']))
     else:
-        db.execute("UPDATE members_contact SET phone2 = ? WHERE id = ?", (submitted_phone, row['id']))
+        db.execute("UPDATE members_contact SET phone2 = ? WHERE id = ?", (formatted, row['id']))
     db.commit()

@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 from PIL import Image as PILImage
 import config
-from database import get_db, init_db, init_app as db_init_app, sync_member_phone
+from database import get_db, init_db, init_app as db_init_app, sync_member_phone, format_phone
 from auth import auth_bp
 from admin import admin_bp
 from restrings import restrings_bp
@@ -95,7 +95,7 @@ def create_app():
                     error="Please fill in all required fields."
                 )
             notes = request.form.get('checkout_notes', '').strip()
-            phone = request.form.get('phone', '').strip()
+            phone = format_phone(request.form.get('phone', '').strip())
             cur = db.execute(
                 "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?, ?, ?, ?, ?)",
                 (equipment_id, name, member, phone or None, notes or None)
@@ -151,7 +151,7 @@ def create_app():
                     is_checked_out=bool(existing), error="Please fill in all fields."
                 )
             notes = request.form.get('checkout_notes', '').strip()
-            phone = request.form.get('phone', '').strip()
+            phone = format_phone(request.form.get('phone', '').strip())
             cur = db.execute(
                 "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?, ?, ?, ?, ?)",
                 (equipment_id, name, member, phone or None, notes or None)
@@ -216,7 +216,7 @@ def create_app():
                 suffix = request.form.get('member_suffix', '').strip()
                 if suffix:
                     member = member + suffix
-            phone = request.form.get('phone', '').strip()
+            phone = format_phone(request.form.get('phone', '').strip())
             notes = request.form.get('checkout_notes', '').strip()
             if not ids:
                 return redirect(url_for('home'))
