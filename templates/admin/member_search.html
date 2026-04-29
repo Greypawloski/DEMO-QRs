@@ -5,6 +5,7 @@
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Member Search</h1>
+  <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-member-modal').style.display='flex'">+ Add Member</button>
 </div>
 
 <form method="get" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
@@ -63,6 +64,47 @@
     {% endfor %}
   </div>
 {% endif %}
+
+<!-- Add Member modal -->
+<div id="add-member-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:420px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Add Member</h2>
+    <form method="post" action="{{ url_for('admin.member_add') }}">
+      <input type="hidden" name="q" value="{{ q }}">
+      <div class="form-group">
+        <label>Member Name <span style="color:var(--muted);font-size:0.82rem;">(Last, First)</span></label>
+        <input type="text" name="member_name" placeholder="e.g. Smith, John" required style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Member Number</label>
+        <input type="text" name="member_number" placeholder="e.g. 1234 or 1234A" required style="width:100%;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Email 1</label>
+          <input type="email" name="email1" placeholder="optional" style="width:100%;">
+        </div>
+        <div class="form-group">
+          <label>Email 2</label>
+          <input type="email" name="email2" placeholder="optional" style="width:100%;">
+        </div>
+        <div class="form-group">
+          <label>Phone 1</label>
+          <input type="tel" name="phone1" placeholder="optional" style="width:100%;">
+        </div>
+        <div class="form-group">
+          <label>Phone 2</label>
+          <input type="tel" name="phone2" placeholder="optional" style="width:100%;">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('add-member-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Quick-edit modal -->
 <div id="contact-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">

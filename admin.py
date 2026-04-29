@@ -395,6 +395,38 @@ def member_contact_update(member_id):
     return redirect(url_for('admin.member_search_page', q=q))
 
 
+@admin_bp.route('/members/add', methods=['POST'])
+@login_required
+def member_add():
+    import re
+    db = get_db()
+    name   = request.form.get('member_name', '').strip()
+    number = request.form.get('member_number', '').strip()
+    email1 = request.form.get('email1', '').strip() or None
+    email2 = request.form.get('email2', '').strip() or None
+    phone1 = request.form.get('phone1', '').strip() or None
+    phone2 = request.form.get('phone2', '').strip() or None
+    q      = request.form.get('q', '')
+
+    # Strip leading zeros from member number
+    match = re.match(r'^0*(\d+)([A-Za-z]?)$', number)
+    if match:
+        number = match.group(1) + match.group(2).upper()
+
+    if name and number:
+        try:
+            db.execute("INSERT INTO members (member_name, member_number) VALUES (?, ?)", (name, number))
+            db.execute(
+                "INSERT INTO members_contact (member_name, member_number, email1, email2, phone1, phone2) VALUES (?, ?, ?, ?, ?, ?)",
+                (name, number, email1, email2, phone1, phone2)
+            )
+            db.commit()
+        except Exception:
+            pass  # Duplicate number — silently skip
+
+    return redirect(url_for('admin.member_search_page', q=q))
+
+
 @admin_bp.route('/history')
 @login_required
 def history():
