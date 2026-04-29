@@ -1,3 +1,4 @@
+import re
 import sqlite3
 import click
 from flask import current_app, g
@@ -36,3 +37,35 @@ def init_db_command():
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+
+
+def sync_member_phone(db, member_number, submitted_phone):
+    """Update members_contact phone fields when a new phone is submitted during checkout/restring."""
+    if not member_number or member_number == 'Non-member' or not submitted_phone:
+        return
+
+    def digits(s):
+        return re.sub(r'\D', '', s or '')
+
+    submitted_digits = digits(submitted_phone)
+    if not submitted_digits:
+        return
+
+    row = db.execute(
+        "SELECT id, phone1, phone2 FROM members_contact WHERE member_number = ?",
+        (member_number,)
+    ).fetchone()
+    if not row:
+        return  # member not in imported roster — skip
+
+    p1_digits = digits(row['phone1'])
+    p2_digits = digits(row['phone2'])
+
+    if submitted_digits == p1_digits or submitted_digits == p2_digits:
+        return  # already recorded
+
+    if not p1_digits:
+        db.execute("UPDATE members_contact SET phone1 = ? WHERE id = ?", (submitted_phone, row['id']))
+    else:
+        db.execute("UPDATE members_contact SET phone2 = ? WHERE id = ?", (submitted_phone, row['id']))
+    db.commit()

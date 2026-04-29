@@ -3,7 +3,7 @@ import csv
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from flask import Blueprint, render_template, request, redirect, url_for, send_file
-from database import get_db
+from database import get_db, sync_member_phone
 from auth import login_required
 
 _CENTRAL = ZoneInfo('America/Chicago')
@@ -85,6 +85,7 @@ def restring_new():
             )
         )
         db.commit()
+        sync_member_phone(db, member, request.form.get('phone', '').strip())
         return redirect(url_for('restrings.list_restrings'))
     return render_template('admin/restring_form.html', item=None)
 
@@ -125,6 +126,7 @@ def restring_edit(restring_id):
             )
         )
         db.commit()
+        sync_member_phone(db, member, request.form.get('phone', '').strip())
         return redirect(url_for('restrings.list_restrings'))
     return render_template('admin/restring_form.html', item=item)
 

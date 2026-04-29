@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 from PIL import Image as PILImage
 import config
-from database import get_db, init_db, init_app as db_init_app
+from database import get_db, init_db, init_app as db_init_app, sync_member_phone
 from auth import auth_bp
 from admin import admin_bp
 from restrings import restrings_bp
@@ -106,6 +106,7 @@ def create_app():
                 fname = _save_checkout_photo(photo_file, checkout_id)
                 db.execute("UPDATE checkouts SET photo_filename=? WHERE id=?", (fname, checkout_id))
             db.commit()
+            sync_member_phone(db, member, phone)
             return redirect(url_for('checkout_confirm', equipment_id=equipment_id))
 
         if item['under_maintenance']:
@@ -161,6 +162,7 @@ def create_app():
                 fname = _save_checkout_photo(photo_file, checkout_id)
                 db.execute("UPDATE checkouts SET photo_filename=? WHERE id=?", (fname, checkout_id))
             db.commit()
+            sync_member_phone(db, member, phone)
             return redirect(url_for('checkout_confirm', equipment_id=equipment_id))
 
         if item['under_maintenance']:
@@ -243,6 +245,7 @@ def create_app():
                 )
                 checked_out.append(row['name'] if row else str(equipment_id))
             db.commit()
+            sync_member_phone(db, member, phone)
             session['multi_confirm'] = {
                 'customer_name': name,
                 'member_number': member,
