@@ -35,25 +35,25 @@
         <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;font-size:0.88rem;">
           <div style="display:flex;gap:8px;align-items:center;">
             <span style="color:var(--muted);min-width:64px;">Email 1</span>
-            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email1', {{ (row.email1 or '') | tojson }})">
+            <span class="contact-edit-trigger" data-id="{{ row.id }}" data-field="email1" data-value="{{ row.email1 or '' }}">
               {{ row.email1 if row.email1 else '—' }}
             </span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
             <span style="color:var(--muted);min-width:64px;">Email 2</span>
-            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'email2', {{ (row.email2 or '') | tojson }})">
+            <span class="contact-edit-trigger" data-id="{{ row.id }}" data-field="email2" data-value="{{ row.email2 or '' }}">
               {{ row.email2 if row.email2 else '—' }}
             </span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;padding-top:4px;border-top:1px solid var(--border);">
             <span style="color:var(--muted);min-width:64px;">Phone 1</span>
-            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone1', {{ (row.phone1 or '') | tojson }})">
+            <span class="contact-edit-trigger" data-id="{{ row.id }}" data-field="phone1" data-value="{{ row.phone1 or '' }}">
               {{ row.phone1 if row.phone1 else '—' }}
             </span>
           </div>
           <div style="display:flex;gap:8px;align-items:center;">
             <span style="color:var(--muted);min-width:64px;">Phone 2</span>
-            <span class="contact-edit-trigger" onclick="openContactEdit({{ row.id }}, 'phone2', {{ (row.phone2 or '') | tojson }})">
+            <span class="contact-edit-trigger" data-id="{{ row.id }}" data-field="phone2" data-value="{{ row.phone2 or '' }}">
               {{ row.phone2 if row.phone2 else '—' }}
             </span>
           </div>
@@ -95,13 +95,18 @@
 <script>
   var FIELD_LABELS = { email1: 'Email 1', email2: 'Email 2', phone1: 'Phone 1', phone2: 'Phone 2' };
 
-  function openContactEdit(id, field, currentValue) {
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('.contact-edit-trigger');
+    if (!el) return;
+    var id    = el.dataset.id;
+    var field = el.dataset.field;
+    var val   = el.dataset.value || '';
     document.getElementById('contact-edit-title').textContent = 'Edit ' + FIELD_LABELS[field];
     document.getElementById('contact-edit-field').value = field;
-    document.getElementById('contact-edit-input').value = currentValue || '';
+    document.getElementById('contact-edit-input').value = val;
     document.getElementById('contact-edit-form').action = '/admin/members/' + id + '/update';
     document.getElementById('contact-edit-modal').style.display = 'flex';
     document.getElementById('contact-edit-input').focus();
-  }
+  });
 </script>
 {% endblock %}
