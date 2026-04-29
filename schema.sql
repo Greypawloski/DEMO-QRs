@@ -63,7 +63,15 @@ CREATE TABLE IF NOT EXISTS waitlist (
 );
 CREATE INDEX IF NOT EXISTS idx_waitlist_equipment ON waitlist(equipment_id);
 
-CREATE TABLE IF NOT EXISTS activity_log (
+CREATE TABLE IF NOT EXISTS members (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    member_name   TEXT NOT NULL,
+    member_number TEXT NOT NULL UNIQUE
+);
+
+CREATE INDEX IF NOT EXISTS idx_members_name   ON members(member_name);
+CREATE INDEX IF NOT EXISTS idx_members_number ON members(member_number);
+
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_name TEXT NOT NULL,
     action     TEXT NOT NULL,

@@ -17,9 +17,17 @@
     </div>
   </div>
 
+  <!-- Member search -->
+  <div class="form-group" style="position:relative;">
+    <label for="member_search">Search Member</label>
+    <input type="text" id="member_search" placeholder="Type name or member number…"
+           oninput="memberSearch(this.value)" autocomplete="off" style="width:100%;">
+    <div id="member-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--accent);border-radius:10px;z-index:500;max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,0.12);"></div>
+  </div>
+
   <div class="form-group">
     <label for="customer_name">Customer Name *</label>
-    <input type="text" id="customer_name" name="customer_name" value="{{ item.customer_name if item else '' }}" required>
+    <input type="text" id="customer_name" name="customer_name" value="{{ item.customer_name if item else '' }}" required autocomplete="off">
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -116,4 +124,53 @@
     <a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary" style="flex:0 0 auto;">Cancel</a>
   </div>
 </form>
+
+<script>
+  var searchTimer = null;
+  function memberSearch(val) {
+    clearTimeout(searchTimer);
+    var dropdown = document.getElementById('member-dropdown');
+    if (val.length < 1) { dropdown.style.display = 'none'; return; }
+    searchTimer = setTimeout(function() {
+      fetch('/admin/members/search?q=' + encodeURIComponent(val))
+        .then(function(r) { return r.json(); })
+        .then(function(results) { renderDropdown(results); });
+    }, 150);
+  }
+
+  function renderDropdown(results) {
+    var dropdown = document.getElementById('member-dropdown');
+    if (!results.length) { dropdown.style.display = 'none'; return; }
+    dropdown.innerHTML = '';
+    results.forEach(function(m) {
+      var div = document.createElement('div');
+      div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.95rem;';
+      div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:#666;margin-left:8px;">#' + m.number + '</span>';
+      div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number); };
+      dropdown.appendChild(div);
+    });
+    dropdown.style.display = 'block';
+  }
+
+  function fillMember(name, number) {
+    // Convert "Last, First" → "First Last"
+    var parts = name.split(',');
+    var displayName = parts.length === 2 ? parts[1].trim() + ' ' + parts[0].trim() : name;
+    document.getElementById('customer_name').value = displayName;
+    document.getElementById('member_number').value = number;
+
+    // Uncheck non-member if checked
+    var cb = document.getElementById('non_member_check');
+    if (cb && cb.checked) { cb.checked = false; toggleMemberField(cb); }
+
+    document.getElementById('member_search').value = '';
+    document.getElementById('member-dropdown').style.display = 'none';
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('#member-dropdown') && e.target.id !== 'member_search') {
+      document.getElementById('member-dropdown').style.display = 'none';
+    }
+  });
+</script>
 {% endblock %}

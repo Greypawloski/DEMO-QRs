@@ -61,6 +61,61 @@ def create_app():
         paddles  = [r for r in rows if r['category'] == 'paddle']
         return render_template('demos.html', racquets=racquets, paddles=paddles)
 
+    @app.route('/admin/checkout/<int:equipment_id>', methods=['GET', 'POST'])
+    def admin_checkout(equipment_id):
+        from auth import login_required as lr
+        db = get_db()
+        item = db.execute(
+            "SELECT * FROM equipment WHERE id = ? AND active = 1", (equipment_id,)
+        ).fetchone()
+        if item is None:
+            return render_template('errors/404.html'), 404
+
+        existing = db.execute(
+            "SELECT id FROM checkouts WHERE equipment_id = ? AND returned_at IS NULL",
+            (equipment_id,)
+        ).fetchone()
+
+        if request.method == 'POST':
+            if existing:
+                return redirect(url_for('checkout_unavailable', equipment_id=equipment_id))
+            name = request.form.get('customer_name', '').strip()
+            non_member = request.form.get('non_member') == '1'
+            if non_member:
+                member = 'Non-member'
+            else:
+                member = request.form.get('member_number', '').strip()
+                suffix = request.form.get('member_suffix', '').strip()
+                if suffix:
+                    member = member + suffix
+            if not name or not member:
+                specs = _get_specs(item)
+                return render_template(
+                    'admin_checkout.html', item=item, specs=specs,
+                    error="Please fill in all required fields."
+                )
+            notes = request.form.get('checkout_notes', '').strip()
+            phone = request.form.get('phone', '').strip()
+            cur = db.execute(
+                "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?, ?, ?, ?, ?)",
+                (equipment_id, name, member, phone or None, notes or None)
+            )
+            checkout_id = cur.lastrowid
+            photo_file = request.files.get('condition_photo')
+            if item['category'] == 'paddle' and photo_file and photo_file.filename:
+                fname = _save_checkout_photo(photo_file, checkout_id)
+                db.execute("UPDATE checkouts SET photo_filename=? WHERE id=?", (fname, checkout_id))
+            db.commit()
+            return redirect(url_for('checkout_confirm', equipment_id=equipment_id))
+
+        if item['under_maintenance']:
+            return render_template('checkout_unavailable.html', item=item, joined=False, maintenance=True)
+        if existing:
+            return redirect(url_for('checkout_unavailable', equipment_id=equipment_id))
+
+        specs = _get_specs(item)
+        return render_template('admin_checkout.html', item=item, specs=specs)
+
     @app.route('/checkout/<int:equipment_id>', methods=['GET', 'POST'])
     def checkout(equipment_id):
         db = get_db()

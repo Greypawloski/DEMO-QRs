@@ -54,10 +54,10 @@
           <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;">Tap to join waitlist</div>
         </a>
       {% else %}
-        <a class="equipment-card" href="{{ url_for('checkout', equipment_id=item.id) }}"
+        <a class="equipment-card" href="{{ url_for('admin_checkout', equipment_id=item.id) }}"
            data-name="{{ item.name | lower }}"
            data-id="{{ item.id }}"
-           data-checkout-url="{{ url_for('checkout', equipment_id=item.id) }}">
+           data-checkout-url="{{ url_for('admin_checkout', equipment_id=item.id) }}">
           <span class="badge-available">Available</span>
           <div class="card-category">{{ item.category }}</div>
           <div class="card-name">{{ item.name }}</div>

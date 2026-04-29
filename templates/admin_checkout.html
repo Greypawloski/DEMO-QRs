@@ -1,34 +1,44 @@
 {% extends "base_kiosk.html" %}
 
-{% block title %}Check Out Multiple Demos{% endblock %}
+{% block title %}Check Out {{ item.name }}{% endblock %}
 
 {% block content %}
 <div class="kiosk-header">
-  <h1>Check Out Demos</h1>
+  <h1>Check Out Demo</h1>
 </div>
 
-<div class="detail-card" style="margin-bottom:20px;">
-  <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--accent);">Items Being Checked Out</h2>
-  {% for item in items %}
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-      <span style="background:var(--accent);color:#fff;font-size:0.75rem;padding:2px 8px;border-radius:6px;white-space:nowrap;">{{ item.category }}</span>
-      <span style="font-weight:600;font-size:1rem;">{{ item.name }}</span>
-    </div>
-  {% endfor %}
+<div class="detail-card">
+  <h2>{{ item.name }}</h2>
+  <div class="category-tag">{{ item.category }}</div>
+
+  {% if specs %}
+    <table class="specs-table">
+      {% for label, value in specs %}
+        <tr>
+          <td>{{ label }}</td>
+          <td>{{ value }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+
+  {% if item.notes %}
+    <p class="notes-text">{{ item.notes }}</p>
+  {% endif %}
 </div>
 
 {% if error %}
   <div class="alert alert-error">{{ error }}</div>
 {% endif %}
 
-<form method="post" action="{{ url_for('checkout_multi') }}" autocomplete="off">
-  <input type="hidden" name="ids" value="{{ ids_str }}">
+<form method="post" enctype="multipart/form-data" autocomplete="off">
 
   <!-- Member search -->
   <div class="form-group" style="position:relative;">
     <label for="member_search">Search Member</label>
     <input type="text" id="member_search" placeholder="Type name or member number…"
-           oninput="memberSearch(this.value)" autocomplete="off" style="width:100%;">
+           oninput="memberSearch(this.value)" autocomplete="off"
+           style="width:100%;">
     <div id="member-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--accent);border-radius:10px;z-index:500;max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,0.12);"></div>
   </div>
 
@@ -36,8 +46,7 @@
     <label for="customer_name">Customer Name</label>
     <input type="text" id="customer_name" name="customer_name"
            placeholder="First and last name"
-           autocomplete="off" autofocus required
-           value="{{ prefill.name if prefill else '' }}">
+           autocomplete="off" required>
   </div>
 
   <div class="form-group">
@@ -55,7 +64,7 @@
       <input type="text" id="member_number" name="member_number"
              placeholder="e.g. 1234"
              inputmode="numeric" required style="flex:1;"
-             value="{{ prefill.member if prefill and prefill.member and prefill.member != 'Non-member' else '' }}">
+             autocomplete="off">
       <select id="member_suffix" name="member_suffix"
               style="width:72px;padding:10px 6px;border:2px solid var(--border);border-radius:12px;font-size:1.1rem;text-align:center;">
         <option value="">—</option>
@@ -74,27 +83,36 @@
     <label for="phone">Phone Number</label>
     <input type="tel" id="phone" name="phone"
            placeholder="e.g. 210-555-1234"
-           autocomplete="tel"
-           value="{{ prefill.phone if prefill else '' }}">
+           autocomplete="off">
   </div>
 
   <div class="form-group">
     <label for="checkout_notes">Notes <span class="text-muted">(optional)</span></label>
     <textarea id="checkout_notes" name="checkout_notes" rows="2"
-              placeholder="Any notes for this checkout…"
+              placeholder="e.g. want to try a heavier paddle, comparing grip sizes…"
               style="font-size:1rem;"></textarea>
   </div>
 
-  <button type="submit" class="btn btn-primary">Check Out {{ items | length }} Item{{ 's' if items | length != 1 }}</button>
+  {% if item.category == 'paddle' %}
+  <div class="form-group">
+    <label for="condition_photo">Paddle Condition Photo <span class="text-muted">(optional)</span></label>
+    <input type="file" id="condition_photo" name="condition_photo"
+           accept="image/*"
+           style="font-size:1rem;padding:8px 0;width:100%;">
+    <p class="text-muted" style="font-size:0.85rem;margin-top:4px;">Take a photo to document the paddle's current condition.</p>
+  </div>
+  {% endif %}
+
+  <button type="submit" class="btn btn-primary">Check Out</button>
 </form>
 
-<div class="text-center mt-24">
-  <a href="{{ url_for('admin.kiosk_view') }}" class="btn btn-secondary btn-sm">← Back to Kiosk</a>
+<div class="text-center mt-24" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+  <a href="{{ url_for('admin.kiosk_view') }}" class="btn btn-secondary btn-sm">← Back to Admin Kiosk</a>
 </div>
 
 <script>
   function toggleMemberField(cb) {
-    var field = document.getElementById('member_number');
+    var field  = document.getElementById('member_number');
     var suffix = document.getElementById('member_suffix');
     if (cb.checked) {
       field.value = '';
@@ -114,12 +132,32 @@
     }
   }
 
-  // Handle prefill Non-member case
+  // Prefill from sessionStorage (multi-checkout flow)
   (function() {
-    {% if prefill and prefill.member == 'Non-member' %}
-      var cb = document.getElementById('non_member_check');
-      if (cb) { cb.checked = true; toggleMemberField(cb); }
-    {% endif %}
+    var params = new URLSearchParams(window.location.search);
+    var name   = params.get('prefill_name')   || sessionStorage.getItem('prefill_name');
+    var member = params.get('prefill_member')  || sessionStorage.getItem('prefill_member') || '';
+    var phone  = params.get('prefill_phone')   || sessionStorage.getItem('prefill_phone')  || '';
+    if (name) {
+      var nameEl   = document.getElementById('customer_name');
+      var memberEl = document.getElementById('member_number');
+      var phoneEl  = document.getElementById('phone');
+      if (nameEl   && !nameEl.value)   nameEl.value   = name;
+      if (phoneEl  && !phoneEl.value)  phoneEl.value  = phone;
+      if (member === 'Non-member') {
+        var cb = document.getElementById('non_member_check');
+        if (cb) { cb.checked = true; toggleMemberField(cb); }
+      } else if (memberEl && !memberEl.value && member) {
+        var suffixMatch = member.match(/^(\d+)([A-Ga-g]?)$/);
+        if (suffixMatch) {
+          memberEl.value = suffixMatch[1];
+          var suffixEl = document.getElementById('member_suffix');
+          if (suffixEl && suffixMatch[2]) suffixEl.value = suffixMatch[2].toUpperCase();
+        } else {
+          memberEl.value = member;
+        }
+      }
+    }
   })();
 
   // Member autocomplete
@@ -143,37 +181,56 @@
       var div = document.createElement('div');
       div.style.cssText = 'padding:12px 16px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.95rem;';
       div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:var(--muted);margin-left:8px;">#' + m.number + '</span>';
-      div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number); };
-      div.addEventListener('touchstart', function(e) { e.preventDefault(); fillMember(m.name, m.number); }, { passive: false });
+      div.onmousedown = function(e) {
+        e.preventDefault();
+        fillMember(m.name, m.number);
+      };
+      div.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        fillMember(m.name, m.number);
+      }, { passive: false });
       dropdown.appendChild(div);
     });
     dropdown.style.display = 'block';
   }
 
   function fillMember(name, number) {
+    // Convert "Last, First" → "First Last" for the name field
     var parts = name.split(',');
-    var displayName = parts.length === 2 ? parts[1].trim() + ' ' + parts[0].trim() : name;
+    var displayName = parts.length === 2
+      ? parts[1].trim() + ' ' + parts[0].trim()
+      : name;
     document.getElementById('customer_name').value = displayName;
+
+    // Split number into numeric part + optional letter suffix
     var match = number.match(/^(\d+)([A-Za-z]?)$/);
     if (match) {
       document.getElementById('member_number').value = match[1];
       var suffixEl = document.getElementById('member_suffix');
       var letter = match[2].toUpperCase();
+      // Only set suffix dropdown if it's A-G
       if (letter && 'ABCDEFG'.includes(letter)) {
         suffixEl.value = letter;
       } else {
         suffixEl.value = '';
-        if (match[2]) document.getElementById('member_number').value = match[1] + match[2].toUpperCase();
+        if (match[2]) {
+          // Letter outside A-G: append directly to number field
+          document.getElementById('member_number').value = match[1] + match[2].toUpperCase();
+        }
       }
     } else {
       document.getElementById('member_number').value = number;
     }
-    var cb = document.getElementById('non_member_check');
-    if (cb && cb.checked) { cb.checked = false; toggleMemberField(cb); }
+
     document.getElementById('member_search').value = '';
     document.getElementById('member-dropdown').style.display = 'none';
+
+    // Uncheck non-member if it was checked
+    var cb = document.getElementById('non_member_check');
+    if (cb.checked) { cb.checked = false; toggleMemberField(cb); }
   }
 
+  // Close dropdown when clicking outside
   document.addEventListener('click', function(e) {
     if (!e.target.closest('#member-dropdown') && e.target.id !== 'member_search') {
       document.getElementById('member-dropdown').style.display = 'none';

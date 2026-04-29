@@ -2,7 +2,7 @@ import io
 import csv
 import zipfile
 from datetime import datetime, timedelta, timezone
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file, jsonify
 from pathlib import Path
 from database import get_db
 from auth import login_required
@@ -338,6 +338,26 @@ def qr_print(equipment_id):
     if item is None:
         return redirect(url_for('admin.equipment_list'))
     return render_template('admin/qr_print.html', item=item)
+
+
+@admin_bp.route('/members/search')
+@login_required
+def member_search():
+    q = request.args.get('q', '').strip()
+    if len(q) < 1:
+        return jsonify([])
+    db = get_db()
+    pattern = f'%{q}%'
+    rows = db.execute(
+        """
+        SELECT member_name, member_number FROM members
+        WHERE member_name LIKE ? OR member_number LIKE ?
+        ORDER BY member_name
+        LIMIT 50
+        """,
+        (pattern, pattern)
+    ).fetchall()
+    return jsonify([{'name': r['member_name'], 'number': r['member_number']} for r in rows])
 
 
 @admin_bp.route('/history')
