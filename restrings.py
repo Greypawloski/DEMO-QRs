@@ -89,8 +89,8 @@ def restring_new():
             """
             INSERT INTO restrings
               (date_in, customer_name, phone, member_number, racquet,
-               string, tension, date_promised, receipt, charged, additional_charges, notes, strung_by, customer_own_string)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               string, tension, date_promised, receipt, charged, additional_charges, notes, strung_by, customer_own_string, no_sms)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 request.form['date_in'],
@@ -107,6 +107,7 @@ def restring_new():
                 request.form.get('notes', '').strip(),
                 request.form.get('strung_by', '').strip(),
                 1 if request.form.get('customer_own_string') else 0,
+                1 if request.form.get('no_sms') else 0,
             )
         )
         db.commit()
@@ -130,7 +131,7 @@ def restring_edit(restring_id):
             """
             UPDATE restrings SET
               date_in=?, customer_name=?, phone=?, member_number=?, racquet=?,
-              string=?, tension=?, date_promised=?, receipt=?, charged=?, additional_charges=?, notes=?, strung_by=?, customer_own_string=?
+              string=?, tension=?, date_promised=?, receipt=?, charged=?, additional_charges=?, notes=?, strung_by=?, customer_own_string=?, no_sms=?
             WHERE id=?
             """,
             (
@@ -148,6 +149,7 @@ def restring_edit(restring_id):
                 request.form.get('notes', '').strip(),
                 request.form.get('strung_by', '').strip(),
                 1 if request.form.get('customer_own_string') else 0,
+                1 if request.form.get('no_sms') else 0,
                 restring_id,
             )
         )
@@ -260,7 +262,7 @@ def restring_status(restring_id):
         label = 'Marked Restring Ready' if new_status == 'complete' else 'Marked Restring Picked Up'
         db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
                    (staff, label, f"{job['customer_name']} — {job['racquet']}"))
-        if new_status == 'complete' and job['phone']:
+        if new_status == 'complete' and job['phone'] and not job['no_sms']:
             from sms import send_sms
             send_sms(job['phone'],
                      f"Hi {job['customer_name'].split()[0]}, your racquet is ready for pickup at the SACC Tennis Shop. "
