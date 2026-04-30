@@ -94,8 +94,8 @@
             <td>{{ r.charged or '—' }}</td>
             <td>{{ r.additional_charges or '—' }}</td>
             <td style="white-space:nowrap;">
-              <a href="{{ url_for('restrings.restring_edit', restring_id=r.id) }}"
-                 class="btn btn-secondary btn-sm">Edit</a>
+              <button class="btn btn-secondary btn-sm edit-date-btn"
+                      data-id="{{ r.id }}" data-date="{{ r.date_in }}">Edit Date</button>
             </td>
           </tr>
         {% endfor %}
@@ -166,6 +166,37 @@
 
     applyFilters();
   </script>
+
+<!-- Edit Date Modal -->
+<div id="edit-date-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+    <h3 style="margin:0 0 16px;">Edit Date</h3>
+    <form id="edit-date-form" method="post">
+      <label style="display:block;font-weight:600;margin-bottom:6px;">Date</label>
+      <input type="date" name="date_in" id="edit-date-input"
+             style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:16px;">
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" onclick="closeEditDateModal()" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.edit-date-btn');
+    if (!btn) return;
+    var id   = btn.getAttribute('data-id');
+    var date = btn.getAttribute('data-date');
+    document.getElementById('edit-date-form').action = '/admin/restrings/' + id + '/update-date';
+    document.getElementById('edit-date-input').value = date;
+    document.getElementById('edit-date-modal').style.display = 'flex';
+  });
+  function closeEditDateModal() {
+    document.getElementById('edit-date-modal').style.display = 'none';
+  }
+</script>
 
 {% else %}
   <div class="empty-state">
