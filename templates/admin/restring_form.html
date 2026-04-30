@@ -183,18 +183,19 @@
       var div = document.createElement('div');
       div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.95rem;';
       div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:#666;margin-left:8px;">#' + m.number + '</span>';
-      div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number); };
+      div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number, m.phone1); };
       dropdown.appendChild(div);
     });
     dropdown.style.display = 'block';
   }
 
-  function fillMember(name, number) {
+  function fillMember(name, number, phone1) {
     // Convert "Last, First" → "First Last"
     var parts = name.split(',');
     var displayName = parts.length === 2 ? parts[1].trim() + ' ' + parts[0].trim() : name;
     document.getElementById('customer_name').value = displayName;
     document.getElementById('member_number').value = number;
+    if (phone1) { document.getElementById('phone').value = phone1; }
 
     // Uncheck non-member if checked
     var cb = document.getElementById('non_member_check');

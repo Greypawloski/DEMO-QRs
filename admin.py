@@ -376,10 +376,10 @@ def member_search():
         params.append(number_pattern)
     where = ' OR '.join(or_clauses)
     rows = db.execute(
-        f'SELECT member_name, member_number FROM members WHERE {where} ORDER BY member_name LIMIT 50',
+        f'SELECT m.member_name, m.member_number, mc.phone1 FROM members m LEFT JOIN members_contact mc ON m.member_number = mc.member_number WHERE {where} ORDER BY m.member_name LIMIT 50',
         params
     ).fetchall()
-    return jsonify([{'name': r['member_name'], 'number': r['member_number']} for r in rows])
+    return jsonify([{'name': r['member_name'], 'number': r['member_number'], 'phone1': r['phone1'] or ''} for r in rows])
 
 
 @admin_bp.route('/members')

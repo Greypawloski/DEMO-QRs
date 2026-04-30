@@ -183,24 +183,25 @@
       div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:var(--muted);margin-left:8px;">#' + m.number + '</span>';
       div.onmousedown = function(e) {
         e.preventDefault();
-        fillMember(m.name, m.number);
+        fillMember(m.name, m.number, m.phone1);
       };
       div.addEventListener('touchstart', function(e) {
         e.preventDefault();
-        fillMember(m.name, m.number);
+        fillMember(m.name, m.number, m.phone1);
       }, { passive: false });
       dropdown.appendChild(div);
     });
     dropdown.style.display = 'block';
   }
 
-  function fillMember(name, number) {
+  function fillMember(name, number, phone1) {
     // Convert "Last, First" → "First Last" for the name field
     var parts = name.split(',');
     var displayName = parts.length === 2
       ? parts[1].trim() + ' ' + parts[0].trim()
       : name;
     document.getElementById('customer_name').value = displayName;
+    if (phone1) { document.getElementById('phone').value = phone1; }
 
     // Split number into numeric part + optional letter suffix
     var match = number.match(/^(\d+)([A-Za-z]?)$/);
