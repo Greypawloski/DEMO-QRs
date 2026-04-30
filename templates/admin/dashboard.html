@@ -18,16 +18,26 @@
     {% for row in active %}
       <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;{% if row.is_overdue %}background:#fff5f5;border-color:#fca5a5;{% endif %}">
 
-        <!-- Top row: equipment + Mark Returned -->
+        <!-- Top row: equipment + buttons -->
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">
           <div>
             <strong style="font-size:1rem;">{{ row.equipment_name }}</strong>
             <span style="color:var(--muted);font-size:0.82rem;margin-left:8px;">{{ row.category }}</span>
           </div>
-          <button type="button" class="btn btn-danger btn-sm" style="white-space:nowrap;flex-shrink:0;"
-                  onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">
-            Mark Returned
-          </button>
+          <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button type="button" class="btn btn-secondary btn-sm checkout-edit-btn"
+                    data-id="{{ row.id }}"
+                    data-name="{{ row.customer_name | e }}"
+                    data-member="{{ row.member_number | e }}"
+                    data-phone="{{ row.phone or '' }}"
+                    data-notes="{{ row.checkout_notes or '' | e }}">
+              Edit Info
+            </button>
+            <button type="button" class="btn btn-danger btn-sm" style="white-space:nowrap;"
+                    onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">
+              Mark Returned
+            </button>
+          </div>
         </div>
 
         <!-- Customer details -->
@@ -79,6 +89,36 @@
     <p>No items currently checked out.</p>
   </div>
 {% endif %}
+
+<!-- Edit checkout modal -->
+<div id="checkout-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:400px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit Checkout Info</h2>
+    <form id="checkout-edit-form" method="post">
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" id="edit-co-name" name="customer_name" required style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Member Number</label>
+        <input type="text" id="edit-co-member" name="member_number" required style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" id="edit-co-phone" name="phone" style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Checkout Notes</label>
+        <input type="text" id="edit-co-notes" name="checkout_notes" style="width:100%;">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('checkout-edit-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- Photo upload modal -->
 <div id="photo-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
@@ -150,6 +190,17 @@
 
 <script>
   var WAITLIST_DATA = {{ waitlist_members | tojson }};
+
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.checkout-edit-btn');
+    if (!btn) return;
+    document.getElementById('edit-co-name').value   = btn.dataset.name;
+    document.getElementById('edit-co-member').value = btn.dataset.member;
+    document.getElementById('edit-co-phone').value  = btn.dataset.phone;
+    document.getElementById('edit-co-notes').value  = btn.dataset.notes;
+    document.getElementById('checkout-edit-form').action = '/admin/checkout/' + btn.dataset.id + '/edit';
+    document.getElementById('checkout-edit-modal').style.display = 'flex';
+  });
   function openPhotoModal(checkoutId, name) {
     document.getElementById('photo-modal-name').textContent = name;
     document.getElementById('photo-form').action = '/admin/checkout/' + checkoutId + '/photo';

@@ -142,6 +142,25 @@ def checkout_photo_upload(checkout_id):
     return redirect(url_for('admin.dashboard'))
 
 
+@admin_bp.route('/checkout/<int:checkout_id>/edit', methods=['POST'])
+@login_required
+def checkout_edit(checkout_id):
+    from database import format_phone
+    db = get_db()
+    name   = request.form.get('customer_name', '').strip()
+    member = request.form.get('member_number', '').strip()
+    phone  = format_phone(request.form.get('phone', '').strip()) or None
+    notes  = request.form.get('checkout_notes', '').strip() or None
+    if name and member:
+        db.execute(
+            "UPDATE checkouts SET customer_name=?, member_number=?, phone=?, checkout_notes=? WHERE id=?",
+            (name, member, phone, notes, checkout_id)
+        )
+        _log('Edit Checkout', f"#{checkout_id} — {name}")
+        db.commit()
+    return redirect(url_for('admin.dashboard'))
+
+
 @admin_bp.route('/return/<int:checkout_id>', methods=['POST'])
 @login_required
 def mark_returned(checkout_id):
