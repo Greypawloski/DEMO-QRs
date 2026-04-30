@@ -12,6 +12,21 @@
 </div>
 
 {% if months %}
+  <!-- Search all months -->
+  <form method="get" style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center;">
+    <input type="text" name="qall" value="{{ request.args.get('qall','') }}"
+           placeholder="Search all history by name or member #"
+           style="flex:1;min-width:240px;padding:8px 12px;border:2px solid var(--accent);border-radius:8px;font-size:0.95rem;">
+    <button type="submit" class="btn btn-primary btn-sm">Search All</button>
+    {% if request.args.get('qall') %}<a href="{{ url_for('restrings.restrings_history_view') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
+  </form>
+
+  {% if request.args.get('qall') %}
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">
+      {{ rows|length }} job{{ 's' if rows|length != 1 }} across all time for <strong>{{ request.args.get('qall') }}</strong>
+    </p>
+  {% else %}
+  <!-- Filter by month + stringer -->
   <form method="get" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
     <select name="ym" onchange="this.form.submit()"
             style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;min-width:180px;">
@@ -23,17 +38,17 @@
         </option>
       {% endfor %}
     </select>
-    <input type="text" id="search-name" name="q" value="{{ request.args.get('q','') }}"
+    <input type="text" name="q" value="{{ request.args.get('q','') }}"
            placeholder="Search by name or member #"
            style="flex:1;min-width:200px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
-    <input type="text" id="search-stringer" name="qs" value="{{ request.args.get('qs','') }}"
+    <input type="text" name="qs" value="{{ request.args.get('qs','') }}"
            placeholder="Search by stringer"
            style="flex:1;min-width:160px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
     <button type="submit" class="btn btn-primary btn-sm">Search</button>
     <a href="{{ url_for('restrings.restrings_history_view') }}" class="btn btn-secondary btn-sm">Clear</a>
   </form>
-
   <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">{{ rows|length }} job{{ 's' if rows|length != 1 }}</p>
+  {% endif %}
 
   <div class="table-wrap">
     <table class="data-table">
@@ -83,6 +98,8 @@
     </table>
   </div>
 
+
+{% endif %}
 
 <!-- Edit Date Modal -->
 <div id="edit-date-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;">

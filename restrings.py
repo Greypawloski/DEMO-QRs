@@ -234,6 +234,14 @@ def restrings_history_view():
         "SELECT DISTINCT substr(date_in,1,7) AS ym FROM restrings WHERE status='picked_up' ORDER BY ym DESC"
     ).fetchall()
     month_list = [r['ym'] for r in months]
+    qall = request.args.get('qall', '').strip()
+    if qall:
+        pattern = f'%{qall}%'
+        rows = db.execute(
+            "SELECT * FROM restrings WHERE status='picked_up' AND (customer_name LIKE ? OR member_number LIKE ?) ORDER BY date_in DESC",
+            (pattern, pattern)
+        ).fetchall()
+        return render_template('admin/restrings_history.html', rows=rows, months=month_list, selected='')
     selected = request.args.get('ym', month_list[0] if month_list else '')
     q  = request.args.get('q',  '').strip()
     qs = request.args.get('qs', '').strip()
