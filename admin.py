@@ -418,6 +418,35 @@ def member_contact_update(member_id):
     return redirect(url_for('admin.member_search_page', q=q))
 
 
+@admin_bp.route('/members/<int:member_id>/edit', methods=['POST'])
+@login_required
+def member_edit(member_id):
+    from database import format_phone
+    db = get_db()
+    contact = db.execute("SELECT member_number FROM members_contact WHERE id=?", (member_id,)).fetchone()
+    if not contact:
+        return redirect(url_for('admin.member_search_page'))
+    old_number = contact['member_number']
+    name   = request.form.get('member_name', '').strip()
+    number = request.form.get('member_number', '').strip()
+    email1 = request.form.get('email1', '').strip() or None
+    email2 = request.form.get('email2', '').strip() or None
+    phone1 = format_phone(request.form.get('phone1', '').strip()) or None
+    phone2 = format_phone(request.form.get('phone2', '').strip()) or None
+    q      = request.form.get('q', '')
+    if name and number:
+        db.execute(
+            "UPDATE members_contact SET member_name=?, member_number=?, email1=?, email2=?, phone1=?, phone2=? WHERE id=?",
+            (name, number, email1, email2, phone1, phone2, member_id)
+        )
+        db.execute(
+            "UPDATE members SET member_name=?, member_number=? WHERE member_number=?",
+            (name, number, old_number)
+        )
+        db.commit()
+    return redirect(url_for('admin.member_search_page', q=q))
+
+
 @admin_bp.route('/members/add', methods=['POST'])
 @login_required
 def member_add():
