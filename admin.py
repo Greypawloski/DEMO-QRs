@@ -427,7 +427,9 @@ def member_edit(member_id):
     if not contact:
         return redirect(url_for('admin.member_search_page'))
     old_number = contact['member_number']
-    name   = request.form.get('member_name', '').strip()
+    last   = request.form.get('last_name', '').strip()
+    first  = request.form.get('first_name', '').strip()
+    name   = f'{last}, {first}' if last and first else (last or first)
     number = request.form.get('member_number', '').strip()
     email1 = request.form.get('email1', '').strip() or None
     email2 = request.form.get('email2', '').strip() or None
@@ -452,7 +454,9 @@ def member_edit(member_id):
 def member_add():
     import re
     db = get_db()
-    name   = request.form.get('member_name', '').strip()
+    last   = request.form.get('last_name', '').strip()
+    first  = request.form.get('first_name', '').strip()
+    name   = f'{last}, {first}' if last and first else (last or first)
     number = request.form.get('member_number', '').strip()
     email1 = request.form.get('email1', '').strip() or None
     email2 = request.form.get('email2', '').strip() or None

@@ -84,9 +84,15 @@
     <h2 style="font-size:1.1rem;margin-bottom:20px;">Add Member</h2>
     <form method="post" action="{{ url_for('admin.member_add') }}">
       <input type="hidden" name="q" value="{{ q }}">
-      <div class="form-group">
-        <label>Member Name <span style="color:var(--muted);font-size:0.82rem;">(Last, First)</span></label>
-        <input type="text" name="member_name" placeholder="e.g. Smith, John" required style="width:100%;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" name="last_name" placeholder="e.g. Smith" required style="width:100%;">
+        </div>
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" name="first_name" placeholder="e.g. John" required style="width:100%;">
+        </div>
       </div>
       <div class="form-group">
         <label>Member Number</label>
@@ -125,9 +131,15 @@
     <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit Member</h2>
     <form id="member-edit-form" method="post">
       <input type="hidden" name="q" value="{{ q }}">
-      <div class="form-group">
-        <label>Member Name <span style="color:var(--muted);font-size:0.82rem;">(Last, First)</span></label>
-        <input type="text" id="edit-member-name" name="member_name" required style="width:100%;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label>Last Name</label>
+          <input type="text" id="edit-last-name" name="last_name" required style="width:100%;">
+        </div>
+        <div class="form-group">
+          <label>First Name</label>
+          <input type="text" id="edit-first-name" name="first_name" required style="width:100%;">
+        </div>
       </div>
       <div class="form-group">
         <label>Member Number</label>
@@ -194,7 +206,9 @@
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('.member-edit-btn');
     if (btn) {
-      document.getElementById('edit-member-name').value   = btn.dataset.name;
+      var nameParts = btn.dataset.name.split(',');
+      document.getElementById('edit-last-name').value     = nameParts[0] ? nameParts[0].trim() : '';
+      document.getElementById('edit-first-name').value    = nameParts[1] ? nameParts[1].trim() : '';
       document.getElementById('edit-member-number').value = btn.dataset.number;
       document.getElementById('edit-email1').value        = btn.dataset.email1;
       document.getElementById('edit-email2').value        = btn.dataset.email2;
