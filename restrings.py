@@ -71,6 +71,7 @@ def list_restrings():
         f"SELECT * FROM restrings WHERE {where_pending} ORDER BY date_promised ASC",
         params_pending
     ).fetchall()
+    where_completed += " AND date(created_at) >= date('now', '-7 days')"
     completed = db.execute(
         f"SELECT * FROM restrings WHERE {where_completed} ORDER BY created_at DESC",
         params_completed
@@ -229,10 +230,24 @@ def restring_update_date(restring_id):
 @login_required
 def restrings_history_view():
     db = get_db()
-    rows = db.execute(
-        "SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY date_in DESC"
+    months = db.execute(
+        "SELECT DISTINCT substr(date_in,1,7) AS ym FROM restrings WHERE status='picked_up' ORDER BY ym DESC"
     ).fetchall()
-    return render_template('admin/restrings_history.html', rows=rows)
+    month_list = [r['ym'] for r in months]
+    selected = request.args.get('ym', month_list[0] if month_list else '')
+    q  = request.args.get('q',  '').strip()
+    qs = request.args.get('qs', '').strip()
+    sql  = "SELECT * FROM restrings WHERE status='picked_up' AND substr(date_in,1,7)=?"
+    params = [selected]
+    if q:
+        sql += " AND (customer_name LIKE ? OR member_number LIKE ?)"
+        params += [f'%{q}%', f'%{q}%']
+    if qs:
+        sql += " AND strung_by LIKE ?"
+        params.append(f'%{qs}%')
+    sql += " ORDER BY date_in DESC"
+    rows = db.execute(sql, params).fetchall() if selected else []
+    return render_template('admin/restrings_history.html', rows=rows, months=month_list, selected=selected)
 
 
 @restrings_bp.route('/export-csv')

@@ -11,47 +11,29 @@
   </div>
 </div>
 
-{% if rows %}
-  <style>
-    .month-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 20px;
-    }
-    .month-tab {
-      padding: 7px 16px;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--text);
-      font-size: 0.9rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.12s, color 0.12s, border-color 0.12s;
-    }
-    .month-tab:hover { border-color: var(--accent); color: var(--accent); }
-    .month-tab.active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-  </style>
-
-  <div class="month-tabs" id="month-tabs"></div>
-
-  <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-    <input type="text" id="search-name" placeholder="Search by name or member #"
-           oninput="applyFilters()"
+{% if months %}
+  <form method="get" style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+    <select name="ym" onchange="this.form.submit()"
+            style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;min-width:180px;">
+      {% for ym in months %}
+        {% set parts = ym.split('-') %}
+        {% set month_names = ['','January','February','March','April','May','June','July','August','September','October','November','December'] %}
+        <option value="{{ ym }}" {% if ym == selected %}selected{% endif %}>
+          {{ month_names[parts[1]|int] }} {{ parts[0] }}
+        </option>
+      {% endfor %}
+    </select>
+    <input type="text" id="search-name" name="q" value="{{ request.args.get('q','') }}"
+           placeholder="Search by name or member #"
            style="flex:1;min-width:200px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
-    <input type="text" id="search-stringer" placeholder="Search by stringer"
-           oninput="applyFilters()"
+    <input type="text" id="search-stringer" name="qs" value="{{ request.args.get('qs','') }}"
+           placeholder="Search by stringer"
            style="flex:1;min-width:160px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
-    <button onclick="document.getElementById('search-name').value='';document.getElementById('search-stringer').value='';applyFilters();"
-            class="btn btn-secondary btn-sm">Clear</button>
-  </div>
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    <a href="{{ url_for('restrings.restrings_history_view') }}" class="btn btn-secondary btn-sm">Clear</a>
+  </form>
 
-  <p id="tab-count" style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;"></p>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px;">{{ rows|length }} job{{ 's' if rows|length != 1 }}</p>
 
   <div class="table-wrap">
     <table class="data-table">
@@ -71,9 +53,7 @@
       </thead>
       <tbody id="history-tbody">
         {% for r in rows %}
-          <tr data-month="{{ r.date_in[:7] }}"
-              data-name="{{ (r.customer_name ~ ' ' ~ (r.member_number or '')) | lower }}"
-              data-stringer="{{ (r.strung_by or '') | lower }}">
+          <tr>
             <td>
               {{ r.customer_name }}
               {% if r.member_number == 'Non-member' %}
@@ -103,69 +83,6 @@
     </table>
   </div>
 
-  <script>
-    var MONTH_NAMES = ['January','February','March','April','May','June',
-                       'July','August','September','October','November','December'];
-    var activeYm = null;
-
-    function formatTab(ym) {
-      var parts = ym.split('-');
-      return MONTH_NAMES[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
-    }
-
-    var allRows = document.querySelectorAll('#history-tbody tr');
-
-    // Collect unique months
-    var months = [];
-    var seen = {};
-    allRows.forEach(function(r) {
-      var m = r.getAttribute('data-month');
-      if (!seen[m]) { seen[m] = true; months.push(m); }
-    });
-    months.sort(function(a, b) { return b.localeCompare(a); });
-
-    // Build tabs
-    var tabsEl = document.getElementById('month-tabs');
-    var allBtn = document.createElement('button');
-    allBtn.className = 'month-tab active';
-    allBtn.textContent = 'All (' + allRows.length + ')';
-    allBtn.onclick = function() { activeYm = null; setActiveTab(allBtn); applyFilters(); };
-    tabsEl.appendChild(allBtn);
-
-    months.forEach(function(ym) {
-      var count = document.querySelectorAll('#history-tbody tr[data-month="' + ym + '"]').length;
-      var btn = document.createElement('button');
-      btn.className = 'month-tab';
-      btn.textContent = formatTab(ym) + ' (' + count + ')';
-      btn.setAttribute('data-ym', ym);
-      btn.onclick = function() { activeYm = ym; setActiveTab(btn); applyFilters(); };
-      tabsEl.appendChild(btn);
-    });
-
-    function setActiveTab(btn) {
-      document.querySelectorAll('.month-tab').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
-    }
-
-    function applyFilters() {
-      var qName     = document.getElementById('search-name').value.toLowerCase().trim();
-      var qStringer = document.getElementById('search-stringer').value.toLowerCase().trim();
-      var visible   = 0;
-      allRows.forEach(function(r) {
-        var matchTab     = !activeYm || r.getAttribute('data-month') === activeYm;
-        var matchName    = !qName     || r.getAttribute('data-name').includes(qName);
-        var matchString  = !qStringer || r.getAttribute('data-stringer').includes(qStringer);
-        var show = matchTab && matchName && matchString;
-        r.style.display = show ? '' : 'none';
-        if (show) visible++;
-      });
-      document.getElementById('tab-count').textContent =
-        visible + ' job' + (visible !== 1 ? 's' : '')
-        + (activeYm ? ' in ' + formatTab(activeYm) : ' total');
-    }
-
-    applyFilters();
-  </script>
 
 <!-- Edit Date Modal -->
 <div id="edit-date-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;">
