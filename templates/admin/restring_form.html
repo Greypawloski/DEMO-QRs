@@ -5,7 +5,7 @@
 {% block content %}
 <h1>{{ 'Edit' if item else 'New' }} Restring Request</h1>
 
-<form method="post" style="max-width:600px;">
+<form id="restring-form" method="post" style="max-width:600px;">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
     <div class="form-group">
       <label for="date_in">Date In *</label>
@@ -118,12 +118,44 @@
   </div>
 
   <div style="display:flex;gap:12px;margin-top:8px;">
-    <button type="submit" class="btn btn-primary" style="flex:1;">
+    <button type="submit" form="restring-form" class="btn btn-primary" style="flex:1;">
       {{ 'Save Changes' if item else 'Save Request' }}
     </button>
+    {% if item %}
+    <button type="button" class="btn btn-secondary" style="flex:1;background:#059669;color:#fff;border-color:#059669;"
+            onclick="confirmMarkReady()">Mark Ready</button>
+    {% endif %}
     <a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary" style="flex:0 0 auto;">Cancel</a>
   </div>
 </form>
+
+{% if item %}
+<form id="mark-ready-form" method="post" action="{{ url_for('restrings.restring_status', restring_id=item.id) }}" style="display:none;">
+  <input type="hidden" name="status" value="complete">
+</form>
+
+<!-- Confirmation modal -->
+<div id="mark-ready-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:360px;width:90%;text-align:center;">
+    <h2 style="font-size:1.1rem;margin-bottom:12px;">Mark as Ready?</h2>
+    <p style="color:var(--muted);font-size:0.95rem;margin-bottom:20px;">
+      This will notify the customer that their racquet is ready for pickup.
+    </p>
+    <div style="display:flex;gap:12px;">
+      <button type="button" class="btn btn-primary" style="flex:1;background:#059669;border-color:#059669;"
+              onclick="document.getElementById('mark-ready-form').submit()">Yes, Mark Ready</button>
+      <button type="button" class="btn btn-secondary" style="flex:1;"
+              onclick="document.getElementById('mark-ready-modal').style.display='none'">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function confirmMarkReady() {
+    document.getElementById('mark-ready-modal').style.display = 'flex';
+  }
+</script>
+{% endif %}
 
 <script>
   var searchTimer = null;
