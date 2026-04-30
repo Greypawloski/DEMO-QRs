@@ -291,7 +291,7 @@ def restring_status(restring_id):
     from flask import session
     new_status = request.form.get('status', 'pending')
     db = get_db()
-    job = db.execute("SELECT customer_name, racquet, phone FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    job = db.execute("SELECT customer_name, racquet, phone, no_sms FROM restrings WHERE id=?", (restring_id,)).fetchone()
     if new_status == 'complete':
         db.execute("UPDATE restrings SET status=?, completed_at=datetime('now') WHERE id=?",
                    (new_status, restring_id))
