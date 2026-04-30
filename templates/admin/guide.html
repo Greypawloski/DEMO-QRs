@@ -1,0 +1,310 @@
+{% extends "base_admin.html" %}
+{% block title %}Staff Guide{% endblock %}
+{% block content %}
+
+<style>
+  .guide-wrap { display:flex; gap:32px; align-items:flex-start; }
+  .guide-sidebar {
+    position:sticky; top:20px; min-width:200px; max-width:220px;
+    background:#f8faf8; border:1px solid var(--border); border-radius:10px;
+    padding:16px; font-size:0.88rem;
+  }
+  .guide-sidebar h3 { font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin:0 0 10px; }
+  .guide-sidebar a { display:block; color:var(--text); text-decoration:none; padding:4px 0; border-bottom:1px solid var(--border); line-height:1.4; }
+  .guide-sidebar a:last-child { border-bottom:none; }
+  .guide-sidebar a:hover { color:var(--accent); }
+  .guide-content { flex:1; min-width:0; }
+  .guide-section { margin-bottom:48px; }
+  .guide-section h2 {
+    font-size:1.25rem; border-bottom:2px solid var(--accent);
+    padding-bottom:8px; margin-bottom:20px; color:var(--accent);
+  }
+  .guide-section h3 { font-size:1rem; margin:24px 0 8px; }
+  .guide-section ol, .guide-section ul { padding-left:20px; line-height:1.8; }
+  .guide-section li { margin-bottom:4px; }
+  .tip {
+    background:#f0fdf4; border-left:4px solid #059669; border-radius:0 8px 8px 0;
+    padding:10px 14px; margin:12px 0; font-size:0.9rem; color:#065f46;
+  }
+  .note {
+    background:#fefce8; border-left:4px solid #ca8a04; border-radius:0 8px 8px 0;
+    padding:10px 14px; margin:12px 0; font-size:0.9rem; color:#713f12;
+  }
+  .kbd {
+    background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px;
+    padding:1px 6px; font-size:0.85rem; font-family:monospace;
+  }
+  @media(max-width:700px) {
+    .guide-wrap { flex-direction:column; }
+    .guide-sidebar { position:static; min-width:unset; max-width:unset; width:100%; }
+  }
+</style>
+
+<h1 style="margin-bottom:24px;">Staff Guide — SACC Tennis Shop Demo &amp; Restring System</h1>
+
+<div class="guide-wrap">
+
+  <!-- Sidebar -->
+  <nav class="guide-sidebar">
+    <h3>Jump to section</h3>
+    <a href="#overview">System Overview</a>
+    <a href="#restrings">Restring / String Jobs</a>
+    <a href="#demo-checkout">Demo Checkout</a>
+    <a href="#dashboard">Admin Dashboard</a>
+    <a href="#member-search">Member Search</a>
+    <a href="#equipment">Equipment &amp; QR Codes</a>
+    <a href="#history">History &amp; Reports</a>
+    <a href="#activity">Activity Log</a>
+  </nav>
+
+  <!-- Content -->
+  <div class="guide-content">
+
+    <!-- OVERVIEW -->
+    <div class="guide-section" id="overview">
+      <h2>System Overview</h2>
+      <p>This system manages two main workflows for the SACC Tennis Shop:</p>
+      <ul>
+        <li><strong>Demo checkouts</strong> — track which demo racquets and paddles are out with customers and when they're returned.</li>
+        <li><strong>Restring / string jobs</strong> — intake, track progress, and record completion of restringing work.</li>
+      </ul>
+      <p>The top navigation bar gives you access to every section:</p>
+      <ul>
+        <li><strong>Dashboard</strong> — active demo checkouts at a glance.</li>
+        <li><strong>Equipment</strong> — manage the demo inventory and QR codes.</li>
+        <li><strong>History</strong> — full log of all past demo checkouts.</li>
+        <li><strong>Reports</strong> — usage summaries.</li>
+        <li><strong>Activity</strong> — log of all staff actions.</li>
+        <li><strong>Restringing</strong> — manage all string jobs.</li>
+        <li><strong>Member Search</strong> — look up and manage member contact info.</li>
+        <li><strong>Kiosk View</strong> — the demo checkout screen used at the front desk.</li>
+      </ul>
+    </div>
+
+    <!-- RESTRINGS -->
+    <div class="guide-section" id="restrings">
+      <h2>Restring / String Jobs</h2>
+
+      <h3>Submitting a new string job</h3>
+      <ol>
+        <li>Click <strong>Restringing</strong> in the top nav, then click <strong>New Restring Request</strong>.</li>
+        <li><strong>Search for the member</strong> using the Search Member field at the top. Type a name or member number — a dropdown of matches will appear. Click the correct member to auto-fill their name, member number, and phone number.</li>
+        <li>If the customer is <strong>not a member</strong>, check the <strong>Non-member</strong> checkbox next to the Member Number field. The member number field will gray out.</li>
+        <li>Fill in <strong>Date In</strong>, <strong>Date Promised</strong>, <strong>Racquet</strong>, <strong>String</strong>, and <strong>Tension</strong>.</li>
+        <li>If the customer supplied their own string, check <strong>Customer's own string</strong>.</li>
+        <li>Fill in <strong>Receipt #</strong>, <strong>Charged</strong>, and <strong>Additional Charges</strong> as applicable.</li>
+        <li>Enter <strong>Strung By</strong> (the staff member doing the work) and any <strong>Notes</strong>.</li>
+        <li>Click <strong>Save Request</strong>.</li>
+      </ol>
+
+      <div class="tip">
+        <strong>Restring history autofill:</strong> After selecting a member who has previous string jobs on file, a <em>Load from restring history</em> dropdown will appear above the Racquet field. Select a past job to instantly fill in the racquet, string, and tension from that visit.
+      </div>
+
+      <h3>Editing a string job</h3>
+      <ol>
+        <li>On the Restringing page, find the job and click <strong>Edit</strong>.</li>
+        <li>Make any changes and click <strong>Save Changes</strong>.</li>
+      </ol>
+
+      <h3>Quick-editing Charged, Receipt, and Additional Charges</h3>
+      <p>On the active restrings list, you can edit the <strong>Charged</strong>, <strong>Receipt #</strong>, and <strong>Additional Charges</strong> fields without opening the full edit form:</p>
+      <ol>
+        <li>Click directly on the value (or the dash <strong>—</strong> if empty) next to Charged, Receipt, or Additional Charges on a job card.</li>
+        <li>A small edit popup will appear. Type the new value and click <strong>Save</strong>.</li>
+      </ol>
+
+      <h3>Marking a job ready for pickup</h3>
+      <p>There are two ways:</p>
+      <ul>
+        <li><strong>From the restring list:</strong> Click the <strong>Mark Ready</strong> button on the job card. Confirm the popup.</li>
+        <li><strong>From the edit form:</strong> Click the green <strong>Mark Ready</strong> button next to Save Changes. Confirm the popup. The button will be grayed out if the job is already marked ready.</li>
+      </ul>
+      <div class="tip">Marking a job ready automatically sends the customer an SMS notification that their racquet is ready for pickup.</div>
+
+      <h3>Marking a job picked up</h3>
+      <ol>
+        <li>On the restring list, find the job in the ready section and click <strong>Mark Picked Up</strong>.</li>
+        <li>The job moves to the Picked Up history at the bottom of the page.</li>
+      </ol>
+
+      <h3>Searching string jobs</h3>
+      <p>At the top of the Restringing page there are two search bars:</p>
+      <ul>
+        <li><strong>Active jobs search</strong> — filters the active/ready list by customer name or member number.</li>
+        <li><strong>Picked Up search</strong> — filters the completed history.</li>
+      </ul>
+
+      <h3>Deleting a string job</h3>
+      <ol>
+        <li>Open the edit form for the job.</li>
+        <li>Click <strong>Delete</strong> and enter the staff PIN when prompted.</li>
+      </ol>
+      <div class="note">Deletion requires a PIN to prevent accidental removal of records.</div>
+    </div>
+
+    <!-- DEMO CHECKOUT -->
+    <div class="guide-section" id="demo-checkout">
+      <h2>Demo Checkout</h2>
+
+      <h3>Accessing the kiosk</h3>
+      <p>Click <strong>Kiosk View</strong> in the top nav. This is the screen used at the front desk to check out demo equipment. You can also access it from the public-facing page at the shop's URL.</p>
+
+      <h3>Checking out a single demo</h3>
+      <ol>
+        <li>On the kiosk, find the equipment card and click it.</li>
+        <li>Use the <strong>Search Member</strong> field to find the customer — select them from the dropdown to auto-fill their name, member number, and phone number.</li>
+        <li>If the customer is a <strong>non-member</strong>, check the Non-member checkbox.</li>
+        <li>If the member number has a letter suffix (e.g. for a spouse or family member), select the letter from the dropdown next to the member number field.</li>
+        <li>Enter a phone number if not already filled, add any checkout notes, and for paddles attach a condition photo if needed.</li>
+        <li>Click <strong>Check Out</strong>.</li>
+      </ol>
+
+      <h3>Selecting multiple demos for one customer</h3>
+      <ol>
+        <li>On the kiosk home screen, click <strong>Select Multiple for Checkout</strong>.</li>
+        <li>Tap each equipment card you want to check out — selected cards will show a checkmark.</li>
+        <li>Click <strong>Checkout Selected</strong> in the bar at the bottom.</li>
+        <li>Fill in the customer details once and click <strong>Check Out</strong>. All selected items are checked out to the same customer in one step.</li>
+        <li>A confirmation screen will show which items were checked out and which were skipped (if any were already unavailable).</li>
+      </ol>
+
+      <div class="tip">If an item is already checked out, it will show a <strong>CHECKED OUT</strong> badge on the kiosk. You can still join the waitlist for it.</div>
+
+      <h3>Marking a demo returned</h3>
+      <ol>
+        <li>Go to <strong>Dashboard</strong> in the top nav.</li>
+        <li>Find the active checkout card and click <strong>Mark Returned</strong>.</li>
+        <li>Add any return notes if needed and confirm.</li>
+      </ol>
+
+      <h3>Undoing a return (Unmark Returned)</h3>
+      <ol>
+        <li>Go to <strong>History</strong> in the top nav.</li>
+        <li>Find the checkout record and click <strong>Unmark Returned</strong>.</li>
+        <li>The item will go back to active checkout status. This is blocked if the equipment has already been checked out to someone else.</li>
+      </ol>
+
+      <h3>Uploading a condition photo (paddles)</h3>
+      <p>On the checkout form for a paddle, an <strong>Upload Condition Photo</strong> button appears. Take or select a photo to document the paddle's condition at checkout. The photo is visible on the dashboard card for that checkout.</p>
+
+      <h3>Waitlist</h3>
+      <p>If a customer wants an item that is already checked out, click the item on the kiosk and select <strong>Join Waitlist</strong>. When the item is returned, the next person on the waitlist is shown on the dashboard card so staff can contact them.</p>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="guide-section" id="dashboard">
+      <h2>Admin Dashboard</h2>
+      <p>The Dashboard shows all currently active demo checkouts as cards. Each card displays:</p>
+      <ul>
+        <li>Equipment name and a <strong>due-back timer</strong> (items are expected back within 72 hours — the timer turns red when overdue).</li>
+        <li>Customer name, member number, and phone.</li>
+        <li>Any checkout notes.</li>
+        <li>For paddles, the condition photo thumbnail.</li>
+        <li>Waitlist count if anyone is waiting.</li>
+        <li>A <strong>Mark Returned</strong> button.</li>
+      </ul>
+    </div>
+
+    <!-- MEMBER SEARCH -->
+    <div class="guide-section" id="member-search">
+      <h2>Member Search</h2>
+
+      <h3>Searching for a member</h3>
+      <p>Click <strong>Member Search</strong> in the top nav. Type in the search box — you can search by:</p>
+      <ul>
+        <li><strong>Last name prefix</strong> — e.g. <span class="kbd">Smi</span> returns all members whose last name starts with "Smi".</li>
+        <li><strong>First name</strong> — e.g. <span class="kbd">Trey</span> returns all members with that first name.</li>
+        <li><strong>First name + last name prefix</strong> — e.g. <span class="kbd">Trey F</span> returns members named Trey whose last name starts with F.</li>
+        <li><strong>Member number prefix</strong> — e.g. <span class="kbd">1042</span>.</li>
+      </ul>
+      <div class="tip">Commas in the search are ignored — you don't need to type them.</div>
+
+      <h3>Quick-editing a contact field</h3>
+      <p>On a member card, click any email or phone value (or the <strong>—</strong> dash if empty) to open a small edit popup. Update the value and click Save.</p>
+
+      <h3>Editing a full member record</h3>
+      <ol>
+        <li>Click the <strong>Edit</strong> button in the green header of a member card.</li>
+        <li>A modal opens with all fields — first name, last name, member number, both emails, both phones.</li>
+        <li>Make changes and click <strong>Save Changes</strong>.</li>
+      </ol>
+
+      <h3>Adding a new member</h3>
+      <ol>
+        <li>Click <strong>+ Add Member</strong> at the top right of the Member Search page.</li>
+        <li>Fill in the first name, last name, member number, and any contact details.</li>
+        <li>Click <strong>Save</strong>. The member is added to the directory and will appear in the autocomplete on checkout and restring forms.</li>
+      </ol>
+
+      <h3>Automatic phone number updates</h3>
+      <p>When a member submits a phone number during a demo checkout or restring form, the system automatically updates their contact record in the directory:</p>
+      <ul>
+        <li>If Phone 1 is empty → the number is saved as Phone 1.</li>
+        <li>If Phone 1 is taken and Phone 2 is empty → saved as Phone 2.</li>
+        <li>If both are already on file with different numbers → Phone 1 is overwritten with the new number.</li>
+        <li>If the number already matches either phone on file → nothing changes.</li>
+      </ul>
+    </div>
+
+    <!-- EQUIPMENT -->
+    <div class="guide-section" id="equipment">
+      <h2>Equipment &amp; QR Codes</h2>
+
+      <h3>Adding new equipment</h3>
+      <ol>
+        <li>Click <strong>Equipment</strong> in the top nav, then <strong>Add New Equipment</strong>.</li>
+        <li>Enter the name, category (racquet or paddle), and up to five spec fields (e.g. Head Size, Weight, String Pattern).</li>
+        <li>Add any notes and click <strong>Save</strong>. A QR code is generated automatically.</li>
+      </ol>
+
+      <h3>Editing equipment</h3>
+      <ol>
+        <li>On the Equipment list, click <strong>Edit</strong> next to the item.</li>
+        <li>Update the details and click <strong>Save</strong>.</li>
+      </ol>
+
+      <h3>Retiring equipment</h3>
+      <p>On the Equipment list, click <strong>Retire</strong> to remove an item from the active kiosk without deleting its checkout history. Retired items can be reactivated at any time.</p>
+
+      <h3>Marking equipment under maintenance</h3>
+      <p>On the Equipment list, click <strong>Under Maintenance</strong> to flag an item as temporarily unavailable. It will show as unavailable on the kiosk but remain in the active list.</p>
+
+      <h3>QR codes</h3>
+      <ul>
+        <li>Each piece of equipment has a unique QR code that links directly to its checkout page.</li>
+        <li>To print a QR label, click <strong>Print QR</strong> on the equipment list or equipment edit page.</li>
+        <li>To print all QR codes at once, click <strong>Print All QR Codes</strong> on the Equipment page. Equipment notes are shown in red below each QR for reference.</li>
+        <li>If the server URL ever changes, use <strong>Regenerate All QR Codes</strong> to update them all at once.</li>
+      </ul>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="guide-section" id="history">
+      <h2>History &amp; Reports</h2>
+
+      <h3>Demo checkout history</h3>
+      <p>Click <strong>History</strong> in the top nav to see a full log of all past demo checkouts, including who had each item, when it was checked out, and when it was returned.</p>
+      <ul>
+        <li>Use the search bar to filter by customer name or member number.</li>
+        <li>Click <strong>Unmark Returned</strong> on any record to revert it back to an active checkout if it was marked returned by mistake.</li>
+      </ul>
+
+      <h3>Restring history</h3>
+      <p>The bottom section of the Restringing page shows all picked-up jobs. Use the <strong>Picked Up search</strong> bar to filter by customer name or member number.</p>
+
+      <h3>Reports</h3>
+      <p>Click <strong>Reports</strong> in the top nav for usage summaries, including most-checked-out equipment and most active members.</p>
+    </div>
+
+    <!-- ACTIVITY LOG -->
+    <div class="guide-section" id="activity">
+      <h2>Activity Log</h2>
+      <p>Click <strong>Activity</strong> in the top nav to see a timestamped log of all staff actions — checkouts, returns, restring status changes, edits, and deletions. Each entry shows which staff member performed the action.</p>
+      <div class="tip">Use the activity log to trace any changes if something looks incorrect.</div>
+    </div>
+
+  </div><!-- end guide-content -->
+</div><!-- end guide-wrap -->
+
+{% endblock %}

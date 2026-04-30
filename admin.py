@@ -584,6 +584,12 @@ def activity_log():
     return render_template('admin/activity_log.html', rows=rows)
 
 
+@admin_bp.route('/guide')
+@login_required
+def guide():
+    return render_template('admin/guide.html')
+
+
 @admin_bp.route('/reports')
 @login_required
 def reports():
