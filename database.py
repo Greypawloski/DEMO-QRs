@@ -77,6 +77,8 @@ def sync_member_phone(db, member_number, submitted_phone):
     formatted = format_phone(submitted_phone)
     if not p1_digits:
         db.execute("UPDATE members_contact SET phone1 = ? WHERE id = ?", (formatted, row['id']))
-    else:
+    elif not p2_digits:
         db.execute("UPDATE members_contact SET phone2 = ? WHERE id = ?", (formatted, row['id']))
+    else:
+        db.execute("UPDATE members_contact SET phone1 = ? WHERE id = ?", (formatted, row['id']))
     db.commit()
