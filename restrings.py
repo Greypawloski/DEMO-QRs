@@ -17,6 +17,30 @@ def _fmt_central(dt_str):
 restrings_bp = Blueprint('restrings', __name__, url_prefix='/admin/restrings')
 
 
+@restrings_bp.route('/member-history')
+@login_required
+def member_restring_history():
+    from flask import jsonify
+    member_number = request.args.get('member_number', '').strip()
+    if not member_number or member_number == 'Non-member':
+        return jsonify([])
+    db = get_db()
+    rows = db.execute(
+        """SELECT racquet, string, tension, date_in
+           FROM restrings
+           WHERE member_number = ?
+           ORDER BY id DESC
+           LIMIT 10""",
+        (member_number,)
+    ).fetchall()
+    return jsonify([{
+        'racquet': r['racquet'],
+        'string':  r['string'],
+        'tension': r['tension'],
+        'date_in': r['date_in'],
+    } for r in rows])
+
+
 @restrings_bp.route('/')
 @login_required
 def list_restrings():

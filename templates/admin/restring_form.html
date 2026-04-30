@@ -67,6 +67,13 @@
     </script>
   </div>
 
+  <div id="history-fill-wrap" style="display:none;margin-bottom:4px;">
+    <label style="font-size:0.88rem;color:var(--muted);display:block;margin-bottom:6px;">Load from restring history</label>
+    <select id="history-fill-select" onchange="fillFromHistory(this)" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
+      <option value="">— Select a previous restring —</option>
+    </select>
+  </div>
+
   <div class="form-group">
     <label for="racquet">Racquet *</label>
     <input type="text" id="racquet" name="racquet" value="{{ item.racquet if item else '' }}" placeholder="e.g. Wilson Blade 104" required>
@@ -203,7 +210,47 @@
 
     document.getElementById('member_search').value = '';
     document.getElementById('member-dropdown').style.display = 'none';
+
+    loadRestringHistory(number);
   }
+
+  function loadRestringHistory(memberNumber) {
+    var wrap = document.getElementById('history-fill-wrap');
+    var select = document.getElementById('history-fill-select');
+    if (!memberNumber) { wrap.style.display = 'none'; return; }
+    fetch('/admin/restrings/member-history?member_number=' + encodeURIComponent(memberNumber))
+      .then(function(r) { return r.json(); })
+      .then(function(results) {
+        if (!results.length) { wrap.style.display = 'none'; return; }
+        select.innerHTML = '<option value="">— Select a previous restring —</option>';
+        results.forEach(function(r, i) {
+          var opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = r.racquet + '  |  ' + r.string + '  @  ' + r.tension + '  (' + r.date_in + ')';
+          opt.dataset.racquet = r.racquet;
+          opt.dataset.string  = r.string;
+          opt.dataset.tension = r.tension;
+          select.appendChild(opt);
+        });
+        wrap.style.display = 'block';
+      });
+  }
+
+  function fillFromHistory(select) {
+    var opt = select.options[select.selectedIndex];
+    if (!opt.value) return;
+    document.getElementById('racquet').value = opt.dataset.racquet;
+    document.getElementById('string').value  = opt.dataset.string;
+    document.getElementById('tension').value = opt.dataset.tension;
+    select.value = '';
+  }
+
+  // Also trigger history load on manual member number entry
+  document.getElementById('member_number').addEventListener('blur', function() {
+    if (!document.getElementById('non_member_check').checked && this.value.trim()) {
+      loadRestringHistory(this.value.trim());
+    }
+  });
 
   document.addEventListener('click', function(e) {
     if (!e.target.closest('#member-dropdown') && e.target.id !== 'member_search') {
