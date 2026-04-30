@@ -1,0 +1,18 @@
+{
+  "name": "SACC Tennis Shop",
+  "short_name": "SACC Tennis",
+  "description": "Demo checkout and restring management for SACC Tennis Shop",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#059669",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/static/sacc-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
