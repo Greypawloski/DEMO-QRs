@@ -122,8 +122,13 @@
       {{ 'Save Changes' if item else 'Save Request' }}
     </button>
     {% if item %}
-    <button type="button" class="btn btn-secondary" style="flex:1;background:#059669;color:#fff;border-color:#059669;"
-            onclick="confirmMarkReady()">Mark Ready</button>
+    <button type="button" class="btn btn-secondary"
+            {% if item.status == 'complete' %}
+            disabled style="flex:1;opacity:0.45;cursor:not-allowed;"
+            {% else %}
+            style="flex:1;background:#059669;color:#fff;border-color:#059669;"
+            onclick="confirmMarkReady()"
+            {% endif %}>Mark Ready</button>
     {% endif %}
     <a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary" style="flex:0 0 auto;">Cancel</a>
   </div>
