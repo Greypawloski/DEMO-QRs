@@ -66,6 +66,7 @@
           <th>Chit #</th>
           <th>Total</th>
           <th>Additional Charges</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="history-tbody">
@@ -92,6 +93,10 @@
             <td>{{ r.receipt or '—' }}</td>
             <td>{{ r.charged or '—' }}</td>
             <td>{{ r.additional_charges or '—' }}</td>
+            <td style="white-space:nowrap;">
+              <a href="{{ url_for('restrings.restring_edit', restring_id=r.id) }}"
+                 class="btn btn-secondary btn-sm">Edit</a>
+            </td>
           </tr>
         {% endfor %}
       </tbody>
