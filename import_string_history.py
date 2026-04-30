@@ -12,6 +12,7 @@ Expected CSV columns (in any order):
 
 import csv
 import sqlite3
+import zipfile
 from datetime import datetime
 from pathlib import Path
 
@@ -41,6 +42,15 @@ def main():
         print(f"ERROR: Import folder not found: {IMPORT_DIR}")
         print("Create the folder and place your CSV files inside it, then re-run.")
         return
+
+    # Unzip any zip files found in the import folder first
+    for zip_path in sorted(IMPORT_DIR.glob('*.zip')):
+        print(f"Extracting: {zip_path.name}")
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            for member in zf.namelist():
+                if member.lower().endswith('.csv') and not member.startswith('__MACOSX'):
+                    zf.extract(member, IMPORT_DIR)
+                    print(f"  Extracted: {member}")
 
     csv_files = sorted(IMPORT_DIR.glob('*.csv'))
     if not csv_files:
