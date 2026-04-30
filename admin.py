@@ -369,10 +369,10 @@ def member_search():
     if not name_patterns:
         return jsonify([])
     db = get_db()
-    or_clauses = ['member_name LIKE ?' for _ in name_patterns]
+    or_clauses = ['m.member_name LIKE ?' for _ in name_patterns]
     params = list(name_patterns)
     if number_pattern:
-        or_clauses.append('member_number LIKE ?')
+        or_clauses.append('m.member_number LIKE ?')
         params.append(number_pattern)
     where = ' OR '.join(or_clauses)
     rows = db.execute(
