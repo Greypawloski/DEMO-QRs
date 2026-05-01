@@ -13,27 +13,10 @@ Run from /home/SACCTennis/DEMO-QRs/:
     python backfill_member_numbers.py
 """
 
-import re
 import sqlite3
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent / 'demo.db'
-
-
-def base_number(member_number):
-    """Strip trailing letter suffix: '3757A' -> '3757', '3757' -> '3757'"""
-    return re.sub(r'[A-Za-z]+$', '', (member_number or '').strip())
-
-
-def pick_primary(matches):
-    """
-    From a list of member numbers that share the same base, pick the best one:
-    prefer no suffix, then 'A', then alphabetical.
-    """
-    no_suffix = [m for m in matches if re.search(r'\d$', m)]
-    if no_suffix:
-        return sorted(no_suffix)[0]
-    return sorted(matches)[0]
 
 
 def normalize(name):
@@ -98,16 +81,7 @@ def main():
             )
             updated += 1
         elif len(matches) > 1:
-            bases = {base_number(m) for m in matches}
-            if len(bases) == 1:
-                chosen = pick_primary(matches)
-                cur.execute(
-                    "UPDATE restrings SET member_number = ? WHERE id = ?",
-                    (chosen, row['id'])
-                )
-                updated += 1
-            else:
-                skipped_ambiguous += 1
+            skipped_ambiguous += 1
         else:
             skipped_no_match += 1
 
