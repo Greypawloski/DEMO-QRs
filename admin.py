@@ -417,12 +417,36 @@ def member_search_page():
                 params.append(number_pattern)
             where = ' OR '.join(or_clauses)
             rows = db.execute(
-                f'''SELECT mc.id, mc.member_name, mc.member_number, mc.email1, mc.email2, mc.phone1, mc.phone2,
+                f'''SELECT mc.id, mc.member_name, mc.member_number, mc.email1, mc.email2, mc.phone1, mc.phone2, mc.notes,
                            (SELECT COUNT(*) FROM restrings r WHERE r.member_number = mc.member_number) AS restring_count
                     FROM members_contact mc WHERE {where} ORDER BY mc.member_name''',
                 params
             ).fetchall()
     return render_template('admin/member_search.html', rows=rows, q=q)
+
+
+@admin_bp.route('/members/<int:member_id>/profile')
+@login_required
+def member_profile(member_id):
+    db = get_db()
+    member = db.execute(
+        "SELECT * FROM members_contact WHERE id=?", (member_id,)
+    ).fetchone()
+    if not member:
+        return redirect(url_for('admin.member_search_page'))
+    restrings = db.execute(
+        "SELECT * FROM restrings WHERE member_number=? ORDER BY date_in DESC",
+        (member['member_number'],)
+    ).fetchall()
+    checkouts = db.execute(
+        """SELECT c.*, e.name AS equipment_name, e.category,
+                  ROUND(julianday(COALESCE(c.returned_at, datetime('now'))) - julianday(c.checked_out_at)) AS duration_days
+           FROM checkouts c JOIN equipment e ON c.equipment_id = e.id
+           WHERE c.member_number=? ORDER BY c.checked_out_at DESC""",
+        (member['member_number'],)
+    ).fetchall()
+    return render_template('admin/member_profile.html',
+                           member=member, restrings=restrings, checkouts=checkouts)
 
 
 @admin_bp.route('/members/<int:member_id>/update', methods=['POST'])
@@ -456,11 +480,12 @@ def member_edit(member_id):
     email2 = request.form.get('email2', '').strip() or None
     phone1 = format_phone(request.form.get('phone1', '').strip()) or None
     phone2 = format_phone(request.form.get('phone2', '').strip()) or None
+    notes  = request.form.get('notes', '').strip() or None
     q      = request.form.get('q', '')
     if name and number:
         db.execute(
-            "UPDATE members_contact SET member_name=?, member_number=?, email1=?, email2=?, phone1=?, phone2=? WHERE id=?",
-            (name, number, email1, email2, phone1, phone2, member_id)
+            "UPDATE members_contact SET member_name=?, member_number=?, email1=?, email2=?, phone1=?, phone2=?, notes=? WHERE id=?",
+            (name, number, email1, email2, phone1, phone2, notes, member_id)
         )
         db.execute(
             "UPDATE members SET member_name=?, member_number=? WHERE member_number=?",
@@ -490,12 +515,13 @@ def member_add():
     if match:
         number = match.group(1) + match.group(2).upper()
 
+    notes  = request.form.get('notes', '').strip() or None
     if name and number:
         try:
             db.execute("INSERT INTO members (member_name, member_number) VALUES (?, ?)", (name, number))
             db.execute(
-                "INSERT INTO members_contact (member_name, member_number, email1, email2, phone1, phone2) VALUES (?, ?, ?, ?, ?, ?)",
-                (name, number, email1, email2, phone1, phone2)
+                "INSERT INTO members_contact (member_name, member_number, email1, email2, phone1, phone2, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (name, number, email1, email2, phone1, phone2, notes)
             )
             db.commit()
         except Exception:

@@ -1,0 +1,161 @@
+{% extends "base_admin.html" %}
+{% block title %}{{ member.member_name }} — Profile{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">{{ member.member_name }}</h1>
+  <a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary btn-sm">← Member Search</a>
+</div>
+
+<!-- Member info card -->
+<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:32px;max-width:560px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <span style="font-size:1rem;font-weight:700;color:var(--accent);">Member #{{ member.member_number }}</span>
+    <button type="button" class="btn btn-secondary btn-sm member-edit-btn"
+            data-id="{{ member.id }}"
+            data-name="{{ member.member_name }}"
+            data-number="{{ member.member_number }}"
+            data-email1="{{ member.email1 or '' }}"
+            data-email2="{{ member.email2 or '' }}"
+            data-phone1="{{ member.phone1 or '' }}"
+            data-phone2="{{ member.phone2 or '' }}"
+            data-notes="{{ member.notes or '' }}">Edit Info</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:0.9rem;">
+    <div><span style="color:var(--muted);">Phone 1</span><br>{{ member.phone1 or '—' }}</div>
+    <div><span style="color:var(--muted);">Phone 2</span><br>{{ member.phone2 or '—' }}</div>
+    <div><span style="color:var(--muted);">Email 1</span><br>{{ member.email1 or '—' }}</div>
+    <div><span style="color:var(--muted);">Email 2</span><br>{{ member.email2 or '—' }}</div>
+  </div>
+  {% if member.notes %}
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+    <span style="color:var(--muted);font-size:0.85rem;">Notes</span><br>
+    <span style="background:#fef9c3;color:#854d0e;font-size:0.88rem;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:4px;">{{ member.notes }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Restring history -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Restring History <span style="color:var(--muted);font-weight:400;font-size:0.9rem;">({{ restrings|length }})</span></h2>
+{% if restrings %}
+<div class="table-wrap" style="margin-bottom:40px;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Racquet</th>
+        <th>String</th>
+        <th>Tension</th>
+        <th>Stringer</th>
+        <th>Charged</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in restrings %}
+      <tr>
+        <td style="white-space:nowrap;">{{ r.date_in }}</td>
+        <td>{{ r.racquet }}</td>
+        <td>
+          {{ r.string }}
+          {% if r.customer_own_string %}
+            <span style="background:#fef3c7;color:#92400e;font-size:0.72rem;padding:1px 5px;border-radius:4px;margin-left:3px;">Own</span>
+          {% endif %}
+        </td>
+        <td>{{ r.tension }}</td>
+        <td>{{ r.strung_by or '—' }}</td>
+        <td>{{ r.charged or '—' }}</td>
+        <td>
+          {% if r.status == 'picked_up' %}
+            <span style="color:var(--muted);font-size:0.85rem;">Picked up</span>
+          {% elif r.status == 'complete' %}
+            <span style="color:#059669;font-weight:600;font-size:0.85rem;">Ready</span>
+          {% else %}
+            <span style="color:var(--accent);font-size:0.85rem;">Pending</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state" style="margin-bottom:40px;"><p>No restring history.</p></div>
+{% endif %}
+
+<!-- Demo checkout history -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Demo Checkout History <span style="color:var(--muted);font-weight:400;font-size:0.9rem;">({{ checkouts|length }})</span></h2>
+{% if checkouts %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Equipment</th>
+        <th>Checked Out</th>
+        <th>Returned</th>
+        <th>Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in checkouts %}
+      <tr>
+        <td>{{ c.equipment_name }}</td>
+        <td style="white-space:nowrap;">{{ c.checked_out_at | central }}</td>
+        <td style="white-space:nowrap;">
+          {% if c.returned_at %}{{ c.returned_at | central }}{% else %}<span style="color:var(--accent);font-weight:600;">Out now</span>{% endif %}
+        </td>
+        <td>{{ c.duration_days | int }}d</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><p>No demo checkout history.</p></div>
+{% endif %}
+
+<!-- Reuse the edit modal from member_search -->
+<div id="member-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:420px;width:90%;max-height:90vh;overflow-y:auto;">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit Member</h2>
+    <form id="member-edit-form" method="post">
+      <input type="hidden" name="q" value="">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>First Name</label><input type="text" id="edit-first-name" name="first_name" required style="width:100%;"></div>
+        <div class="form-group"><label>Last Name</label><input type="text" id="edit-last-name" name="last_name" required style="width:100%;"></div>
+      </div>
+      <div class="form-group"><label>Member Number</label><input type="text" id="edit-member-number" name="member_number" required style="width:100%;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>Email 1</label><input type="email" id="edit-email1" name="email1" style="width:100%;"></div>
+        <div class="form-group"><label>Email 2</label><input type="email" id="edit-email2" name="email2" style="width:100%;"></div>
+        <div class="form-group"><label>Phone 1</label><input type="tel" id="edit-phone1" name="phone1" style="width:100%;"></div>
+        <div class="form-group"><label>Phone 2</label><input type="tel" id="edit-phone2" name="phone2" style="width:100%;"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><input type="text" id="edit-notes" name="notes" style="width:100%;"></div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('member-edit-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.member-edit-btn');
+    if (!btn) return;
+    var nameParts = btn.dataset.name.split(',');
+    document.getElementById('edit-last-name').value     = nameParts[0] ? nameParts[0].trim() : '';
+    document.getElementById('edit-first-name').value    = nameParts[1] ? nameParts[1].trim() : '';
+    document.getElementById('edit-member-number').value = btn.dataset.number;
+    document.getElementById('edit-email1').value        = btn.dataset.email1;
+    document.getElementById('edit-email2').value        = btn.dataset.email2;
+    document.getElementById('edit-phone1').value        = btn.dataset.phone1;
+    document.getElementById('edit-phone2').value        = btn.dataset.phone2;
+    document.getElementById('edit-notes').value         = btn.dataset.notes || '';
+    document.getElementById('member-edit-form').action  = '/admin/members/' + btn.dataset.id + '/edit';
+    document.getElementById('member-edit-modal').style.display = 'flex';
+  });
+</script>
+{% endblock %}
