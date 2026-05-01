@@ -53,8 +53,8 @@ def main():
     conn.row_factory = sqlite3.Row
     cur  = conn.cursor()
 
-    # Build a lookup: normalised_name -> list of member_numbers
-    members = cur.execute("SELECT member_name, member_number FROM members").fetchall()
+    # Build a lookup from members_contact (the live source of member names)
+    members = cur.execute("SELECT member_name, member_number FROM members_contact").fetchall()
     name_to_numbers = {}
     for m in members:
         key = normalize(m['member_name'])
