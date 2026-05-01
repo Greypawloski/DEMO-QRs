@@ -53,28 +53,26 @@ def main():
     conn.row_factory = sqlite3.Row
     cur  = conn.cursor()
 
-    # Build a lookup from members_contact (the live source of member names)
-    members = cur.execute("SELECT member_name, member_number FROM members_contact").fetchall()
-    name_to_numbers = {}
-    for m in members:
-        key = normalize(m['member_name'])
-        name_to_numbers.setdefault(key, []).append(m['member_number'])
-
-    # Find restrings with no member number
     unlinked = cur.execute(
         "SELECT id, customer_name FROM restrings WHERE member_number IS NULL OR member_number = ''"
     ).fetchall()
 
-    updated   = 0
+    updated           = 0
     skipped_ambiguous = 0
     skipped_no_match  = 0
 
     for row in unlinked:
         variants = name_variants(row['customer_name'])
-        matches  = []
+
+        matches = []
         for v in variants:
-            matches.extend(name_to_numbers.get(v, []))
-        matches = list(dict.fromkeys(matches))  # deduplicate
+            hits = cur.execute(
+                "SELECT member_number FROM members_contact WHERE LOWER(member_name) = ?", (v,)
+            ).fetchall()
+            for h in hits:
+                mn = h['member_number']
+                if mn not in matches:
+                    matches.append(mn)
 
         if len(matches) == 1:
             cur.execute(
@@ -92,8 +90,8 @@ def main():
     conn.close()
 
     print(f"\nDone.")
-    print(f"  Updated:           {updated}")
-    print(f"  No match found:    {skipped_no_match}")
+    print(f"  Updated:             {updated}")
+    print(f"  No match found:      {skipped_no_match}")
     print(f"  Ambiguous (skipped): {skipped_ambiguous}")
 
 
