@@ -61,8 +61,13 @@ def main():
     skipped_ambiguous = 0
     skipped_no_match  = 0
 
+    debug_names = {'crain canavan', 'rossi lee', 'james williams'}
+
     for row in unlinked:
         variants = name_variants(row['customer_name'])
+
+        if normalize(row['customer_name']) in debug_names:
+            print(f"DEBUG '{row['customer_name']}' variants: {variants}")
 
         matches = []
         for v in variants:
@@ -73,6 +78,9 @@ def main():
                 mn = h['member_number']
                 if mn not in matches:
                     matches.append(mn)
+
+        if normalize(row['customer_name']) in debug_names:
+            print(f"  → matches: {matches}")
 
         if len(matches) == 1:
             cur.execute(
