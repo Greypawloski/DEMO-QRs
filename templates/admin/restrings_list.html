@@ -31,6 +31,21 @@
   }
 </script>
 
+<div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+  <div style="flex:1;min-width:140px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:var(--accent);">{{ stats.pending }}</div>
+    <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Pending</div>
+  </div>
+  <div style="flex:1;min-width:140px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:#059669;">{{ stats.ready }}</div>
+    <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Ready for Pickup</div>
+  </div>
+  <div style="flex:1;min-width:140px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;color:var(--text);">{{ stats.this_month }}</div>
+    <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Jobs This Month</div>
+  </div>
+</div>
+
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Restringing</h1>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -65,7 +80,7 @@
   <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--green);">Active</h2>
   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:40px;">
     {% for row in pending %}
-      <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+      <div style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;{% if row.id in overdue_ids %}background:#fffbeb;{% endif %}">
 
         <!-- Top: status + customer + actions -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
@@ -74,6 +89,9 @@
               <span class="status-badge status-out">Pending</span>
             {% elif row.status == 'complete' %}
               <span class="status-badge status-avail">Ready</span>
+              {% if row.id in overdue_ids %}
+                <span style="background:#fef3c7;color:#92400e;font-size:0.75rem;padding:2px 8px;border-radius:20px;font-weight:700;">Waiting 7+ days</span>
+              {% endif %}
             {% endif %}
             <strong style="font-size:1rem;">{{ row.customer_name }}</strong>
             {% if row.member_number == 'Non-member' %}

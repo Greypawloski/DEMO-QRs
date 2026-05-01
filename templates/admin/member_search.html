@@ -31,6 +31,9 @@
           <strong style="color:#fff;font-size:0.95rem;">{{ row.member_name }}</strong>
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="color:rgba(255,255,255,0.85);font-size:0.85rem;white-space:nowrap;">#{{ row.member_number }}</span>
+            {% if row.restring_count %}
+            <span style="background:rgba(255,255,255,0.2);color:#fff;font-size:0.75rem;padding:2px 8px;border-radius:20px;white-space:nowrap;">{{ row.restring_count }} string job{{ 's' if row.restring_count != 1 }}</span>
+            {% endif %}
             <button type="button" class="member-edit-btn"
                     data-id="{{ row.id }}"
                     data-name="{{ row.member_name }}"

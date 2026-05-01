@@ -71,6 +71,37 @@
   {% endif %}
 </div>
 
+<!-- Restring Turnaround by Stringer -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Restring Turnaround by Stringer</h2>
+<div class="table-wrap" style="margin-bottom:40px;">
+  {% if turnaround %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Stringer</th>
+        <th>Total Jobs</th>
+        <th>Avg Days</th>
+        <th>Fastest</th>
+        <th>Slowest</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in turnaround %}
+      <tr>
+        <td><strong>{{ row.strung_by }}</strong></td>
+        <td>{{ row.total_jobs }}</td>
+        <td>{{ row.avg_days if row.avg_days is not none else '—' }}</td>
+        <td>{{ row.min_days if row.min_days is not none else '—' }}</td>
+        <td>{{ row.max_days if row.max_days is not none else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No completed restring data yet.</p></div>
+  {% endif %}
+</div>
+
 <!-- Member Checkout Frequency -->
 <h2 style="font-size:1.1rem;margin-bottom:12px;">Member Checkout Frequency</h2>
 <div class="table-wrap">

@@ -76,7 +76,15 @@ def list_restrings():
         f"SELECT * FROM restrings WHERE {where_completed} ORDER BY created_at DESC",
         params_completed
     ).fetchall()
-    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb)
+    stats = {
+        'pending':    db.execute("SELECT COUNT(*) FROM restrings WHERE status='pending'").fetchone()[0],
+        'ready':      db.execute("SELECT COUNT(*) FROM restrings WHERE status='complete'").fetchone()[0],
+        'this_month': db.execute("SELECT COUNT(*) FROM restrings WHERE strftime('%Y-%m', date_in) = strftime('%Y-%m', 'now')").fetchone()[0],
+    }
+    overdue_ids = {r['id'] for r in db.execute(
+        "SELECT id FROM restrings WHERE status='complete' AND completed_at < datetime('now', '-7 days')"
+    ).fetchall()}
+    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids)
 
 
 @restrings_bp.route('/new', methods=['GET', 'POST'])
@@ -86,6 +94,14 @@ def restring_new():
         db = get_db()
         member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
         phone = format_phone(request.form.get('phone', '').strip())
+        if member and member != 'Non-member' and not request.form.get('confirmed'):
+            dup = db.execute(
+                "SELECT id, racquet, status FROM restrings WHERE member_number=? AND status != 'picked_up' LIMIT 1",
+                (member,)
+            ).fetchone()
+            if dup:
+                return render_template('admin/restring_form.html', item=None,
+                                       dup_warning=dup, prefill=request.form)
         db.execute(
             """
             INSERT INTO restrings

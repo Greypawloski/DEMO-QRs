@@ -417,7 +417,9 @@ def member_search_page():
                 params.append(number_pattern)
             where = ' OR '.join(or_clauses)
             rows = db.execute(
-                f'SELECT id, member_name, member_number, email1, email2, phone1, phone2 FROM members_contact WHERE {where} ORDER BY member_name',
+                f'''SELECT mc.id, mc.member_name, mc.member_number, mc.email1, mc.email2, mc.phone1, mc.phone2,
+                           (SELECT COUNT(*) FROM restrings r WHERE r.member_number = mc.member_number) AS restring_count
+                    FROM members_contact mc WHERE {where} ORDER BY mc.member_name''',
                 params
             ).fetchall()
     return render_template('admin/member_search.html', rows=rows, q=q)
@@ -644,7 +646,23 @@ def reports():
         """
     ).fetchall()
 
-    return render_template('admin/reports.html', popular=popular, durations=durations, members=members)
+    turnaround = db.execute(
+        """
+        SELECT strung_by,
+               COUNT(*) AS total_jobs,
+               ROUND(AVG(julianday(completed_at) - julianday(date_in)), 1) AS avg_days,
+               ROUND(MIN(julianday(completed_at) - julianday(date_in)), 1) AS min_days,
+               ROUND(MAX(julianday(completed_at) - julianday(date_in)), 1) AS max_days
+        FROM restrings
+        WHERE status IN ('complete', 'picked_up')
+          AND completed_at IS NOT NULL
+          AND strung_by IS NOT NULL AND strung_by != ''
+        GROUP BY strung_by
+        ORDER BY total_jobs DESC
+        """
+    ).fetchall()
+
+    return render_template('admin/reports.html', popular=popular, durations=durations, members=members, turnaround=turnaround)
 
 
 @admin_bp.route('/label/<int:equipment_id>/download')
