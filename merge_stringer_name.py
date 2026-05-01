@@ -12,10 +12,10 @@ conn = sqlite3.connect(DB_PATH)
 cur  = conn.cursor()
 
 cur.execute(
-    "UPDATE restrings SET strung_by = 'Justin Cuellar' WHERE LOWER(strung_by) LIKE '%justin%'"
+    "UPDATE restrings SET strung_by = 'Justin' WHERE LOWER(strung_by) LIKE '%justin%'"
 )
 updated = cur.rowcount
 conn.commit()
 conn.close()
 
-print(f"Done. Updated {updated} record(s) to 'Justin Cuellar'.")
+print(f"Done. Updated {updated} record(s) to 'Justin'.")
