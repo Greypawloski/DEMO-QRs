@@ -234,10 +234,14 @@ def restring_undo_pickup(restring_id):
 @restrings_bp.route('/<int:restring_id>/update-date', methods=['POST'])
 @login_required
 def restring_update_date(restring_id):
-    new_date = request.form.get('date_in', '').strip()
-    if new_date:
-        db = get_db()
-        db.execute("UPDATE restrings SET date_in=? WHERE id=?", (new_date, restring_id))
+    db = get_db()
+    new_date_in   = request.form.get('date_in', '').strip()
+    new_completed = request.form.get('completed_at', '').strip()
+    if new_date_in:
+        db.execute("UPDATE restrings SET date_in=? WHERE id=?", (new_date_in, restring_id))
+    if new_completed:
+        db.execute("UPDATE restrings SET completed_at=? WHERE id=?", (new_completed, restring_id))
+    if new_date_in or new_completed:
         db.commit()
     return redirect(url_for('restrings.restrings_history_view'))
 
