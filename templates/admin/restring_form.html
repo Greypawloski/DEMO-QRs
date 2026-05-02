@@ -31,11 +31,11 @@
   </div>
 
   <!-- Member / Non-Member toggle -->
-  <div style="display:flex;gap:0;margin-bottom:16px;border:2px solid var(--accent);border-radius:8px;overflow:hidden;">
+  <div style="display:flex;gap:0;margin-bottom:16px;border:2px solid #1a5c35;border-radius:8px;overflow:hidden;">
     <button type="button" id="mode-member-btn" onclick="setMode('member')"
-            style="flex:1;padding:9px;font-size:0.92rem;font-weight:600;background:var(--accent);color:#fff;border:none;cursor:pointer;">Member</button>
+            style="flex:1;padding:9px;font-size:0.92rem;font-weight:700;background:#1a5c35;color:#fff;border:none;border-right:1px solid #1a5c35;cursor:pointer;">Member</button>
     <button type="button" id="mode-nonmember-btn" onclick="setMode('non_member')"
-            style="flex:1;padding:9px;font-size:0.92rem;font-weight:600;background:#fff;color:var(--accent);border:none;cursor:pointer;">Non-Member</button>
+            style="flex:1;padding:9px;font-size:0.92rem;font-weight:700;background:#fff;color:#1a5c35;border:none;cursor:pointer;">Non-Member</button>
   </div>
 
   <!-- Member search -->
@@ -204,10 +204,10 @@
     currentMode = mode;
     var isMember = mode === 'member';
     // Toggle button styles
-    document.getElementById('mode-member-btn').style.background    = isMember ? 'var(--accent)' : '#fff';
-    document.getElementById('mode-member-btn').style.color         = isMember ? '#fff' : 'var(--accent)';
-    document.getElementById('mode-nonmember-btn').style.background = isMember ? '#fff' : 'var(--accent)';
-    document.getElementById('mode-nonmember-btn').style.color      = isMember ? 'var(--accent)' : '#fff';
+    document.getElementById('mode-member-btn').style.background    = isMember ? '#1a5c35' : '#fff';
+    document.getElementById('mode-member-btn').style.color         = isMember ? '#fff' : '#1a5c35';
+    document.getElementById('mode-nonmember-btn').style.background = isMember ? '#fff' : '#1a5c35';
+    document.getElementById('mode-nonmember-btn').style.color      = isMember ? '#1a5c35' : '#fff';
 
     // Update search label + placeholder
     document.getElementById('search-label').textContent = isMember ? 'Search Member' : 'Search Non-Member Name';
