@@ -411,8 +411,8 @@ def non_member_name_search():
     rows = db.execute(
         """SELECT customer_name, COUNT(*) AS job_count,
                   (SELECT phone FROM restrings r2
-                   WHERE r2.member_number = 'Non-member'
-                   AND LOWER(r2.customer_name) = LOWER(restrings.customer_name)
+                   WHERE LOWER(r2.customer_name) = LOWER(restrings.customer_name)
+                   AND r2.phone IS NOT NULL AND r2.phone != ''
                    ORDER BY r2.id DESC LIMIT 1) AS phone
            FROM restrings
            WHERE member_number = 'Non-member' AND LOWER(customer_name) LIKE LOWER(?)
