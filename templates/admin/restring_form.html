@@ -151,6 +151,11 @@
     <textarea id="notes" name="notes" placeholder="Any special instructions or additional info…">{{ item.notes if item and item.notes else '' }}</textarea>
   </div>
 
+  <label style="display:flex;align-items:flex-start;gap:10px;font-size:0.9rem;color:#555;margin-bottom:16px;cursor:pointer;">
+    <input type="checkbox" style="margin-top:3px;width:17px;height:17px;flex-shrink:0;cursor:pointer;">
+    I agree to receive SMS text messages from SACC Tennis Shop regarding my restring service.
+  </label>
+
   <div style="display:flex;gap:12px;margin-top:8px;">
     <button type="submit" form="restring-form" class="btn btn-primary" style="flex:1;">
       {{ 'Save Changes' if item else 'Save Request' }}
