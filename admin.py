@@ -422,7 +422,29 @@ def member_search_page():
                     FROM members_contact mc WHERE {where} ORDER BY mc.member_name''',
                 params
             ).fetchall()
-    return render_template('admin/member_search.html', rows=rows, q=q)
+    return render_template('admin/member_search.html', rows=rows, q=q, mode='members')
+
+
+@admin_bp.route('/non-members')
+@login_required
+def non_member_search():
+    db = get_db()
+    q = request.args.get('q', '').strip()
+    rows = []
+    if q:
+        rows = db.execute(
+            """SELECT customer_name,
+                      COUNT(*) AS job_count,
+                      MAX(date_in) AS last_seen,
+                      GROUP_CONCAT(DISTINCT racquet) AS racquets
+               FROM restrings
+               WHERE member_number = 'Non-member'
+                 AND customer_name LIKE ?
+               GROUP BY LOWER(customer_name)
+               ORDER BY customer_name""",
+            (f'%{q}%',)
+        ).fetchall()
+    return render_template('admin/member_search.html', rows=rows, q=q, mode='non_members')
 
 
 @admin_bp.route('/members/<int:member_id>/profile')

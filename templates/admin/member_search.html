@@ -1,27 +1,72 @@
 {% extends "base_admin.html" %}
-
 {% block title %}Member Search{% endblock %}
 
 {% block content %}
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Member Search</h1>
+  {% if mode == 'members' %}
   <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-member-modal').style.display='flex'">+ Add Member</button>
+  {% endif %}
 </div>
 
-<form method="get" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
+<!-- Mode toggle -->
+<div style="display:flex;gap:0;margin-bottom:20px;border:2px solid var(--border);border-radius:8px;overflow:hidden;max-width:320px;">
+  <a href="{{ url_for('admin.member_search_page') }}"
+     style="flex:1;text-align:center;padding:8px 0;font-size:0.95rem;font-weight:600;text-decoration:none;
+            {% if mode == 'members' %}background:var(--accent);color:#fff;{% else %}background:#fff;color:var(--text);{% endif %}">
+    Members
+  </a>
+  <a href="{{ url_for('admin.non_member_search') }}"
+     style="flex:1;text-align:center;padding:8px 0;font-size:0.95rem;font-weight:600;text-decoration:none;border-left:2px solid var(--border);
+            {% if mode == 'non_members' %}background:var(--accent);color:#fff;{% else %}background:#fff;color:var(--text);{% endif %}">
+    Non-Members
+  </a>
+</div>
+
+{% if mode == 'members' %}
+<form method="get" action="{{ url_for('admin.member_search_page') }}" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
   <input type="text" name="q" value="{{ q }}" placeholder="Search by name or member number…" autofocus
          style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;">
   <button type="submit" class="btn btn-primary">Search</button>
   {% if q %}<a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary">Clear</a>{% endif %}
 </form>
+{% else %}
+<form method="get" action="{{ url_for('admin.non_member_search') }}" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search non-member by name…" autofocus
+         style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;">
+  <button type="submit" class="btn btn-primary">Search</button>
+  {% if q %}<a href="{{ url_for('admin.non_member_search') }}" class="btn btn-secondary">Clear</a>{% endif %}
+</form>
+{% endif %}
 
 {% if q and not rows %}
-  <div class="empty-state"><p>No members found for "<strong>{{ q }}</strong>".</p></div>
+  <div class="empty-state"><p>No {{ 'members' if mode == 'members' else 'non-members' }} found for "<strong>{{ q }}</strong>".</p></div>
 {% elif rows %}
   <p class="text-muted" style="margin-bottom:16px;font-size:0.9rem;">
     {{ rows|length }} result{{ 's' if rows|length != 1 }} for "<strong>{{ q }}</strong>"
   </p>
 
+{% if mode == 'non_members' %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Name</th><th>String Jobs</th><th>Last Seen</th><th>Racquets</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td><strong>{{ row.customer_name }}</strong></td>
+          <td>{{ row.job_count }}</td>
+          <td style="white-space:nowrap;">{{ row.last_seen }}</td>
+          <td style="color:var(--muted);font-size:0.88rem;max-width:260px;">{{ row.racquets }}</td>
+          <td><a href="{{ url_for('restrings.restrings_history_view') }}?qall={{ row.customer_name | urlencode }}"
+                 class="btn btn-secondary btn-sm">View History</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;">
     {% for row in rows %}
       <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
@@ -89,6 +134,7 @@
       </div>
     {% endfor %}
   </div>
+{% endif %}
 {% endif %}
 
 <!-- Add Member modal -->
