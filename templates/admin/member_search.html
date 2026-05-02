@@ -10,15 +10,15 @@
 </div>
 
 <!-- Mode toggle -->
-<div style="display:flex;gap:0;margin-bottom:20px;border:2px solid var(--border);border-radius:8px;overflow:hidden;max-width:320px;">
+<div style="display:flex;gap:0;margin-bottom:20px;border:2px solid #1a5c35;border-radius:8px;overflow:hidden;max-width:320px;">
   <a href="{{ url_for('admin.member_search_page') }}"
-     style="flex:1;text-align:center;padding:8px 0;font-size:0.95rem;font-weight:600;text-decoration:none;
-            {% if mode == 'members' %}background:var(--accent);color:#fff;{% else %}background:#fff;color:var(--text);{% endif %}">
+     style="flex:1;text-align:center;padding:8px 0;font-size:0.95rem;font-weight:700;text-decoration:none;
+            {% if mode == 'members' %}background:#1a5c35;color:#fff;{% else %}background:#fff;color:#1a5c35;{% endif %}">
     Members
   </a>
   <a href="{{ url_for('admin.non_member_search') }}"
-     style="flex:1;text-align:center;padding:8px 0;font-size:0.95rem;font-weight:600;text-decoration:none;border-left:2px solid var(--border);
-            {% if mode == 'non_members' %}background:var(--accent);color:#fff;{% else %}background:#fff;color:var(--text);{% endif %}">
+     style="flex:1;text-align:center;padding:8px 0;font-size:0.95rem;font-weight:700;text-decoration:none;border-left:2px solid #1a5c35;
+            {% if mode == 'non_members' %}background:#1a5c35;color:#fff;{% else %}background:#fff;color:#1a5c35;{% endif %}">
     Non-Members
   </a>
 </div>

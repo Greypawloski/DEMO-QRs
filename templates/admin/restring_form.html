@@ -263,7 +263,7 @@
         div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number, m.phone1); };
       } else {
         div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:#666;margin-left:8px;font-size:0.85rem;">' + m.job_count + ' job' + (m.job_count !== 1 ? 's' : '') + '</span>';
-        div.onmousedown = function(e) { e.preventDefault(); fillNonMember(m.name); };
+        div.onmousedown = (function(name, phone) { return function(e) { e.preventDefault(); fillNonMember(name, phone); }; })(m.name, m.phone);
       }
       dropdown.appendChild(div);
     });
@@ -285,8 +285,9 @@
     loadMemberHistory(number);
   }
 
-  function fillNonMember(name) {
+  function fillNonMember(name, phone) {
     document.getElementById('customer_name').value = name;
+    if (phone) { document.getElementById('phone').value = phone; }
     document.getElementById('member_search').value = '';
     document.getElementById('member-dropdown').style.display = 'none';
     loadNonMemberHistory(name);

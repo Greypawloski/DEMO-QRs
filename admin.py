@@ -409,14 +409,18 @@ def non_member_name_search():
         return jsonify([])
     db = get_db()
     rows = db.execute(
-        """SELECT customer_name, COUNT(*) AS job_count
+        """SELECT customer_name, COUNT(*) AS job_count,
+                  (SELECT phone FROM restrings r2
+                   WHERE r2.member_number = 'Non-member'
+                   AND LOWER(r2.customer_name) = LOWER(restrings.customer_name)
+                   ORDER BY r2.id DESC LIMIT 1) AS phone
            FROM restrings
            WHERE member_number = 'Non-member' AND LOWER(customer_name) LIKE LOWER(?)
            GROUP BY LOWER(customer_name)
            ORDER BY customer_name LIMIT 20""",
         (f'%{q}%',)
     ).fetchall()
-    return jsonify([{'name': r['customer_name'], 'job_count': r['job_count']} for r in rows])
+    return jsonify([{'name': r['customer_name'], 'job_count': r['job_count'], 'phone': r['phone'] or ''} for r in rows])
 
 
 @admin_bp.route('/members')
