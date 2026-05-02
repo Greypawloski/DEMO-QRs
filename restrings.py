@@ -41,6 +41,30 @@ def member_restring_history():
     } for r in rows])
 
 
+@restrings_bp.route('/non-member-history')
+@login_required
+def non_member_restring_history():
+    from flask import jsonify
+    name = request.args.get('name', '').strip()
+    if not name:
+        return jsonify([])
+    db = get_db()
+    rows = db.execute(
+        """SELECT racquet, string, tension, date_in
+           FROM restrings
+           WHERE member_number = 'Non-member' AND LOWER(customer_name) = LOWER(?)
+           ORDER BY id DESC
+           LIMIT 10""",
+        (name,)
+    ).fetchall()
+    return jsonify([{
+        'racquet': r['racquet'],
+        'string':  r['string'],
+        'tension': r['tension'],
+        'date_in': r['date_in'],
+    } for r in rows])
+
+
 @restrings_bp.route('/')
 @login_required
 def list_restrings():

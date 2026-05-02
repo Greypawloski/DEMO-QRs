@@ -30,9 +30,17 @@
     </div>
   </div>
 
+  <!-- Member / Non-Member toggle -->
+  <div style="display:flex;gap:0;margin-bottom:16px;border:2px solid var(--accent);border-radius:8px;overflow:hidden;">
+    <button type="button" id="mode-member-btn" onclick="setMode('member')"
+            style="flex:1;padding:9px;font-size:0.92rem;font-weight:600;background:var(--accent);color:#fff;border:none;cursor:pointer;">Member</button>
+    <button type="button" id="mode-nonmember-btn" onclick="setMode('non_member')"
+            style="flex:1;padding:9px;font-size:0.92rem;font-weight:600;background:#fff;color:var(--accent);border:none;cursor:pointer;">Non-Member</button>
+  </div>
+
   <!-- Member search -->
-  <div class="form-group" style="position:relative;">
-    <label for="member_search">Search Member</label>
+  <div class="form-group" id="search-wrap" style="position:relative;">
+    <label for="member_search" id="search-label">Search Member</label>
     <input type="text" id="member_search" placeholder="Type name or member number…"
            oninput="memberSearch(this.value)" autocomplete="off" style="width:100%;">
     <div id="member-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--accent);border-radius:10px;z-index:500;max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,0.12);"></div>
@@ -190,12 +198,54 @@
 
 <script>
   var searchTimer = null;
+  var currentMode = 'member';
+
+  function setMode(mode) {
+    currentMode = mode;
+    var isMember = mode === 'member';
+    // Toggle button styles
+    document.getElementById('mode-member-btn').style.background    = isMember ? 'var(--accent)' : '#fff';
+    document.getElementById('mode-member-btn').style.color         = isMember ? '#fff' : 'var(--accent)';
+    document.getElementById('mode-nonmember-btn').style.background = isMember ? '#fff' : 'var(--accent)';
+    document.getElementById('mode-nonmember-btn').style.color      = isMember ? 'var(--accent)' : '#fff';
+
+    // Update search label + placeholder
+    document.getElementById('search-label').textContent = isMember ? 'Search Member' : 'Search Non-Member Name';
+    document.getElementById('member_search').placeholder = isMember ? 'Type name or member number…' : 'Type customer name…';
+
+    // Reset fields
+    document.getElementById('member_search').value = '';
+    document.getElementById('member-dropdown').style.display = 'none';
+    document.getElementById('customer_name').value = '';
+    document.getElementById('history-fill-wrap').style.display = 'none';
+    document.getElementById('history-fill-select').innerHTML = '<option value="">— Select a previous restring —</option>';
+
+    var cb = document.getElementById('non_member_check');
+    var numField = document.getElementById('member_number');
+    if (isMember) {
+      cb.checked = false;
+      numField.value = '';
+      numField.disabled = false;
+      numField.style.opacity = '';
+      numField.style.cursor = '';
+    } else {
+      cb.checked = true;
+      numField.value = '';
+      numField.disabled = true;
+      numField.style.opacity = '0.4';
+      numField.style.cursor = 'not-allowed';
+    }
+  }
+
   function memberSearch(val) {
     clearTimeout(searchTimer);
     var dropdown = document.getElementById('member-dropdown');
     if (val.length < 1) { dropdown.style.display = 'none'; return; }
+    var url = currentMode === 'member'
+      ? '/admin/members/search?q=' + encodeURIComponent(val)
+      : '/admin/non-members/search?q=' + encodeURIComponent(val);
     searchTimer = setTimeout(function() {
-      fetch('/admin/members/search?q=' + encodeURIComponent(val))
+      fetch(url)
         .then(function(r) { return r.json(); })
         .then(function(results) { renderDropdown(results); });
     }, 150);
@@ -208,51 +258,72 @@
     results.forEach(function(m) {
       var div = document.createElement('div');
       div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.95rem;';
-      div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:#666;margin-left:8px;">#' + m.number + '</span>';
-      div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number, m.phone1); };
+      if (currentMode === 'member') {
+        div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:#666;margin-left:8px;">#' + m.number + '</span>';
+        div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number, m.phone1); };
+      } else {
+        div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:#666;margin-left:8px;font-size:0.85rem;">' + m.job_count + ' job' + (m.job_count !== 1 ? 's' : '') + '</span>';
+        div.onmousedown = function(e) { e.preventDefault(); fillNonMember(m.name); };
+      }
       dropdown.appendChild(div);
     });
     dropdown.style.display = 'block';
   }
 
   function fillMember(name, number, phone1) {
-    // Convert "Last, First" → "First Last"
     var parts = name.split(',');
     var displayName = parts.length === 2 ? parts[1].trim() + ' ' + parts[0].trim() : name;
     document.getElementById('customer_name').value = displayName;
     document.getElementById('member_number').value = number;
     if (phone1) { document.getElementById('phone').value = phone1; }
 
-    // Uncheck non-member if checked
     var cb = document.getElementById('non_member_check');
     if (cb && cb.checked) { cb.checked = false; toggleMemberField(cb); }
 
     document.getElementById('member_search').value = '';
     document.getElementById('member-dropdown').style.display = 'none';
-
-    loadRestringHistory(number);
+    loadMemberHistory(number);
   }
 
-  function loadRestringHistory(memberNumber) {
+  function fillNonMember(name) {
+    document.getElementById('customer_name').value = name;
+    document.getElementById('member_search').value = '';
+    document.getElementById('member-dropdown').style.display = 'none';
+    loadNonMemberHistory(name);
+  }
+
+  function loadMemberHistory(memberNumber) {
     var wrap = document.getElementById('history-fill-wrap');
     var select = document.getElementById('history-fill-select');
     if (!memberNumber) { wrap.style.display = 'none'; return; }
     fetch('/admin/restrings/member-history?member_number=' + encodeURIComponent(memberNumber))
       .then(function(r) { return r.json(); })
-      .then(function(results) {
-        if (!results.length) { wrap.style.display = 'none'; return; }
-        select.innerHTML = '<option value="">— Select a previous restring —</option>';
-        results.forEach(function(r, i) {
-          var opt = document.createElement('option');
-          opt.value = i;
-          opt.textContent = r.racquet + '  |  ' + r.string + '  @  ' + r.tension + '  (' + r.date_in + ')';
-          opt.dataset.racquet = r.racquet;
-          opt.dataset.string  = r.string;
-          opt.dataset.tension = r.tension;
-          select.appendChild(opt);
-        });
-        wrap.style.display = 'block';
-      });
+      .then(function(results) { populateHistorySelect(results); });
+  }
+
+  function loadNonMemberHistory(name) {
+    var wrap = document.getElementById('history-fill-wrap');
+    if (!name) { wrap.style.display = 'none'; return; }
+    fetch('/admin/restrings/non-member-history?name=' + encodeURIComponent(name))
+      .then(function(r) { return r.json(); })
+      .then(function(results) { populateHistorySelect(results); });
+  }
+
+  function populateHistorySelect(results) {
+    var wrap = document.getElementById('history-fill-wrap');
+    var select = document.getElementById('history-fill-select');
+    if (!results.length) { wrap.style.display = 'none'; return; }
+    select.innerHTML = '<option value="">— Select a previous restring —</option>';
+    results.forEach(function(r, i) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = r.racquet + '  |  ' + r.string + '  @  ' + r.tension + '  (' + r.date_in + ')';
+      opt.dataset.racquet = r.racquet;
+      opt.dataset.string  = r.string;
+      opt.dataset.tension = r.tension;
+      select.appendChild(opt);
+    });
+    wrap.style.display = 'block';
   }
 
   function fillFromHistory(select) {
@@ -264,10 +335,9 @@
     select.value = '';
   }
 
-  // Also trigger history load on manual member number entry
   document.getElementById('member_number').addEventListener('blur', function() {
     if (!document.getElementById('non_member_check').checked && this.value.trim()) {
-      loadRestringHistory(this.value.trim());
+      loadMemberHistory(this.value.trim());
     }
   });
 

@@ -401,6 +401,24 @@ def member_search():
     return jsonify([{'name': r['member_name'], 'number': r['member_number'], 'phone1': r['phone1'] or ''} for r in rows])
 
 
+@admin_bp.route('/non-members/search')
+@login_required
+def non_member_name_search():
+    q = request.args.get('q', '').strip()
+    if len(q) < 1:
+        return jsonify([])
+    db = get_db()
+    rows = db.execute(
+        """SELECT customer_name, COUNT(*) AS job_count
+           FROM restrings
+           WHERE member_number = 'Non-member' AND LOWER(customer_name) LIKE LOWER(?)
+           GROUP BY LOWER(customer_name)
+           ORDER BY customer_name LIMIT 20""",
+        (f'%{q}%',)
+    ).fetchall()
+    return jsonify([{'name': r['customer_name'], 'job_count': r['job_count']} for r in rows])
+
+
 @admin_bp.route('/members')
 @login_required
 def member_search_page():
