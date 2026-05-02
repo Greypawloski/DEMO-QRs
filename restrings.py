@@ -387,4 +387,4 @@ def restring_quick_update(restring_id):
     db = get_db()
     db.execute(f"UPDATE restrings SET {field}=? WHERE id=?", (value or None, restring_id))
     db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return redirect(url_for('restrings.list_restrings') + f'#job-{restring_id}')

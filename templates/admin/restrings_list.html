@@ -80,7 +80,7 @@
   <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--green);">Active</h2>
   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:40px;">
     {% for row in pending %}
-      <div style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;{% if row.id in overdue_ids %}background:#fffbeb;{% endif %}">
+      <div id="job-{{ row.id }}" style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;{% if row.id in overdue_ids %}background:#fffbeb;{% endif %}">
 
         <!-- Top: status + customer + actions -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
