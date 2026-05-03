@@ -196,6 +196,17 @@
 {% endif %}
 
 <script>
+  {% if not item %}
+  (function() {
+    var dp = document.getElementById('date_promised');
+    if (!dp.value) {
+      var d = new Date();
+      d.setDate(d.getDate() + 1);
+      dp.value = d.toISOString().slice(0, 10);
+    }
+  })();
+  {% endif %}
+
   var searchTimer = null;
   var currentMode = 'member';
 
