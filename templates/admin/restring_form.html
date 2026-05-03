@@ -198,6 +198,9 @@
 <script>
   {% if not item %}
   (function() {
+    var today = new Date().toISOString().slice(0, 10);
+    var di = document.getElementById('date_in');
+    if (!di.value) di.value = today;
     var dp = document.getElementById('date_promised');
     if (!dp.value) {
       var d = new Date();
