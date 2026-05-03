@@ -118,14 +118,6 @@ def restring_new():
         db = get_db()
         member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
         phone = format_phone(request.form.get('phone', '').strip())
-        if member and member != 'Non-member' and not request.form.get('confirmed'):
-            dup = db.execute(
-                "SELECT id, racquet, status FROM restrings WHERE member_number=? AND status != 'picked_up' LIMIT 1",
-                (member,)
-            ).fetchone()
-            if dup:
-                return render_template('admin/restring_form.html', item=None,
-                                       dup_warning=dup, prefill=request.form)
         db.execute(
             """
             INSERT INTO restrings

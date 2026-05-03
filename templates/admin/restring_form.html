@@ -6,19 +6,6 @@
 <h1>{{ 'Edit' if item else 'New' }} Restring Request</h1>
 
 <form id="restring-form" method="post" style="max-width:600px;">
-  {% if dup_warning %}
-  <div style="background:#fef3c7;border:2px solid #f59e0b;border-radius:10px;padding:14px 18px;margin-bottom:20px;">
-    <strong style="color:#92400e;">⚠ This member already has an open job:</strong>
-    <p style="margin:6px 0 12px;color:#78350f;font-size:0.95rem;">
-      {{ dup_warning.racquet }} —
-      <span style="text-transform:capitalize;">{{ dup_warning.status }}</span>
-    </p>
-    <div style="display:flex;gap:8px;">
-      <button type="submit" name="confirmed" value="1" class="btn btn-primary btn-sm">Add Anyway</button>
-      <a href="{{ url_for('restrings.restring_new') }}" class="btn btn-secondary btn-sm">Cancel</a>
-    </div>
-  </div>
-  {% endif %}
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
     <div class="form-group">
       <label for="date_in">Date In *</label>
