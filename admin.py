@@ -110,11 +110,21 @@ def dashboard():
             'waitlist_count': waitlist_counts.get(row['equipment_id'], 0),
         })
 
+    restring_stats = db.execute("""
+        SELECT
+            COUNT(*) FILTER (WHERE status IN ('pending','complete')) AS active_jobs,
+            COUNT(*) FILTER (WHERE status = 'complete')              AS ready_pickup,
+            COUNT(*) FILTER (WHERE status = 'complete'
+                             AND completed_at < datetime('now', '-7 days')) AS overdue_pickup
+        FROM restrings
+    """).fetchone()
+
     from flask import session
     return render_template('admin/dashboard.html', active=active, q=q,
                            waitlist_members=waitlist_members,
                            staff_names=current_app.config.get('STAFF_NAMES', []),
-                           current_staff=session.get('staff_name', ''))
+                           current_staff=session.get('staff_name', ''),
+                           restring_stats=restring_stats)
 
 
 @admin_bp.route('/checkout/<int:checkout_id>/photo', methods=['POST'])

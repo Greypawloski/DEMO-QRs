@@ -33,6 +33,30 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(restrings_bp)
 
+    @app.context_processor
+    def inject_nav_counts():
+        from flask import session
+        if not session.get('admin_logged_in'):
+            return {}
+        try:
+            db = get_db()
+            overdue_restrings = db.execute(
+                "SELECT COUNT(*) FROM restrings WHERE status='complete' AND completed_at < datetime('now', '-7 days')"
+            ).fetchone()[0]
+            ready_restrings = db.execute(
+                "SELECT COUNT(*) FROM restrings WHERE status='complete'"
+            ).fetchone()[0]
+            active_demos = db.execute(
+                "SELECT COUNT(*) FROM checkouts WHERE returned_at IS NULL"
+            ).fetchone()[0]
+        except Exception:
+            return {}
+        return {
+            'nav_overdue_restrings': overdue_restrings,
+            'nav_ready_restrings':   ready_restrings,
+            'nav_active_demos':      active_demos,
+        }
+
     # Auto-initialize DB on first request if it doesn't exist
     @app.before_request
     def ensure_db():
