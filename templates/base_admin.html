@@ -79,6 +79,27 @@
       btn.appendChild(circle);
       circle.addEventListener('animationend', function() { circle.remove(); });
     });
+
+    // Submit button loading state
+    document.addEventListener('submit', function(e) {
+      var btn = e.target.querySelector('button[type="submit"]:not(.btn-secondary)');
+      if (!btn || btn.classList.contains('btn-loading')) return;
+      btn.classList.add('btn-loading');
+      btn.disabled = true;
+    });
+
+    // Scroll-to-top button
+    (function() {
+      var btn = document.createElement('button');
+      btn.id = 'scroll-top-btn';
+      btn.title = 'Back to top';
+      btn.textContent = '↑';
+      btn.onclick = function() { window.scrollTo({ top: 0, behavior: 'smooth' }); };
+      document.body.appendChild(btn);
+      window.addEventListener('scroll', function() {
+        btn.classList.toggle('visible', window.scrollY > 300);
+      }, { passive: true });
+    })();
   </script>
 </body>
 </html>
