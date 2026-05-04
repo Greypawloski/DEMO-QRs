@@ -41,7 +41,9 @@
 {% if active %}
   <div style="display:flex;flex-direction:column;gap:10px;">
     {% for row in active %}
-      <div class="{% if row.is_overdue %}card-overdue-red{% endif %}" style="border:1px solid {% if row.is_overdue %}#fca5a5{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;">
+      <div class="swipe-wrap">
+      <button class="swipe-return-btn" onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">↩ Return</button>
+      <div class="swipe-card-inner {% if row.is_overdue %}card-overdue-red{% endif %}" style="border:1px solid {% if row.is_overdue %}#fca5a5{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;">
 
         <!-- Top row: equipment + buttons -->
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">
@@ -106,7 +108,8 @@
           {% endif %}
         </div>
 
-      </div>
+      </div><!-- swipe-card-inner -->
+      </div><!-- swipe-wrap -->
     {% endfor %}
   </div>
 {% else %}
@@ -260,5 +263,27 @@
     document.getElementById('waitlist-modal-members').innerHTML = html;
     document.getElementById('waitlist-modal').style.display = 'flex';
   }
+
+  // Swipe-to-return
+  document.querySelectorAll('.swipe-wrap').forEach(function(wrap) {
+    var startX, startY;
+    wrap.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+    wrap.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].clientX - startX;
+      var dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        if (dx < -50) wrap.classList.add('swiped');
+        else if (dx > 20) wrap.classList.remove('swiped');
+      }
+    }, { passive: true });
+  });
+  document.addEventListener('touchstart', function(e) {
+    if (!e.target.closest('.swipe-wrap')) {
+      document.querySelectorAll('.swipe-wrap.swiped').forEach(function(w) { w.classList.remove('swiped'); });
+    }
+  }, { passive: true });
 </script>
 {% endblock %}

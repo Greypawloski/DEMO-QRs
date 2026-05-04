@@ -16,12 +16,12 @@
   <nav class="admin-nav">
     <img src="{{ url_for('static', filename='sacc-logo.png') }}" alt="SACC" style="height:36px;filter:brightness(0) invert(1);margin-right:4px;">
     <span class="brand">Demo Checkout</span>
-    <a href="{{ url_for('admin.dashboard') }}">Dashboard{% if nav_active_demos %} <span style="background:#dc2626;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;">{{ nav_active_demos }}</span>{% endif %}</a>
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard{% if nav_active_demos %} <span class="nav-badge" style="background:#dc2626;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;">{{ nav_active_demos }}</span>{% endif %}</a>
     <a href="{{ url_for('admin.equipment_list') }}">Equipment</a>
     <a href="{{ url_for('admin.history') }}">History</a>
     <a href="{{ url_for('admin.reports') }}">Reports</a>
     <a href="{{ url_for('admin.activity_log') }}">Activity</a>
-    <a href="{{ url_for('restrings.list_restrings') }}">Restringing{% if nav_overdue_restrings %} <span style="background:#dc2626;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;">{{ nav_overdue_restrings }}</span>{% elif nav_ready_restrings %} <span style="background:#059669;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;">{{ nav_ready_restrings }}</span>{% endif %}</a>
+    <a href="{{ url_for('restrings.list_restrings') }}">Restringing{% if nav_overdue_restrings %} <span class="nav-badge" style="background:#dc2626;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;">{{ nav_overdue_restrings }}</span>{% elif nav_ready_restrings %} <span class="nav-badge" style="background:#059669;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;">{{ nav_ready_restrings }}</span>{% endif %}</a>
     <a href="{{ url_for('admin.member_search_page') }}">Member Search</a>
     <a href="{{ url_for('admin.kiosk_view') }}">Kiosk View</a>
     <a href="{{ url_for('admin.guide') }}">Staff Guide</a>
