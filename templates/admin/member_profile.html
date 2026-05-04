@@ -12,7 +12,7 @@
 </div>
 
 <!-- Member info card -->
-<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:32px;max-width:560px;">
+<div style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:32px;max-width:560px;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
     <span style="font-size:1rem;font-weight:700;color:var(--accent);">Member #{{ member.member_number }}</span>
     <button type="button" class="btn btn-secondary btn-sm member-edit-btn"
@@ -120,7 +120,7 @@
 
 <!-- Reuse the edit modal from member_search -->
 <div id="member-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:420px;width:90%;max-height:90vh;overflow-y:auto;">
+  <div style="background:var(--card-bg,#fff);border-radius:12px;padding:28px 24px;max-width:420px;width:90%;max-height:90vh;overflow-y:auto;">
     <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit Member</h2>
     <form id="member-edit-form" method="post">
       <input type="hidden" name="q" value="">

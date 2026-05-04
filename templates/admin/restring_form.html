@@ -30,7 +30,7 @@
     <label for="member_search" id="search-label">Search Member</label>
     <input type="text" id="member_search" placeholder="Type name or member number…"
            oninput="memberSearch(this.value)" autocomplete="off" style="width:100%;">
-    <div id="member-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--accent);border-radius:10px;z-index:500;max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,0.12);"></div>
+    <div id="member-dropdown" style="display:none;position:absolute;left:0;right:0;background:var(--card-bg,#fff);border:2px solid var(--accent);border-radius:10px;z-index:500;max-height:260px;overflow-y:auto;box-shadow:0 4px 16px rgba(0,0,0,0.12);"></div>
   </div>
 
   <div class="form-group">
@@ -92,7 +92,7 @@
     <label for="racquet">Racquet *</label>
     <input type="text" id="racquet" name="racquet" value="{{ item.racquet if item else (prefill.customer_name and '') or '' }}" placeholder="e.g. Wilson Blade 104" required
            oninput="acSuggest('racquet',this.value)" autocomplete="off">
-    <div id="racquet-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+    <div id="racquet-dropdown" style="display:none;position:absolute;left:0;right:0;background:var(--card-bg,#fff);border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -100,7 +100,7 @@
       <label for="string">String *</label>
       <input type="text" id="string" name="string" value="{{ item.string if item else '' }}" placeholder="e.g. Luxilon Alu Power" required
              oninput="acSuggest('string',this.value)" autocomplete="off">
-      <div id="string-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+      <div id="string-dropdown" style="display:none;position:absolute;left:0;right:0;background:var(--card-bg,#fff);border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
     </div>
     <div class="form-group">
       <label for="tension">Tension *</label>
@@ -274,7 +274,7 @@
     dropdown.innerHTML = '';
     results.forEach(function(m) {
       var div = document.createElement('div');
-      div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.95rem;';
+      div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:0.95rem;color:var(--text);';
       if (currentMode === 'member') {
         div.innerHTML = '<strong>' + m.name + '</strong> <span style="color:#666;margin-left:8px;">#' + m.number + '</span>';
         div.onmousedown = function(e) { e.preventDefault(); fillMember(m.name, m.number, m.phone1); };
@@ -386,7 +386,7 @@
           dd.innerHTML = '';
           results.forEach(function(s) {
             var div = document.createElement('div');
-            div.style.cssText = 'padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.92rem;';
+            div.style.cssText = 'padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:0.92rem;color:var(--text);';
             div.textContent = s;
             div.onmousedown = function(e) {
               e.preventDefault();

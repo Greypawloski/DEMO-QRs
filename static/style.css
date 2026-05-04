@@ -455,10 +455,10 @@ body.dark .form-group textarea { background: #1c2b21; color: var(--text); border
 body.dark table.data-table tr:hover td { background: #1c2b21; }
 body.dark #member-dropdown,
 body.dark #racquet-dropdown,
-body.dark #string-dropdown { background: #1c2b21; border-color: var(--border); }
+body.dark #string-dropdown { background: #1c2b21 !important; border-color: var(--border) !important; color: var(--text); }
 body.dark #member-dropdown div:hover,
 body.dark #racquet-dropdown div:hover,
-body.dark #string-dropdown div:hover { background: #2d4535; }
+body.dark #string-dropdown div:hover { background: #2d4535 !important; }
 
 /* ── Restring card status left-border ── */
 .restring-card-pending  { border-left: 4px solid #f59e0b !important; }
