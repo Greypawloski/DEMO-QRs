@@ -142,7 +142,7 @@
               <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                 <input type="hidden" name="status" value="complete">
                 <button type="submit" class="btn btn-primary btn-sm"
-                        onclick="return confirm('Mark {{ row.customer_name | e }}\'s racquet as ready?')">Mark Ready</button>
+                        onclick="return pickupAndConfetti('{{ row.customer_name | e }}', 'ready')">Mark Ready</button>
               </form>
               <button type="button" class="btn btn-danger btn-sm"
                       onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
@@ -257,8 +257,11 @@
     });
   }
 
-  function pickupAndConfetti(name) {
-    if (!confirm("Mark " + name + "'s racquet as picked up?")) return false;
+  function pickupAndConfetti(name, action) {
+    var msg = action === 'ready'
+      ? "Mark " + name + "'s racquet as ready?"
+      : "Mark " + name + "'s racquet as picked up?";
+    if (!confirm(msg)) return false;
     sessionStorage.setItem('show_confetti', '1');
     return true;
   }
