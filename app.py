@@ -46,15 +46,19 @@ def create_app():
             ready_restrings = db.execute(
                 "SELECT COUNT(*) FROM restrings WHERE status='complete'"
             ).fetchone()[0]
+            pending_restrings = db.execute(
+                "SELECT COUNT(*) FROM restrings WHERE status='pending'"
+            ).fetchone()[0]
             active_demos = db.execute(
                 "SELECT COUNT(*) FROM checkouts WHERE returned_at IS NULL"
             ).fetchone()[0]
         except Exception:
             return {}
         return {
-            'nav_overdue_restrings': overdue_restrings,
-            'nav_ready_restrings':   ready_restrings,
-            'nav_active_demos':      active_demos,
+            'nav_overdue_restrings':  overdue_restrings,
+            'nav_ready_restrings':    ready_restrings,
+            'nav_pending_restrings':  pending_restrings,
+            'nav_active_demos':       active_demos,
         }
 
     # Auto-initialize DB on first request if it doesn't exist
