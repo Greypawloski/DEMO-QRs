@@ -286,15 +286,15 @@
     }
   }, { passive: true });
 
-  // Swipe hint: nudge first card left once on first mobile visit
-  if ('ontouchstart' in window && !localStorage.getItem('swipe_hint_shown')) {
-    localStorage.setItem('swipe_hint_shown', '1');
+  // Swipe hint: nudge first card left once on first touch-device visit
+  if (window.matchMedia('(pointer: coarse)').matches && !localStorage.getItem('swipe_hint_v2')) {
+    localStorage.setItem('swipe_hint_v2', '1');
     setTimeout(function() {
       var wrap = document.querySelector('.swipe-wrap');
       if (!wrap) return;
       wrap.classList.add('swiped');
-      setTimeout(function() { wrap.classList.remove('swiped'); }, 900);
-    }, 1200);
+      setTimeout(function() { wrap.classList.remove('swiped'); }, 1000);
+    }, 1500);
   }
 </script>
 {% endblock %}
