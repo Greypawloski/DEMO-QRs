@@ -42,7 +42,7 @@
   <div style="display:flex;flex-direction:column;gap:10px;">
     {% for row in active %}
       <div class="swipe-wrap">
-      <button class="swipe-return-btn" onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">↩ Return</button>
+      <div class="swipe-track">
       <div class="swipe-card-inner anim-card {% if row.is_overdue %}card-overdue-red{% endif %}" style="border:1px solid {% if row.is_overdue %}#fca5a5{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;animation-delay:{{ loop.index0 * 0.06 }}s;">
 
         <!-- Top row: equipment + buttons -->
@@ -109,6 +109,8 @@
         </div>
 
       </div><!-- swipe-card-inner -->
+      <button class="swipe-return-btn" onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">↩ Return</button>
+      </div><!-- swipe-track -->
       </div><!-- swipe-wrap -->
     {% endfor %}
   </div>
