@@ -610,6 +610,11 @@ body.dark .card-overdue-red   { background: #2d1515; }
   vertical-align: middle;
 }
 
+/* ── Swipe-to-return: hide redundant button on mobile ── */
+@media (max-width: 640px) {
+  .swipe-desktop-only { display: none !important; }
+}
+
 /* ── Scroll-to-top button ── */
 #scroll-top-btn {
   position: fixed;

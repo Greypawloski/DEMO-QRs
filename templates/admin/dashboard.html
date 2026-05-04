@@ -60,7 +60,7 @@
                     data-notes="{{ row.checkout_notes or '' | e }}">
               Edit Info
             </button>
-            <button type="button" class="btn btn-danger btn-sm" style="white-space:nowrap;"
+            <button type="button" class="btn btn-danger btn-sm swipe-desktop-only" style="white-space:nowrap;"
                     onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">
               Mark Returned
             </button>
