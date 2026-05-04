@@ -100,8 +100,8 @@
             <td>{{ row.tension }}</td>
             <td style="white-space:nowrap;">{{ row.date_in }}</td>
             <td style="white-space:nowrap;">{{ row.date_promised }}</td>
-            <td><span class="quick-edit-trigger" onclick="openQuickEdit(this,{{ row.id }},'strung_by',{{ (row.strung_by or '') | tojson }})">{{ row.strung_by or '—' }}</span></td>
-            <td><span class="quick-edit-trigger" onclick="openQuickEdit(this,{{ row.id }},'receipt',{{ (row.receipt or '') | tojson }})">{{ row.receipt or '—' }}</span></td>
+            <td><span class="quick-edit-trigger" data-id="{{ row.id }}" data-field="strung_by" data-val="{{ row.strung_by or '' }}">{{ row.strung_by or '—' }}</span></td>
+            <td><span class="quick-edit-trigger" data-id="{{ row.id }}" data-field="receipt" data-val="{{ row.receipt or '' }}">{{ row.receipt or '—' }}</span></td>
             <td style="white-space:nowrap;">{{ row.phone or '—' }}</td>
             <td style="white-space:nowrap;">
               <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
@@ -330,6 +330,12 @@
     document.getElementById('quick-edit-modal').style.display = 'flex';
     document.getElementById('quick-edit-input').focus();
   }
+
+  document.addEventListener('click', function(e) {
+    var el = e.target.closest('.quick-edit-trigger[data-field]');
+    if (!el) return;
+    openQuickEdit(el, el.dataset.id, el.dataset.field, el.dataset.val);
+  });
 </script>
 
 <style>
