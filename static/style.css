@@ -228,6 +228,8 @@ a:hover { text-decoration: underline; }
   text-align: center;
   transition: background 0.15s, opacity 0.15s;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-primary {
@@ -500,10 +502,86 @@ body.dark .card-overdue-red   { background: #2d1515; }
 
 
 
+@media (max-width: 600px) {
   .admin-nav {
     height: auto;
     flex-wrap: wrap;
     padding: 8px 16px;
     gap: 8px 16px;
   }
+}
+
+/* ── Card entrance animation ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-card { animation: fadeSlideUp 0.35s ease both; }
+
+/* ── Status badge pulse (pending) ── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(230,57,70,0.4); }
+  50%       { box-shadow: 0 0 0 6px rgba(230,57,70,0); }
+}
+.status-out { animation: pulse-glow 2.4s ease-in-out infinite; }
+
+/* ── Button ripple ── */
+@keyframes ripple-expand {
+  from { transform: scale(0); opacity: 0.5; }
+  to   { transform: scale(4); opacity: 0; }
+}
+.ripple-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.55);
+  width: 50px; height: 50px;
+  margin: -25px 0 0 -25px;
+  animation: ripple-expand 0.5s ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── Shake (wrong PIN) ── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%  { transform: translateX(-8px); }
+  30%  { transform: translateX(8px); }
+  45%  { transform: translateX(-6px); }
+  60%  { transform: translateX(6px); }
+  75%  { transform: translateX(-4px); }
+  90%  { transform: translateX(4px); }
+}
+.shake { animation: shake 0.5s ease; }
+
+/* ── Bounce (empty state) ── */
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.65); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  80%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
+.empty-state { animation: bounceIn 0.55s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+
+/* ── Animated SVG checkmark (checkout confirm) ── */
+@keyframes check-circle {
+  from { stroke-dashoffset: 157; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes check-draw {
+  from { stroke-dashoffset: 34; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes confirm-pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.confirm-svg-wrap { animation: confirm-pop 0.4s ease 0.05s both; }
+.confirm-svg-circle {
+  stroke-dasharray: 157;
+  stroke-dashoffset: 157;
+  animation: check-circle 0.5s cubic-bezier(0.65,0,0.45,1) 0.15s forwards;
+}
+.confirm-svg-check {
+  stroke-dasharray: 34;
+  stroke-dashoffset: 34;
+  animation: check-draw 0.35s cubic-bezier(0.65,0,0.45,1) 0.65s forwards;
 }

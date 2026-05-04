@@ -33,15 +33,15 @@
 
 <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
   <div style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:var(--accent);">{{ stats.pending }}</div>
+    <div data-count="{{ stats.pending }}" style="font-size:2rem;font-weight:700;color:var(--accent);">0</div>
     <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Pending</div>
   </div>
   <div style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:#059669;">{{ stats.ready }}</div>
+    <div data-count="{{ stats.ready }}" style="font-size:2rem;font-weight:700;color:#059669;">0</div>
     <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Ready for Pickup</div>
   </div>
   <div style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;color:var(--text);">{{ stats.this_month }}</div>
+    <div data-count="{{ stats.this_month }}" style="font-size:2rem;font-weight:700;color:var(--text);">0</div>
     <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Jobs This Month</div>
   </div>
 </div>
@@ -116,7 +116,7 @@
   <!-- Card view (default) -->
   <div id="card-view" style="display:flex;flex-direction:column;gap:10px;margin-bottom:40px;">
     {% for row in pending %}
-      <div id="job-{{ row.id }}" class="restring-card {% if row.status == 'pending' %}restring-card-pending{% else %}restring-card-complete{% endif %}{% if row.id in overdue_ids %} card-overdue-amber{% endif %}" style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;">
+      <div id="job-{{ row.id }}" class="restring-card anim-card {% if row.status == 'pending' %}restring-card-pending{% else %}restring-card-complete{% endif %}{% if row.id in overdue_ids %} card-overdue-amber{% endif %}" style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;animation-delay:{{ loop.index0 * 0.06 }}s;">
 
         <!-- Top: status + customer + actions -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
@@ -151,7 +151,7 @@
               <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                 <input type="hidden" name="status" value="picked_up">
                 <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return confirm('Mark {{ row.customer_name | e }}\'s racquet as picked up?')">Mark Picked Up</button>
+                        onclick="return pickupAndConfetti('{{ row.customer_name | e }}')">Mark Picked Up</button>
               </form>
               <form method="post" action="{{ url_for('restrings.restring_unmark_ready', restring_id=row.id) }}" style="display:inline;">
                 <button type="submit" class="btn btn-secondary btn-sm"
@@ -238,6 +238,35 @@
       window.location.href = '{{ url_for("restrings.restring_new") }}';
     }
   });
+
+  function launchConfetti() {
+    var colors = ['#2d6a4f','#52b788','#f59e0b','#dc2626','#3b82f6','#a855f7','#f97316'];
+    Array.from({ length: 70 }).forEach(function() {
+      var el = document.createElement('div');
+      var size = 6 + Math.random() * 7;
+      var x0 = Math.random() * window.innerWidth;
+      var dx = (Math.random() - 0.5) * 320;
+      var rot = Math.random() * 720;
+      el.style.cssText = 'position:fixed;left:' + x0 + 'px;top:-14px;width:' + size + 'px;height:' + (size * 1.6) + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';border-radius:2px;pointer-events:none;z-index:9999;';
+      document.body.appendChild(el);
+      var anim = el.animate([
+        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+        { transform: 'translate(' + dx + 'px,' + (window.innerHeight + 30) + 'px) rotate(' + rot + 'deg)', opacity: 0 }
+      ], { duration: 1200 + Math.random() * 800, delay: Math.random() * 300, easing: 'cubic-bezier(0.25,0.46,0.45,0.94)', fill: 'forwards' });
+      anim.addEventListener('finish', function() { el.remove(); });
+    });
+  }
+
+  function pickupAndConfetti(name) {
+    if (!confirm("Mark " + name + "'s racquet as picked up?")) return false;
+    sessionStorage.setItem('show_confetti', '1');
+    return true;
+  }
+
+  if (sessionStorage.getItem('show_confetti')) {
+    sessionStorage.removeItem('show_confetti');
+    launchConfetti();
+  }
 </script>
 
 {% if completed %}
@@ -327,6 +356,11 @@
   {% if delete_pin_error %}
     openDeleteModal({{ delete_pin_error_id }}, {{ delete_pin_error_name | tojson }});
     document.getElementById('delete-restring-pin-error').style.display = 'block';
+    (function() {
+      var pinEl = document.getElementById('delete-restring-pin');
+      pinEl.classList.add('shake');
+      pinEl.addEventListener('animationend', function() { pinEl.classList.remove('shake'); }, { once: true });
+    })();
   {% endif %}
   function openQuickEdit(trigger, id, field, currentVal) {
     var labels = { strung_by: 'Strung By', receipt: 'Receipt', charged: 'Charged', additional_charges: 'Additional Charges' };

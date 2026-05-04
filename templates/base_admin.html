@@ -47,5 +47,38 @@
       navigator.serviceWorker.register('/static/sw.js');
     }
   </script>
+  <script>
+    // Smooth count-up for [data-count] elements
+    (function() {
+      function countUp(el) {
+        var target = parseInt(el.dataset.count, 10);
+        if (!target) return;
+        var start = null, duration = 700;
+        function step(ts) {
+          if (!start) start = ts;
+          var p = Math.min((ts - start) / duration, 1);
+          el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
+          if (p < 1) requestAnimationFrame(step); else el.textContent = target;
+        }
+        requestAnimationFrame(step);
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-count]').forEach(countUp);
+      });
+    })();
+
+    // Button ripple effect
+    document.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn');
+      if (!btn) return;
+      var rect = btn.getBoundingClientRect();
+      var circle = document.createElement('span');
+      circle.className = 'ripple-circle';
+      circle.style.left = (e.clientX - rect.left) + 'px';
+      circle.style.top  = (e.clientY - rect.top)  + 'px';
+      btn.appendChild(circle);
+      circle.addEventListener('animationend', function() { circle.remove(); });
+    });
+  </script>
 </body>
 </html>
