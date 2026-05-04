@@ -100,8 +100,8 @@
             <td>{{ row.tension }}</td>
             <td style="white-space:nowrap;">{{ row.date_in }}</td>
             <td style="white-space:nowrap;">{{ row.date_promised }}</td>
-            <td>{{ row.strung_by or '—' }}</td>
-            <td>{{ row.receipt or '—' }}</td>
+            <td><span class="quick-edit-trigger" onclick="openQuickEdit(this,{{ row.id }},'strung_by',{{ (row.strung_by or '') | tojson }})">{{ row.strung_by or '—' }}</span></td>
+            <td><span class="quick-edit-trigger" onclick="openQuickEdit(this,{{ row.id }},'receipt',{{ (row.receipt or '') | tojson }})">{{ row.receipt or '—' }}</span></td>
             <td style="white-space:nowrap;">{{ row.phone or '—' }}</td>
             <td style="white-space:nowrap;">
               <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
@@ -321,10 +321,10 @@
     openDeleteModal({{ delete_pin_error_id }}, {{ delete_pin_error_name | tojson }});
     document.getElementById('delete-restring-pin-error').style.display = 'block';
   {% endif %}
-  function openQuickEdit(trigger, id, field) {
+  function openQuickEdit(trigger, id, field, currentVal) {
     var labels = { strung_by: 'Strung By', receipt: 'Receipt', charged: 'Charged', additional_charges: 'Additional Charges' };
     document.getElementById('quick-edit-title').textContent = labels[field] || field;
-    document.getElementById('quick-edit-input').value = '';
+    document.getElementById('quick-edit-input').value = currentVal || '';
     document.getElementById('quick-edit-form').action = '/admin/restrings/' + id + '/quick-update';
     document.getElementById('quick-edit-field').value = field;
     document.getElementById('quick-edit-modal').style.display = 'flex';
