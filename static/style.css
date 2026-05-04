@@ -488,17 +488,21 @@ body.dark .card-overdue-red   { background: #2d1515; }
 }
 .nav-badge { display:inline-block; animation: badge-pop 0.5s ease; }
 
-/* ── Swipe-to-return ── */
-.swipe-wrap { overflow:hidden; border-radius:10px; }
-.swipe-track { display:flex; transition:transform 0.22s ease; will-change:transform; }
-.swipe-card-inner { flex:1; min-width:0; }
-.swipe-return-btn {
-  flex-shrink:0; width:88px;
-  background:#dc2626; color:#fff; border:none; font-weight:700;
-  font-size:0.88rem; cursor:pointer; border-radius:0 10px 10px 0;
-  display:flex; align-items:center; justify-content:center;
+/* ── Swipe-to-return (touch only) ── */
+.swipe-return-btn { display:none; }
+
+@media (pointer: coarse) {
+  .swipe-wrap { overflow:hidden; border-radius:10px; }
+  .swipe-track { display:flex; transition:transform 0.22s ease; will-change:transform; }
+  .swipe-card-inner { flex:1; min-width:0; }
+  .swipe-return-btn {
+    flex-shrink:0; width:88px;
+    background:#dc2626; color:#fff; border:none; font-weight:700;
+    font-size:0.88rem; cursor:pointer; border-radius:0 10px 10px 0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .swipe-wrap.swiped .swipe-track { transform:translateX(-88px); }
 }
-.swipe-wrap.swiped .swipe-track { transform:translateX(-88px); }
 
 
 
