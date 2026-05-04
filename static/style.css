@@ -464,6 +464,12 @@ body.dark #string-dropdown div:hover { background: #2d4535; }
 .restring-card-pending  { border-left: 4px solid #f59e0b !important; }
 .restring-card-complete { border-left: 4px solid #059669 !important; }
 
+/* ── Overdue card backgrounds ── */
+.card-overdue-amber { background: #fffbeb; }
+.card-overdue-red   { background: #fff5f5; }
+body.dark .card-overdue-amber { background: #2d2410; }
+body.dark .card-overdue-red   { background: #2d1515; }
+
 /* ── Compact restring table (dense view) ── */
 .restring-compact-table { width:100%; border-collapse:collapse; font-size:0.88rem; }
 .restring-compact-table th { text-align:left; padding:8px 10px; border-bottom:2px solid var(--border); color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; }

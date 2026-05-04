@@ -41,7 +41,7 @@
 {% if active %}
   <div style="display:flex;flex-direction:column;gap:10px;">
     {% for row in active %}
-      <div style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;{% if row.is_overdue %}background:#fff5f5;border-color:#fca5a5;{% endif %}">
+      <div class="{% if row.is_overdue %}card-overdue-red{% endif %}" style="border:1px solid {% if row.is_overdue %}#fca5a5{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;">
 
         <!-- Top row: equipment + buttons -->
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">
