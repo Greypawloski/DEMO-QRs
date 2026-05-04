@@ -4,7 +4,11 @@
 {% block content %}
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">{{ member.member_name }}</h1>
-  <a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary btn-sm">← Member Search</a>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{{ url_for('restrings.restring_new') }}?member_number={{ member.member_number | urlencode }}&customer_name={{ member.member_name | urlencode }}&phone={{ (member.phone1 or '') | urlencode }}"
+       class="btn btn-primary btn-sm">+ New Restring</a>
+    <a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary btn-sm">← Member Search</a>
+  </div>
 </div>
 
 <!-- Member info card -->
@@ -104,7 +108,7 @@
         <td style="white-space:nowrap;">
           {% if c.returned_at %}{{ c.returned_at | central }}{% else %}<span style="color:var(--accent);font-weight:600;">Out now</span>{% endif %}
         </td>
-        <td>{{ c.duration_days | int }}d</td>
+        <td>{% set d = c.duration_days | int %}{% if d < 1 %}< 1 day{% elif d == 1 %}1 day{% elif d < 14 %}{{ d }} days{% else %}{{ (d / 7) | int }}w {{ d % 7 }}d{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>

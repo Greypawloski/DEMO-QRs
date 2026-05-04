@@ -438,8 +438,40 @@ table.data-table tr:hover td { background: var(--bg); }
 .text-center { text-align: center; }
 .empty-state { text-align: center; padding: 48px; color: var(--muted); }
 
-/* ── Mobile nav fix ── */
-@media (max-width: 768px) {
+/* ── Dark mode ── */
+body.dark {
+  --bg:      #111b15;
+  --card-bg: #1c2b21;
+  --text:    #e2ede6;
+  --muted:   #8aa396;
+  --border:  #2d4535;
+}
+body.dark .admin-nav { background: #0d1f13; }
+body.dark .btn-secondary { background: transparent; border-color: var(--green-light); color: var(--green-light); }
+body.dark .btn-secondary:hover { background: #1c2b21; }
+body.dark .form-group input,
+body.dark .form-group select,
+body.dark .form-group textarea { background: #1c2b21; color: var(--text); border-color: var(--border); }
+body.dark table.data-table tr:hover td { background: #1c2b21; }
+body.dark #member-dropdown,
+body.dark #racquet-dropdown,
+body.dark #string-dropdown { background: #1c2b21; border-color: var(--border); }
+body.dark #member-dropdown div:hover,
+body.dark #racquet-dropdown div:hover,
+body.dark #string-dropdown div:hover { background: #2d4535; }
+
+/* ── Restring card status left-border ── */
+.restring-card-pending  { border-left: 4px solid #f59e0b !important; }
+.restring-card-complete { border-left: 4px solid #059669 !important; }
+
+/* ── Compact restring table (dense view) ── */
+.restring-compact-table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+.restring-compact-table th { text-align:left; padding:8px 10px; border-bottom:2px solid var(--border); color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; }
+.restring-compact-table td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.restring-compact-table tr:last-child td { border-bottom:none; }
+.restring-compact-table tr:hover td { background:var(--bg); }
+
+
   .admin-nav {
     height: auto;
     flex-wrap: wrap;

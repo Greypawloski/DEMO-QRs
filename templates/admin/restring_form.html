@@ -88,15 +88,19 @@
     </select>
   </div>
 
-  <div class="form-group">
+  <div class="form-group" style="position:relative;">
     <label for="racquet">Racquet *</label>
-    <input type="text" id="racquet" name="racquet" value="{{ item.racquet if item else '' }}" placeholder="e.g. Wilson Blade 104" required>
+    <input type="text" id="racquet" name="racquet" value="{{ item.racquet if item else (prefill.customer_name and '') or '' }}" placeholder="e.g. Wilson Blade 104" required
+           oninput="acSuggest('racquet',this.value)" autocomplete="off">
+    <div id="racquet-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-    <div class="form-group">
+    <div class="form-group" style="position:relative;">
       <label for="string">String *</label>
-      <input type="text" id="string" name="string" value="{{ item.string if item else '' }}" placeholder="e.g. Luxilon Alu Power" required>
+      <input type="text" id="string" name="string" value="{{ item.string if item else '' }}" placeholder="e.g. Luxilon Alu Power" required
+             oninput="acSuggest('string',this.value)" autocomplete="off">
+      <div id="string-dropdown" style="display:none;position:absolute;left:0;right:0;background:#fff;border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
     </div>
     <div class="form-group">
       <label for="tension">Tension *</label>
@@ -359,6 +363,52 @@
     if (!e.target.closest('#member-dropdown') && e.target.id !== 'member_search') {
       document.getElementById('member-dropdown').style.display = 'none';
     }
+    if (!e.target.closest('#racquet-dropdown') && e.target.id !== 'racquet') {
+      var rd = document.getElementById('racquet-dropdown');
+      if (rd) rd.style.display = 'none';
+    }
+    if (!e.target.closest('#string-dropdown') && e.target.id !== 'string') {
+      var sd = document.getElementById('string-dropdown');
+      if (sd) sd.style.display = 'none';
+    }
   });
+
+  var acTimers = {};
+  function acSuggest(field, val) {
+    clearTimeout(acTimers[field]);
+    var dd = document.getElementById(field + '-dropdown');
+    if (val.length < 1) { dd.style.display = 'none'; return; }
+    acTimers[field] = setTimeout(function() {
+      fetch('/admin/restrings/' + field + '-suggest?q=' + encodeURIComponent(val))
+        .then(function(r) { return r.json(); })
+        .then(function(results) {
+          if (!results.length) { dd.style.display = 'none'; return; }
+          dd.innerHTML = '';
+          results.forEach(function(s) {
+            var div = document.createElement('div');
+            div.style.cssText = 'padding:9px 12px;cursor:pointer;border-bottom:1px solid #f0f0f0;font-size:0.92rem;';
+            div.textContent = s;
+            div.onmousedown = function(e) {
+              e.preventDefault();
+              document.getElementById(field).value = s;
+              dd.style.display = 'none';
+            };
+            dd.appendChild(div);
+          });
+          dd.style.display = 'block';
+        });
+    }, 120);
+  }
+
+  {% if not item and prefill %}
+  (function() {
+    {% if prefill.customer_name %}document.getElementById('customer_name').value = {{ prefill.customer_name | tojson }};{% endif %}
+    {% if prefill.member_number %}
+      document.getElementById('member_number').value = {{ prefill.member_number | tojson }};
+      loadMemberHistory({{ prefill.member_number | tojson }});
+    {% endif %}
+    {% if prefill.phone %}document.getElementById('phone').value = {{ prefill.phone | tojson }};{% endif %}
+  })();
+  {% endif %}
 </script>
 {% endblock %}

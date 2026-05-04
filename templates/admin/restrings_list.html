@@ -58,10 +58,16 @@
     </form>
     <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;">
       <input type="hidden" name="q" value="{{ q }}">
-      <input type="text" name="qb" value="{{ qb }}" placeholder="Search by strung by"
-             style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:200px;">
-      <button type="submit" class="btn btn-primary btn-sm">Search</button>
+      <select name="qb" onchange="this.form.submit()"
+              style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;background:var(--card-bg,#fff);color:var(--text);">
+        <option value="">All Stringers</option>
+        {% for s in stringer_names %}
+        <option value="{{ s }}" {% if qb == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
     </form>
+    <button type="button" onclick="toggleCompact()" id="compact-btn"
+            class="btn btn-secondary btn-sm">Compact View</button>
     <a href="{{ url_for('restrings.restring_new') }}" class="btn btn-primary btn-sm">+ New Request</a>
     <a href="{{ url_for('restrings.restrings_history_view') }}" class="btn btn-secondary btn-sm">View History</a>
     <a href="{{ url_for('restrings.restrings_export_csv') }}" class="btn btn-secondary btn-sm">Export CSV</a>
@@ -78,9 +84,38 @@
 
 {% if pending %}
   <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--green);">Active</h2>
-  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:40px;">
+
+  <!-- Compact table view (hidden by default) -->
+  <div id="compact-view" style="display:none;margin-bottom:40px;">
+    <div class="table-wrap">
+      <table class="restring-compact-table">
+        <thead><tr><th>Status</th><th>Customer</th><th>Racquet</th><th>String</th><th>Tension</th><th>In</th><th>Promised</th><th>Strung By</th><th>Phone</th><th></th></tr></thead>
+        <tbody>
+          {% for row in pending %}
+          <tr style="border-left:3px solid {% if row.status == 'pending' %}#f59e0b{% else %}#059669{% endif %};">
+            <td>{% if row.status == 'pending' %}<span class="status-badge status-out">Pending</span>{% else %}<span class="status-badge status-avail">Ready</span>{% endif %}</td>
+            <td><strong>{{ row.customer_name }}</strong>{% if row.member_number and row.member_number != 'Non-member' %}<br><span style="color:var(--muted);font-size:0.78rem;">#{{ row.member_number }}</span>{% endif %}</td>
+            <td>{{ row.racquet }}</td>
+            <td>{{ row.string }}</td>
+            <td>{{ row.tension }}</td>
+            <td style="white-space:nowrap;">{{ row.date_in }}</td>
+            <td style="white-space:nowrap;">{{ row.date_promised }}</td>
+            <td>{{ row.strung_by or '—' }}</td>
+            <td style="white-space:nowrap;">{{ row.phone or '—' }}</td>
+            <td style="white-space:nowrap;">
+              <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Card view (default) -->
+  <div id="card-view" style="display:flex;flex-direction:column;gap:10px;margin-bottom:40px;">
     {% for row in pending %}
-      <div id="job-{{ row.id }}" style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;{% if row.id in overdue_ids %}background:#fffbeb;{% endif %}">
+      <div id="job-{{ row.id }}" class="restring-card {% if row.status == 'pending' %}restring-card-pending{% else %}restring-card-complete{% endif %}" style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;{% if row.id in overdue_ids %}background:#fffbeb;{% endif %}">
 
         <!-- Top: status + customer + actions -->
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap;">
@@ -169,12 +204,33 @@
 
       </div>
     {% endfor %}
-  </div>
+  </div><!-- end card-view -->
 {% else %}
   <div class="empty-state" style="margin-bottom:40px;">
     <p>No active restringing requests.</p>
   </div>
 {% endif %}
+
+<script>
+  (function() {
+    if (localStorage.getItem('restring_compact') === '1') {
+      document.getElementById('card-view') && (document.getElementById('card-view').style.display = 'none');
+      document.getElementById('compact-view') && (document.getElementById('compact-view').style.display = 'block');
+      var btn = document.getElementById('compact-btn');
+      if (btn) btn.textContent = 'Card View';
+    }
+  })();
+  function toggleCompact() {
+    var cv = document.getElementById('card-view');
+    var tv = document.getElementById('compact-view');
+    var btn = document.getElementById('compact-btn');
+    var isCompact = tv && tv.style.display !== 'none';
+    if (cv) cv.style.display = isCompact ? 'flex' : 'none';
+    if (tv) tv.style.display = isCompact ? 'none' : 'block';
+    if (btn) btn.textContent = isCompact ? 'Compact View' : 'Card View';
+    localStorage.setItem('restring_compact', isCompact ? '0' : '1');
+  }
+</script>
 
 {% if completed %}
   <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--muted);">Picked Up</h2>

@@ -41,6 +41,36 @@ def member_restring_history():
     } for r in rows])
 
 
+@restrings_bp.route('/racquet-suggest')
+@login_required
+def racquet_suggest():
+    from flask import jsonify
+    q = request.args.get('q', '').strip()
+    if len(q) < 1:
+        return jsonify([])
+    db = get_db()
+    rows = db.execute(
+        "SELECT DISTINCT racquet FROM restrings WHERE LOWER(racquet) LIKE LOWER(?) ORDER BY racquet LIMIT 12",
+        (f'%{q}%',)
+    ).fetchall()
+    return jsonify([r[0] for r in rows])
+
+
+@restrings_bp.route('/string-suggest')
+@login_required
+def string_suggest():
+    from flask import jsonify
+    q = request.args.get('q', '').strip()
+    if len(q) < 1:
+        return jsonify([])
+    db = get_db()
+    rows = db.execute(
+        "SELECT DISTINCT string FROM restrings WHERE LOWER(string) LIKE LOWER(?) ORDER BY string LIMIT 12",
+        (f'%{q}%',)
+    ).fetchall()
+    return jsonify([r[0] for r in rows])
+
+
 @restrings_bp.route('/non-member-history')
 @login_required
 def non_member_restring_history():
@@ -108,7 +138,10 @@ def list_restrings():
     overdue_ids = {r['id'] for r in db.execute(
         "SELECT id FROM restrings WHERE status='complete' AND completed_at < datetime('now', '-7 days')"
     ).fetchall()}
-    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids)
+    stringer_names = [r[0] for r in db.execute(
+        "SELECT DISTINCT strung_by FROM restrings WHERE strung_by IS NOT NULL AND strung_by != '' ORDER BY strung_by"
+    ).fetchall()]
+    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids, stringer_names=stringer_names)
 
 
 @restrings_bp.route('/new', methods=['GET', 'POST'])
@@ -146,7 +179,12 @@ def restring_new():
         db.commit()
         sync_member_phone(db, member, phone)
         return redirect(url_for('restrings.list_restrings'))
-    return render_template('admin/restring_form.html', item=None)
+    prefill = {
+        'member_number': request.args.get('member_number', ''),
+        'customer_name': request.args.get('customer_name', ''),
+        'phone':         request.args.get('phone', ''),
+    }
+    return render_template('admin/restring_form.html', item=None, prefill=prefill)
 
 
 @restrings_bp.route('/<int:restring_id>/edit', methods=['GET', 'POST'])
