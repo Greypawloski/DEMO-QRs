@@ -41,7 +41,7 @@
 {% if active %}
   <div style="display:flex;flex-direction:column;gap:10px;">
     {% for row in active %}
-      <div class="swipe-wrap">
+      <div class="swipe-wrap" data-checkout-id="{{ row.id }}" data-equip-name="{{ row.equipment_name | e }}">
       <div class="swipe-track">
       <div class="swipe-card-inner anim-card {% if row.is_overdue %}card-overdue-red{% endif %}" style="border:1px solid {% if row.is_overdue %}#fca5a5{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;animation-delay:{{ loop.index0 * 0.06 }}s;">
 
@@ -276,6 +276,12 @@
     wrap.addEventListener('touchend', function(e) {
       var dx = e.changedTouches[0].clientX - startX;
       var dy = e.changedTouches[0].clientY - startY;
+      // Tap while swiped open → trigger return modal directly (bypasses iOS click-on-transform bug)
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && wrap.classList.contains('swiped')) {
+        wrap.classList.remove('swiped');
+        openReturnModal(parseInt(wrap.dataset.checkoutId), wrap.dataset.equipName);
+        return;
+      }
       if (Math.abs(dx) > Math.abs(dy)) {
         if (dx < -50) wrap.classList.add('swiped');
         else if (dx > 20) wrap.classList.remove('swiped');
