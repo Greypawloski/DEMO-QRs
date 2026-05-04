@@ -113,6 +113,7 @@ def dashboard():
     restring_stats = db.execute("""
         SELECT
             COUNT(*) FILTER (WHERE status IN ('pending','complete')) AS active_jobs,
+            COUNT(*) FILTER (WHERE status = 'pending')               AS needs_stringing,
             COUNT(*) FILTER (WHERE status = 'complete')              AS ready_pickup,
             COUNT(*) FILTER (WHERE status = 'complete'
                              AND completed_at < datetime('now', '-7 days')) AS overdue_pickup

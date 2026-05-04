@@ -92,7 +92,7 @@ def list_restrings():
         params_completed += [pattern_b]
 
     pending = db.execute(
-        f"SELECT * FROM restrings WHERE {where_pending} ORDER BY date_promised ASC",
+        f"SELECT * FROM restrings WHERE {where_pending} ORDER BY CASE WHEN status='pending' THEN 0 ELSE 1 END, date_promised ASC",
         params_pending
     ).fetchall()
     where_completed += " AND date(created_at) >= date('now', '-7 days')"
