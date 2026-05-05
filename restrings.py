@@ -453,3 +453,40 @@ def restring_quick_update(restring_id):
     db.execute(f"UPDATE restrings SET {field}=? WHERE id=?", (value or None, restring_id))
     db.commit()
     return redirect(url_for('restrings.list_restrings') + f'#job-{restring_id}')
+
+
+@restrings_bp.route('/string-stock', methods=['GET'])
+@login_required
+def string_stock():
+    db = get_db()
+    strings = db.execute(
+        'SELECT id, brand, model, string_type, color, gauges FROM strings_stock ORDER BY brand, model'
+    ).fetchall()
+    return render_template('admin/strings_stock.html', strings=strings)
+
+
+@restrings_bp.route('/string-stock/add', methods=['POST'])
+@login_required
+def string_stock_add():
+    brand       = request.form.get('brand', '').strip()
+    model       = request.form.get('model', '').strip()
+    string_type = request.form.get('string_type', '').strip()
+    color       = request.form.get('color', '').strip()
+    gauges      = request.form.get('gauges', '').strip()
+    if brand and model:
+        db = get_db()
+        db.execute(
+            'INSERT INTO strings_stock (brand, model, string_type, color, gauges) VALUES (?,?,?,?,?)',
+            (brand, model, string_type, color, gauges)
+        )
+        db.commit()
+    return redirect(url_for('restrings.string_stock'))
+
+
+@restrings_bp.route('/string-stock/<int:stock_id>/delete', methods=['POST'])
+@login_required
+def string_stock_delete(stock_id):
+    db = get_db()
+    db.execute('DELETE FROM strings_stock WHERE id = ?', (stock_id,))
+    db.commit()
+    return redirect(url_for('restrings.string_stock'))

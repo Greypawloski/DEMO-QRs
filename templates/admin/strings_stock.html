@@ -1,0 +1,101 @@
+{% extends "base_admin.html" %}
+{% block title %}String Inventory{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">String Inventory</h1>
+  <a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary btn-sm">← Restringing</a>
+</div>
+
+<!-- Add new string form -->
+<div style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:28px;">
+  <h2 style="font-size:1rem;margin-bottom:16px;">Add String to Inventory</h2>
+  <form method="post" action="{{ url_for('restrings.string_stock_add') }}">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Brand *</label>
+        <input type="text" name="brand" required placeholder="e.g. Babolat" style="width:100%;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Model *</label>
+        <input type="text" name="model" required placeholder="e.g. RPM Blast" style="width:100%;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>String Type</label>
+        <select name="string_type" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;background:var(--card-bg,#fff);color:var(--text);">
+          <option value="">— Select —</option>
+          <option>Polyester (Poly)</option>
+          <option>Multifilament</option>
+          <option>Synthetic Gut</option>
+          <option>Hybrid (Poly/Multi)</option>
+          <option>Natural Gut</option>
+          <option>Kevlar</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:flex-end;">
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Color</label>
+        <input type="text" name="color" placeholder="e.g. Black" style="width:100%;">
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label>Gauge(s)</label>
+        <input type="text" name="gauges" placeholder="e.g. 16g, 17g" style="width:100%;">
+      </div>
+      <button type="submit" class="btn btn-primary">Add String</button>
+    </div>
+  </form>
+</div>
+
+<!-- Inventory table -->
+{% if strings %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Brand</th>
+        <th>Model</th>
+        <th>Type</th>
+        <th>Color</th>
+        <th>Gauge(s)</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in strings %}
+      <tr>
+        <td><strong>{{ s.brand }}</strong></td>
+        <td>{{ s.model }}</td>
+        <td>
+          {% if s.string_type %}
+            <span style="font-size:0.82rem;padding:2px 8px;border-radius:20px;white-space:nowrap;
+              {% if 'Poly' in s.string_type and 'Multi' not in s.string_type %}background:#fde8e8;color:#991b1b;
+              {% elif 'Multi' in s.string_type %}background:#dbeafe;color:#1e40af;
+              {% elif 'Gut' in s.string_type %}background:#d1fae5;color:#065f46;
+              {% elif 'Hybrid' in s.string_type %}background:#fef3c7;color:#92400e;
+              {% elif 'Natural' in s.string_type %}background:#f3e8ff;color:#6b21a8;
+              {% else %}background:var(--border);color:var(--text);{% endif %}">
+              {{ s.string_type }}
+            </span>
+          {% else %}—{% endif %}
+        </td>
+        <td>{{ s.color or '—' }}</td>
+        <td>{{ s.gauges or '—' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('restrings.string_stock_delete', stock_id=s.id) }}"
+                onsubmit="return confirm('Remove {{ s.brand | e }} {{ s.model | e }} from inventory?')">
+            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p style="color:var(--muted);font-size:0.85rem;margin-top:12px;">{{ strings|length }} string{{ 's' if strings|length != 1 }} in inventory</p>
+{% else %}
+<div class="empty-state">
+  <p>No strings in inventory yet. Add one above.</p>
+</div>
+{% endif %}
+{% endblock %}
