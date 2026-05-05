@@ -38,7 +38,7 @@
       {% if q %}<a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
     </form>
     <button type="button" class="btn btn-primary btn-sm"
-            onclick="document.getElementById('quick-checkout-modal').style.display='flex'">+ Check Out</button>
+            onclick="openQcoModal()">+ Check Out</button>
   </div>
 </div>
 
@@ -236,9 +236,14 @@
           {% endfor %}
         </select>
       </div>
+      <div class="form-group" style="position:relative;">
+        <label>Member Search</label>
+        <input type="text" id="qco-search" autocomplete="off" placeholder="Type name or member #…" style="width:100%;">
+        <div id="qco-dropdown" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:200;max-height:200px;overflow-y:auto;"></div>
+      </div>
       <div class="form-group">
         <label>Customer Name</label>
-        <input type="text" name="customer_name" required style="width:100%;">
+        <input type="text" id="qco-name" name="customer_name" required style="width:100%;">
       </div>
       <div class="form-group">
         <label>Member Number</label>
@@ -246,18 +251,18 @@
         <label style="font-weight:normal;margin-top:8px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
           <input type="checkbox" id="qco-nonmember"
                  style="width:auto;appearance:auto;-webkit-appearance:auto;padding:0;border:none;box-shadow:none;"
-                 onchange="var m=document.getElementById('qco-member');m.value=this.checked?'Non-member':'';m.disabled=this.checked;">
+                 onchange="qcoToggleNonMember(this)">
           Non-member
         </label>
       </div>
       <div class="form-group">
         <label>Phone <span class="text-muted" style="font-weight:normal;">(optional)</span></label>
-        <input type="tel" name="phone" style="width:100%;">
+        <input type="tel" id="qco-phone" name="phone" style="width:100%;">
       </div>
       <div style="display:flex;gap:12px;margin-top:8px;">
         <button type="submit" class="btn btn-primary" style="flex:1;">Check Out</button>
         <button type="button" class="btn btn-secondary" style="flex:1;"
-                onclick="document.getElementById('quick-checkout-modal').style.display='none'">Cancel</button>
+                onclick="closeQcoModal()">Cancel</button>
       </div>
     </form>
   </div>
@@ -412,5 +417,81 @@
   document.getElementById('return-form').addEventListener('submit', function() {
     sessionStorage.setItem('show_confetti', '1');
   });
+
+  // Quick checkout modal: member search autocomplete
+  (function() {
+    var searchInput = document.getElementById('qco-search');
+    var dropdown    = document.getElementById('qco-dropdown');
+    var nameField   = document.getElementById('qco-name');
+    var memberField = document.getElementById('qco-member');
+    var phoneField  = document.getElementById('qco-phone');
+    var nmCheck     = document.getElementById('qco-nonmember');
+    var timer;
+
+    searchInput.addEventListener('input', function() {
+      clearTimeout(timer);
+      var val = this.value.trim();
+      if (val.length < 1) { dropdown.style.display = 'none'; return; }
+      timer = setTimeout(function() {
+        fetch('/admin/members/search?q=' + encodeURIComponent(val))
+          .then(function(r) { return r.json(); })
+          .then(renderDropdown);
+      }, 150);
+    });
+
+    searchInput.addEventListener('blur', function() {
+      setTimeout(function() { dropdown.style.display = 'none'; }, 180);
+    });
+
+    function renderDropdown(results) {
+      if (!results.length) { dropdown.style.display = 'none'; return; }
+      dropdown.innerHTML = '';
+      results.forEach(function(m) {
+        var div = document.createElement('div');
+        div.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:0.95rem;color:var(--text);';
+        div.innerHTML = '<strong>' + m.name + '</strong><span style="color:#666;margin-left:8px;">#' + m.number + '</span>';
+        div.onmousedown = function(e) {
+          e.preventDefault();
+          var parts = m.name.split(',');
+          var display = parts.length === 2 ? parts[1].trim() + ' ' + parts[0].trim() : m.name;
+          nameField.value   = display;
+          memberField.value = m.number;
+          if (m.phone1) phoneField.value = m.phone1;
+          nmCheck.checked = false;
+          memberField.disabled = false;
+          searchInput.value = display + ' #' + m.number;
+          dropdown.style.display = 'none';
+        };
+        dropdown.appendChild(div);
+      });
+      dropdown.style.display = 'block';
+    }
+  })();
+
+  function qcoToggleNonMember(cb) {
+    var m = document.getElementById('qco-member');
+    m.value    = cb.checked ? 'Non-member' : '';
+    m.disabled = cb.checked;
+    if (cb.checked) {
+      document.getElementById('qco-search').value = '';
+      document.getElementById('qco-dropdown').style.display = 'none';
+    }
+  }
+
+  function openQcoModal() {
+    document.getElementById('qco-search').value  = '';
+    document.getElementById('qco-name').value    = '';
+    document.getElementById('qco-member').value  = '';
+    document.getElementById('qco-phone').value   = '';
+    document.getElementById('qco-nonmember').checked  = false;
+    document.getElementById('qco-member').disabled    = false;
+    document.getElementById('qco-dropdown').style.display = 'none';
+    document.getElementById('quick-checkout-modal').style.display = 'flex';
+    setTimeout(function() { document.getElementById('qco-search').focus(); }, 50);
+  }
+
+  function closeQcoModal() {
+    document.getElementById('quick-checkout-modal').style.display = 'none';
+  }
 </script>
 {% endblock %}
