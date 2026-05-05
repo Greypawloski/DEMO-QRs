@@ -4,7 +4,7 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file, jsonify
 from pathlib import Path
-from database import get_db
+from database import get_db, format_phone, sync_member_phone
 from auth import login_required
 from qr_utils import generate_qr, generate_label, LABEL_DIR
 
@@ -120,12 +120,48 @@ def dashboard():
         FROM restrings
     """).fetchone()
 
+    available_equipment = db.execute(
+        """SELECT e.id, e.name, e.category FROM equipment e
+           WHERE e.active = 1 AND e.under_maintenance = 0
+           AND NOT EXISTS (
+               SELECT 1 FROM checkouts c WHERE c.equipment_id = e.id AND c.returned_at IS NULL
+           )
+           ORDER BY e.category, e.name"""
+    ).fetchall()
+
     from flask import session
     return render_template('admin/dashboard.html', active=active, q=q,
                            waitlist_members=waitlist_members,
                            staff_names=current_app.config.get('STAFF_NAMES', []),
                            current_staff=session.get('staff_name', ''),
-                           restring_stats=restring_stats)
+                           restring_stats=restring_stats,
+                           available_equipment=available_equipment)
+
+
+@admin_bp.route('/quick-checkout', methods=['POST'])
+@login_required
+def quick_checkout():
+    db = get_db()
+    equipment_id = request.form.get('equipment_id', '').strip()
+    name   = request.form.get('customer_name', '').strip()
+    member = request.form.get('member_number', '').strip()
+    phone  = format_phone(request.form.get('phone', '').strip())
+    notes  = request.form.get('checkout_notes', '').strip()
+    if not equipment_id or not name or not member:
+        return redirect(url_for('admin.dashboard'))
+    equipment_id = int(equipment_id)
+    existing = db.execute(
+        "SELECT id FROM checkouts WHERE equipment_id=? AND returned_at IS NULL", (equipment_id,)
+    ).fetchone()
+    if not existing:
+        db.execute(
+            "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?,?,?,?,?)",
+            (equipment_id, name, member, phone or None, notes or None)
+        )
+        db.commit()
+        sync_member_phone(db, member, phone)
+        _log('quick_checkout', f'{name} ({member}) — equipment {equipment_id}')
+    return redirect(url_for('admin.dashboard'))
 
 
 @admin_bp.route('/checkout/<int:checkout_id>/photo', methods=['POST'])

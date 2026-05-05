@@ -488,6 +488,11 @@ body.dark .card-overdue-red   { background: #2d1515; }
 }
 .nav-badge { display:inline-block; animation: badge-pop 0.5s ease; }
 
+/* ── Larger tap targets on touch devices ── */
+@media (pointer: coarse) {
+  .btn-sm { padding: 11px 18px; font-size: 0.95rem; }
+}
+
 /* ── Swipe-to-return (touch only) ── */
 .swipe-return-btn { display:none; }
 

@@ -30,12 +30,16 @@
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Active Checkouts</h1>
-  <form method="get" style="display:flex;gap:8px;">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search by name or member #"
-           style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:240px;">
-    <button type="submit" class="btn btn-primary btn-sm">Search</button>
-    {% if q %}<a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
-  </form>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <form method="get" style="display:flex;gap:8px;">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by name or member #"
+             style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:220px;">
+      <button type="submit" class="btn btn-primary btn-sm">Search</button>
+      {% if q %}<a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
+    </form>
+    <button type="button" class="btn btn-primary btn-sm"
+            onclick="document.getElementById('quick-checkout-modal').style.display='flex'">+ Check Out</button>
+  </div>
 </div>
 
 {% if active %}
@@ -218,6 +222,46 @@
   </div>
 </div>
 
+<!-- Quick checkout modal -->
+<div id="quick-checkout-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal-panel" style="background:#fff;border-radius:12px;padding:28px 24px;max-width:420px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Quick Check Out</h2>
+    <form method="post" action="{{ url_for('admin.quick_checkout') }}">
+      <div class="form-group">
+        <label>Equipment</label>
+        <select name="equipment_id" required style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;background:var(--card-bg,#fff);color:var(--text);">
+          <option value="">— Select available item —</option>
+          {% for item in available_equipment %}
+            <option value="{{ item.id }}">{{ item.name }} ({{ item.category }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" name="customer_name" required style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Member Number</label>
+        <input type="text" id="qco-member" name="member_number" required style="width:100%;">
+        <label style="font-weight:normal;margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+          <input type="checkbox" id="qco-nonmember"
+                 onchange="var m=document.getElementById('qco-member');m.value=this.checked?'Non-member':'';m.disabled=this.checked;">
+          Non-member
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Phone <span class="text-muted" style="font-weight:normal;">(optional)</span></label>
+        <input type="tel" name="phone" style="width:100%;">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Check Out</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('quick-checkout-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   var WAITLIST_DATA = {{ waitlist_members | tojson }};
 
@@ -293,6 +337,41 @@
       document.querySelectorAll('.swipe-wrap.swiped').forEach(function(w) { w.classList.remove('swiped'); });
     }
   }, { passive: true });
+
+  // Pull-to-refresh
+  (function() {
+    if (!window.matchMedia('(pointer: coarse)').matches) return;
+    var startY = 0, threshold = 65, maxPull = 85;
+    var bar = document.createElement('div');
+    bar.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;background:#52b788;transform:scaleX(0);transform-origin:left;transition:transform 0.1s;z-index:998;pointer-events:none;';
+    document.body.appendChild(bar);
+    var ind = document.createElement('div');
+    ind.style.cssText = 'position:fixed;top:8px;left:50%;transform:translateX(-50%) translateY(-48px);background:#2d6a4f;color:#fff;border-radius:20px;padding:5px 14px;font-size:0.8rem;font-weight:700;transition:transform 0.2s;z-index:998;white-space:nowrap;pointer-events:none;';
+    document.body.appendChild(ind);
+    document.addEventListener('touchstart', function(e) {
+      startY = window.scrollY === 0 ? e.touches[0].clientY : 0;
+    }, { passive: true });
+    document.addEventListener('touchmove', function(e) {
+      if (!startY) return;
+      var dy = Math.max(0, Math.min(e.touches[0].clientY - startY, maxPull));
+      bar.style.transform = 'scaleX(' + (dy / maxPull) + ')';
+      ind.style.transform = 'translateX(-50%) translateY(' + (dy * 0.55 - 48) + 'px)';
+      ind.textContent = dy >= threshold ? '↑ Release to refresh' : '↓ Pull to refresh';
+    }, { passive: true });
+    document.addEventListener('touchend', function(e) {
+      if (!startY) return;
+      var dy = Math.max(0, e.changedTouches[0].clientY - startY);
+      if (dy >= threshold) {
+        ind.textContent = 'Refreshing…';
+        bar.style.transform = 'scaleX(1)';
+        setTimeout(function() { window.location.reload(); }, 350);
+      } else {
+        bar.style.transform = 'scaleX(0)';
+        ind.style.transform = 'translateX(-50%) translateY(-48px)';
+      }
+      startY = 0;
+    }, { passive: true });
+  })();
 
   // Swipe hint: nudge first card left once on first touch-device visit
   if (window.matchMedia('(pointer: coarse)').matches && !localStorage.getItem('swipe_hint_v2')) {
