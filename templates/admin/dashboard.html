@@ -384,5 +384,33 @@
       setTimeout(function() { wrap.classList.remove('swiped'); }, 1000);
     }, 1500);
   }
+
+  // Confetti on demo return
+  function launchConfetti() {
+    var colors = ['#2d6a4f','#52b788','#f59e0b','#dc2626','#3b82f6','#a855f7','#f97316'];
+    Array.from({ length: 70 }).forEach(function() {
+      var el = document.createElement('div');
+      var size = 6 + Math.random() * 7;
+      var x0 = Math.random() * window.innerWidth;
+      var dx = (Math.random() - 0.5) * 320;
+      var rot = Math.random() * 720;
+      el.style.cssText = 'position:fixed;left:' + x0 + 'px;top:-14px;width:' + size + 'px;height:' + (size * 1.6) + 'px;background:' + colors[Math.floor(Math.random() * colors.length)] + ';border-radius:2px;pointer-events:none;z-index:9999;';
+      document.body.appendChild(el);
+      var anim = el.animate([
+        { transform: 'translate(0,0) rotate(0deg)', opacity: 1 },
+        { transform: 'translate(' + dx + 'px,' + (window.innerHeight + 30) + 'px) rotate(' + rot + 'deg)', opacity: 0 }
+      ], { duration: 1200 + Math.random() * 800, delay: Math.random() * 300, easing: 'cubic-bezier(0.25,0.46,0.45,0.94)', fill: 'forwards' });
+      anim.addEventListener('finish', function() { el.remove(); });
+    });
+  }
+
+  if (sessionStorage.getItem('show_confetti')) {
+    sessionStorage.removeItem('show_confetti');
+    launchConfetti();
+  }
+
+  document.getElementById('return-form').addEventListener('submit', function() {
+    sessionStorage.setItem('show_confetti', '1');
+  });
 </script>
 {% endblock %}
