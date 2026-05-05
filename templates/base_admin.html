@@ -100,6 +100,23 @@
         btn.classList.toggle('visible', window.scrollY > 300);
       }, { passive: true });
     })();
+
+    // Nav badge ticker: animate when count changes between page loads
+    (function() {
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('a .nav-badge').forEach(function(badge) {
+          var link = badge.closest('a');
+          var key = 'nb_' + (link ? link.getAttribute('href') : '');
+          var cur = parseInt(badge.textContent.trim(), 10) || 0;
+          var prev = parseInt(sessionStorage.getItem(key), 10);
+          if (cur > 0 && !isNaN(prev) && prev !== cur) {
+            badge.classList.add('ticked');
+            badge.addEventListener('animationend', function() { badge.classList.remove('ticked'); }, { once: true });
+          }
+          sessionStorage.setItem(key, String(cur));
+        });
+      });
+    })();
   </script>
 </body>
 </html>

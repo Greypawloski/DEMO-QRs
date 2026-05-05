@@ -32,15 +32,15 @@
 </script>
 
 <div style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
-  <div style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
+  <div class="stat-card" style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
     <div data-count="{{ stats.pending }}" style="font-size:2rem;font-weight:700;color:var(--accent);">0</div>
     <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Pending</div>
   </div>
-  <div style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
+  <div class="stat-card" style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
     <div data-count="{{ stats.ready }}" style="font-size:2rem;font-weight:700;color:#059669;">0</div>
     <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Ready for Pickup</div>
   </div>
-  <div style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
+  <div class="stat-card" style="flex:1;min-width:140px;background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;">
     <div data-count="{{ stats.this_month }}" style="font-size:2rem;font-weight:700;color:var(--text);">0</div>
     <div style="font-size:0.85rem;color:var(--muted);margin-top:2px;">Jobs This Month</div>
   </div>
@@ -145,7 +145,7 @@
               <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                 <input type="hidden" name="status" value="complete">
                 <button type="submit" class="btn btn-primary btn-sm"
-                        onclick="return pickupAndConfetti('{{ row.customer_name | e }}', 'ready')">Mark Ready</button>
+                        onclick="return pickupAndConfetti(this, '{{ row.customer_name | e }}', 'ready')">Mark Ready</button>
               </form>
               <button type="button" class="btn btn-danger btn-sm"
                       onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
@@ -154,7 +154,7 @@
               <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                 <input type="hidden" name="status" value="picked_up">
                 <button type="submit" class="btn btn-danger btn-sm"
-                        onclick="return pickupAndConfetti('{{ row.customer_name | e }}')">Mark Picked Up</button>
+                        onclick="return pickupAndConfetti(this, '{{ row.customer_name | e }}')">Mark Picked Up</button>
               </form>
               <form method="post" action="{{ url_for('restrings.restring_unmark_ready', restring_id=row.id) }}" style="display:inline;">
                 <button type="submit" class="btn btn-secondary btn-sm"
@@ -276,13 +276,27 @@
     });
   }
 
-  function pickupAndConfetti(name, action) {
+  function pickupAndConfetti(btn, name, action) {
     var msg = action === 'ready'
       ? "Mark " + name + "'s racquet as ready?"
       : "Mark " + name + "'s racquet as picked up?";
     if (!confirm(msg)) return false;
-    sessionStorage.setItem('show_confetti', '1');
-    return true;
+    var form = btn.closest('form');
+    var card = btn.closest('.anim-card');
+    if (card) {
+      card.style.transition = 'transform 0.32s ease, opacity 0.22s ease';
+      card.style.transformOrigin = 'center center';
+      card.style.transform = 'perspective(800px) rotateY(90deg) scale(0.92)';
+      card.style.opacity = '0.2';
+      setTimeout(function() {
+        sessionStorage.setItem('show_confetti', '1');
+        form.submit();
+      }, 340);
+    } else {
+      sessionStorage.setItem('show_confetti', '1');
+      form.submit();
+    }
+    return false;
   }
 
   if (sessionStorage.getItem('show_confetti')) {

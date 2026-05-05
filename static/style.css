@@ -662,3 +662,37 @@ body.dark .card-overdue-red   { background: #2d1515; }
   transform: translateY(0);
   pointer-events: auto;
 }
+
+/* ── Typing indicator: pulsing glow on active text inputs ── */
+@keyframes input-active-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45,106,79,0.2); }
+  50%       { box-shadow: 0 0 0 4px rgba(45,106,79,0.12); }
+}
+input[type="text"]:focus:not(:placeholder-shown),
+input[type="search"]:focus:not(:placeholder-shown),
+input[type="tel"]:focus:not(:placeholder-shown),
+input[type="number"]:focus:not(:placeholder-shown) {
+  border-color: var(--green) !important;
+  animation: input-active-pulse 1.6s ease-in-out infinite;
+}
+
+/* ── Stat card hover lift (desktop/mouse only) ── */
+.stat-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+@media (hover: hover) {
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+  }
+}
+
+/* ── Nav badge tick-in animation ── */
+@keyframes badge-tick-in {
+  from { transform: translateY(-130%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+.nav-badge.ticked {
+  display: inline-block;
+  animation: badge-tick-in 0.28s cubic-bezier(0.34,1.56,0.64,1) both;
+}
