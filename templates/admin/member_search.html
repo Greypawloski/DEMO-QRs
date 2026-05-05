@@ -139,7 +139,7 @@
 
 <!-- Add Member modal -->
 <div id="add-member-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:420px;width:90%;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:420px;width:90%;">
     <h2 style="font-size:1.1rem;margin-bottom:20px;">Add Member</h2>
     <form method="post" action="{{ url_for('admin.member_add') }}">
       <input type="hidden" name="q" value="{{ q }}">
@@ -190,7 +190,7 @@
 
 <!-- Full edit modal -->
 <div id="member-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:420px;width:90%;max-height:90vh;overflow-y:auto;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:420px;width:90%;max-height:90vh;overflow-y:auto;">
     <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit Member</h2>
     <form id="member-edit-form" method="post">
       <input type="hidden" name="q" value="{{ q }}">
@@ -241,7 +241,7 @@
 
 <!-- Quick-edit modal -->
 <div id="contact-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
-  <div style="background:#fff;border-radius:12px;padding:28px 24px;max-width:340px;width:90%;text-align:center;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:340px;width:90%;text-align:center;">
     <h2 id="contact-edit-title" style="font-size:1.1rem;margin-bottom:16px;"></h2>
     <form id="contact-edit-form" method="post">
       <input type="hidden" name="field" id="contact-edit-field">
