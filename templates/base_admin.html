@@ -117,6 +117,12 @@
         });
       });
     })();
+
+    // Global N shortcut → new restring request
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.metaKey || e.ctrlKey) return;
+      if (e.key === 'n' || e.key === 'N') window.location.href = '{{ url_for("restrings.restring_new") }}';
+    });
   </script>
 </body>
 </html>

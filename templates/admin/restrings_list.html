@@ -252,12 +252,6 @@
     }
   });
 
-  document.addEventListener('keydown', function(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.metaKey || e.ctrlKey) return;
-    if (e.key === 'n' || e.key === 'N') {
-      window.location.href = '{{ url_for("restrings.restring_new") }}';
-    }
-  });
 
   function launchConfetti() {
     var colors = ['#2d6a4f','#52b788','#f59e0b','#dc2626','#3b82f6','#a855f7','#f97316'];
