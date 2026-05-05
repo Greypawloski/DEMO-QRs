@@ -376,7 +376,10 @@
 
     // Auto-fill string + tension from most recent entry (if fields are empty)
     var latest = results[0];
-    if (!document.getElementById('string').value)  document.getElementById('string').value  = latest.string;
+    if (!document.getElementById('string').value) {
+      document.getElementById('string').value = latest.string;
+      stockCheck(latest.string);
+    }
     if (!document.getElementById('tension').value) document.getElementById('tension').value = latest.tension;
 
     // String+tension-only dropdown for quick override
@@ -403,6 +406,7 @@
     if (!opt.value) return;
     document.getElementById('string').value  = opt.dataset.string;
     document.getElementById('tension').value = opt.dataset.tension;
+    stockCheck(opt.dataset.string);
     select.value = '';
   }
 
@@ -412,6 +416,7 @@
     document.getElementById('racquet').value = opt.dataset.racquet;
     document.getElementById('string').value  = opt.dataset.string;
     document.getElementById('tension').value = opt.dataset.tension;
+    stockCheck(opt.dataset.string);
     select.value = '';
   }
 
