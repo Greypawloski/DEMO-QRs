@@ -83,7 +83,7 @@
 
   <div id="history-fill-wrap" style="display:none;margin-bottom:4px;">
     <label style="font-size:0.88rem;color:var(--muted);display:block;margin-bottom:6px;">Load from restring history</label>
-    <select id="history-fill-select" onchange="fillFromHistory(this)" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;">
+    <select id="history-fill-select" onchange="fillFromHistory(this)" style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;background:var(--card-bg,#fff);color:var(--text);">
       <option value="">— Select a previous restring —</option>
     </select>
   </div>
@@ -106,6 +106,14 @@
       <label for="tension">Tension *</label>
       <input type="text" id="tension" name="tension" value="{{ item.tension if item else '' }}" placeholder="e.g. 55 lbs" required>
     </div>
+  </div>
+
+  <div id="string-history-wrap" style="display:none;margin-top:-6px;margin-bottom:12px;">
+    <label style="font-size:0.83rem;color:var(--muted);display:block;margin-bottom:5px;">Previous string setups for this member</label>
+    <select id="string-history-select" onchange="fillStringHistory(this)"
+            style="width:100%;padding:9px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.92rem;background:var(--card-bg,#fff);color:var(--text);">
+      <option value="">— Use a different setup —</option>
+    </select>
   </div>
 
   <div class="form-group" style="margin-top:4px;">
@@ -236,6 +244,10 @@
     document.getElementById('customer_name').value = '';
     document.getElementById('history-fill-wrap').style.display = 'none';
     document.getElementById('history-fill-select').innerHTML = '<option value="">— Select a previous restring —</option>';
+    document.getElementById('string-history-wrap').style.display = 'none';
+    document.getElementById('string-history-select').innerHTML = '<option value="">— Use a different setup —</option>';
+    document.getElementById('string').value  = '';
+    document.getElementById('tension').value = '';
 
     var cb = document.getElementById('non_member_check');
     var numField = document.getElementById('member_number');
@@ -311,26 +323,42 @@
   }
 
   function loadMemberHistory(memberNumber) {
-    var wrap = document.getElementById('history-fill-wrap');
-    var select = document.getElementById('history-fill-select');
-    if (!memberNumber) { wrap.style.display = 'none'; return; }
+    if (!memberNumber) {
+      document.getElementById('history-fill-wrap').style.display = 'none';
+      document.getElementById('string-history-wrap').style.display = 'none';
+      return;
+    }
     fetch('/admin/restrings/member-history?member_number=' + encodeURIComponent(memberNumber))
       .then(function(r) { return r.json(); })
-      .then(function(results) { populateHistorySelect(results); });
+      .then(function(results) { populateHistorySelect(results); })
+      .catch(function() {});
   }
 
   function loadNonMemberHistory(name) {
-    var wrap = document.getElementById('history-fill-wrap');
-    if (!name) { wrap.style.display = 'none'; return; }
+    if (!name) {
+      document.getElementById('history-fill-wrap').style.display = 'none';
+      document.getElementById('string-history-wrap').style.display = 'none';
+      return;
+    }
     fetch('/admin/restrings/non-member-history?name=' + encodeURIComponent(name))
       .then(function(r) { return r.json(); })
-      .then(function(results) { populateHistorySelect(results); });
+      .then(function(results) { populateHistorySelect(results); })
+      .catch(function() {});
   }
 
   function populateHistorySelect(results) {
-    var wrap = document.getElementById('history-fill-wrap');
-    var select = document.getElementById('history-fill-select');
-    if (!results.length) { wrap.style.display = 'none'; return; }
+    var wrap        = document.getElementById('history-fill-wrap');
+    var select      = document.getElementById('history-fill-select');
+    var strWrap     = document.getElementById('string-history-wrap');
+    var strSelect   = document.getElementById('string-history-select');
+
+    if (!results.length) {
+      wrap.style.display = 'none';
+      strWrap.style.display = 'none';
+      return;
+    }
+
+    // Full-job history dropdown (racquet + string + tension)
     select.innerHTML = '<option value="">— Select a previous restring —</option>';
     results.forEach(function(r, i) {
       var opt = document.createElement('option');
@@ -342,6 +370,37 @@
       select.appendChild(opt);
     });
     wrap.style.display = 'block';
+
+    // Auto-fill string + tension from most recent entry (if fields are empty)
+    var latest = results[0];
+    if (!document.getElementById('string').value)  document.getElementById('string').value  = latest.string;
+    if (!document.getElementById('tension').value) document.getElementById('tension').value = latest.tension;
+
+    // String+tension-only dropdown for quick override
+    // Deduplicate by string+tension combo
+    var seen = {}, dedupedStr = [];
+    results.forEach(function(r) {
+      var key = r.string + '||' + r.tension;
+      if (!seen[key]) { seen[key] = true; dedupedStr.push(r); }
+    });
+    strSelect.innerHTML = '<option value="">— Use a different setup —</option>';
+    dedupedStr.forEach(function(r, i) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = r.string + '  @  ' + r.tension + '  (' + r.date_in + ')';
+      opt.dataset.string  = r.string;
+      opt.dataset.tension = r.tension;
+      strSelect.appendChild(opt);
+    });
+    strWrap.style.display = 'block';
+  }
+
+  function fillStringHistory(select) {
+    var opt = select.options[select.selectedIndex];
+    if (!opt.value) return;
+    document.getElementById('string').value  = opt.dataset.string;
+    document.getElementById('tension').value = opt.dataset.tension;
+    select.value = '';
   }
 
   function fillFromHistory(select) {
