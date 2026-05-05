@@ -370,6 +370,31 @@ def restring_history_delete(restring_id):
     return redirect(url_for('restrings.restrings_history_view'))
 
 
+@restrings_bp.route('/stringer-report')
+@login_required
+def stringer_report():
+    from datetime import date
+    from collections import OrderedDict
+    db = get_db()
+    current_ym = date.today().strftime('%Y-%m')
+    rows = db.execute("""
+        SELECT strftime('%Y-%m', date_in) AS ym,
+               strung_by,
+               COUNT(*) AS job_count
+        FROM restrings
+        WHERE status IN ('complete','picked_up')
+          AND strung_by IS NOT NULL AND strung_by != ''
+          AND strftime('%Y-%m', date_in) >= '2026-04'
+          AND strftime('%Y-%m', date_in) < ?
+        GROUP BY ym, strung_by
+        ORDER BY ym DESC, job_count DESC
+    """, (current_ym,)).fetchall()
+    months = OrderedDict()
+    for r in rows:
+        months.setdefault(r['ym'], []).append({'name': r['strung_by'], 'jobs': r['job_count']})
+    return render_template('admin/stringer_report.html', months=months)
+
+
 @restrings_bp.route('/history')
 @login_required
 def restrings_history_view():

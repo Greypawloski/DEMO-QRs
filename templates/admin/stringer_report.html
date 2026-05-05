@@ -1,0 +1,48 @@
+{% extends "base_admin.html" %}
+{% block title %}Stringing Report{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">Stringing Report</h1>
+  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">← Dashboard</a>
+</div>
+
+{% set month_names = ['','January','February','March','April','May','June','July','August','September','October','November','December'] %}
+
+{% if months %}
+  {% for ym, stringers in months.items() %}
+    {% set parts = ym.split('-') %}
+    <div style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:24px;">
+      <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 16px;color:var(--accent);">
+        {{ month_names[parts[1]|int] }} {{ parts[0] }}
+      </h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Stringer</th>
+              <th style="text-align:center;">String Jobs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in stringers %}
+            <tr>
+              <td>{{ s.name }}</td>
+              <td style="text-align:center;font-weight:700;">{{ s.jobs }}</td>
+            </tr>
+            {% endfor %}
+            <tr style="border-top:2px solid var(--border);font-weight:700;">
+              <td>Total</td>
+              <td style="text-align:center;">{{ stringers | sum(attribute='jobs') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="empty-state">
+    <p>No completed months to report yet. Reports appear once a month has fully passed.</p>
+  </div>
+{% endif %}
+{% endblock %}
