@@ -243,8 +243,9 @@
       <div class="form-group">
         <label>Member Number</label>
         <input type="text" id="qco-member" name="member_number" required style="width:100%;">
-        <label style="font-weight:normal;margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
+        <label style="font-weight:normal;margin-top:8px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:0.9rem;">
           <input type="checkbox" id="qco-nonmember"
+                 style="width:auto;appearance:auto;-webkit-appearance:auto;padding:0;border:none;box-shadow:none;"
                  onchange="var m=document.getElementById('qco-member');m.value=this.checked?'Non-member':'';m.disabled=this.checked;">
           Non-member
         </label>
