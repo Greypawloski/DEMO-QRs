@@ -4,7 +4,7 @@ import zipfile
 from datetime import datetime, timedelta, timezone
 from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file, jsonify
 from pathlib import Path
-from database import get_db, format_phone, sync_member_phone
+from database import get_db, format_phone, sync_member_phone, member_flags
 from auth import login_required
 from qr_utils import generate_qr, generate_label, LABEL_DIR
 
@@ -119,6 +119,12 @@ def dashboard():
                              AND completed_at < datetime('now', '-7 days')) AS overdue_pickup
         FROM restrings
     """).fetchone()
+
+    flag_map = member_flags(db, [(r['customer_name'], r['member_number']) for r in active])
+    for r in active:
+        f = flag_map.get((r['customer_name'], r['member_number']), {'fn': False, 'fm': False})
+        r['flag_name']   = f['fn']
+        r['flag_number'] = f['fm']
 
     available_equipment = db.execute(
         """SELECT e.id, e.name, e.category FROM equipment e

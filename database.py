@@ -82,3 +82,49 @@ def sync_member_phone(db, member_number, submitted_phone):
     else:
         db.execute("UPDATE members_contact SET phone1 = ? WHERE id = ?", (formatted, row['id']))
     db.commit()
+
+
+def _name_words(name):
+    return frozenset(name.lower().replace(',', '').split())
+
+
+def member_flags(db, entries):
+    """
+    entries: [(customer_name, member_number), ...]
+    Returns {(customer_name, member_number): {'fn': bool, 'fm': bool}}
+      fn = flag next to name  (number valid but name doesn't match the directory record)
+      fm = flag next to member number  (number not found, or name found under different number)
+    Non-member entries are skipped.
+    """
+    to_check = [(n, m) for n, m in entries if m and m != 'Non-member']
+    if not to_check:
+        return {}
+
+    numbers = list({m for _, m in to_check})
+    ph = ','.join('?' * len(numbers))
+    by_num = {
+        r['member_number']: r['member_name']
+        for r in db.execute(
+            f'SELECT member_number, member_name FROM members_contact WHERE member_number IN ({ph})',
+            numbers
+        ).fetchall()
+    }
+    by_name = {
+        _name_words(r['member_name']): r['member_number']
+        for r in db.execute('SELECT member_number, member_name FROM members_contact').fetchall()
+    }
+
+    result = {}
+    for cname, mnum in to_check:
+        fn = fm = False
+        cwords = _name_words(cname)
+        if mnum in by_num:
+            dwords = _name_words(by_num[mnum])
+            if not (cwords == dwords or cwords.issubset(dwords) or dwords.issubset(cwords)):
+                fn = True
+        elif cwords in by_name:
+            fm = True   # name found but under a different number
+        else:
+            fn = fm = True  # neither found
+        result[(cname, mnum)] = {'fn': fn, 'fm': fm}
+    return result

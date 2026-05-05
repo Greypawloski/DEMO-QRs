@@ -73,8 +73,8 @@
 
         <!-- Customer details -->
         <div style="display:flex;flex-wrap:wrap;gap:6px 24px;font-size:0.9rem;margin-bottom:8px;">
-          <span><span style="color:var(--muted);">Name:</span> {{ row.customer_name }}</span>
-          <span><span style="color:var(--muted);">Member #:</span> {{ row.member_number }}</span>
+          <span><span style="color:var(--muted);">Name:</span> {{ row.customer_name }}{% if row.flag_name %} <span class="flag-badge" title="Name doesn't match the directory record for this member number">⚠</span>{% endif %}</span>
+          <span><span style="color:var(--muted);">Member #:</span> {{ row.member_number }}{% if row.flag_number %} <span class="flag-badge" title="Member number not found in directory">⚠</span>{% endif %}</span>
           {% if row.phone %}<span><span style="color:var(--muted);">Phone:</span> {{ row.phone }}</span>{% endif %}
           <span><span style="color:var(--muted);">Out:</span> {{ row.checked_out_at | central }}</span>
           <span><span style="color:var(--muted);">Due:</span>

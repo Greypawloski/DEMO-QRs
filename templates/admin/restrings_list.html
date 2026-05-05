@@ -131,10 +131,12 @@
               {% endif %}
             {% endif %}
             <strong style="font-size:1rem;">{{ row.customer_name }}</strong>
+            {% if mflags[row.id].fn %}<span class="flag-badge" title="Name doesn't match the directory record for this member number">⚠</span>{% endif %}
             {% if row.member_number == 'Non-member' %}
               <span style="background:#fce7f3;color:#9d174d;font-size:0.75rem;padding:2px 6px;border-radius:4px;white-space:nowrap;">Non-member</span>
             {% elif row.member_number %}
               <span class="text-muted" style="font-size:0.85rem;">#{{ row.member_number }}</span>
+              {% if mflags[row.id].fm %}<span class="flag-badge" title="Member number not found in directory">⚠</span>{% endif %}
             {% endif %}
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
