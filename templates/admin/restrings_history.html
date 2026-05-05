@@ -105,7 +105,12 @@
               <button class="btn btn-secondary btn-sm edit-date-btn"
                       data-id="{{ r.id }}"
                       data-date="{{ r.date_in }}"
-                      data-completed="{{ r.completed_at[:10] if r.completed_at else '' }}">Edit Dates</button>
+                      data-completed="{{ r.completed_at[:10] if r.completed_at else '' }}">Dates</button>
+              <button class="btn btn-secondary btn-sm edit-billing-btn"
+                      data-id="{{ r.id }}"
+                      data-receipt="{{ r.receipt or '' }}"
+                      data-charged="{{ r.charged or '' }}"
+                      data-additional="{{ r.additional_charges or '' }}">Billing</button>
               <button class="btn btn-danger btn-sm"
                       onclick="openHistoryDeleteModal({{ r.id }}, '{{ r.customer_name | e }} — {{ r.racquet | e }}')">Delete</button>
             </td>
@@ -148,6 +153,47 @@
   });
   function closeEditDateModal() {
     document.getElementById('edit-date-modal').style.display = 'none';
+  }
+</script>
+
+<!-- Edit Billing Modal -->
+<div id="edit-billing-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+    <h3 style="margin:0 0 16px;">Edit Billing</h3>
+    <form id="edit-billing-form" method="post">
+      <label style="display:block;font-weight:600;margin-bottom:4px;">Chit #</label>
+      <input type="text" name="receipt" id="edit-billing-receipt"
+             style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:12px;background:var(--card-bg,#fff);color:var(--text);">
+      <label style="display:block;font-weight:600;margin-bottom:4px;">Total</label>
+      <input type="text" name="charged" id="edit-billing-charged"
+             style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:12px;background:var(--card-bg,#fff);color:var(--text);">
+      <label style="display:block;font-weight:600;margin-bottom:4px;">Additional Charges</label>
+      <input type="text" name="additional_charges" id="edit-billing-additional"
+             style="width:100%;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:16px;background:var(--card-bg,#fff);color:var(--text);">
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" onclick="closeEditBillingModal()" class="btn btn-secondary">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.edit-billing-btn');
+    if (!btn) return;
+    var id         = btn.getAttribute('data-id');
+    var receipt    = btn.getAttribute('data-receipt');
+    var charged    = btn.getAttribute('data-charged');
+    var additional = btn.getAttribute('data-additional');
+    document.getElementById('edit-billing-form').action = '/admin/restrings/' + id + '/update-billing';
+    document.getElementById('edit-billing-receipt').value    = receipt;
+    document.getElementById('edit-billing-charged').value    = charged;
+    document.getElementById('edit-billing-additional').value = additional;
+    document.getElementById('edit-billing-modal').style.display = 'flex';
+  });
+  function closeEditBillingModal() {
+    document.getElementById('edit-billing-modal').style.display = 'none';
   }
 </script>
 

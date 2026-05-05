@@ -320,6 +320,21 @@ def restring_undo_pickup(restring_id):
     return redirect(url_for('restrings.list_restrings'))
 
 
+@restrings_bp.route('/<int:restring_id>/update-billing', methods=['POST'])
+@login_required
+def restring_update_billing(restring_id):
+    db = get_db()
+    receipt            = request.form.get('receipt', '').strip()
+    charged            = request.form.get('charged', '').strip()
+    additional_charges = request.form.get('additional_charges', '').strip()
+    db.execute(
+        "UPDATE restrings SET receipt=?, charged=?, additional_charges=? WHERE id=?",
+        (receipt or None, charged or None, additional_charges or None, restring_id)
+    )
+    db.commit()
+    return redirect(url_for('restrings.restrings_history_view'))
+
+
 @restrings_bp.route('/<int:restring_id>/update-date', methods=['POST'])
 @login_required
 def restring_update_date(restring_id):
