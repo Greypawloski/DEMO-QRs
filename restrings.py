@@ -462,7 +462,8 @@ def string_stock():
     strings = db.execute(
         'SELECT id, brand, model, string_type, color, gauges FROM strings_stock ORDER BY brand, model'
     ).fetchall()
-    return render_template('admin/strings_stock.html', strings=strings)
+    return render_template('admin/strings_stock.html', strings=strings,
+                           pin_error_id=None, pin_error_name=None)
 
 
 @restrings_bp.route('/string-stock/add', methods=['POST'])
@@ -486,7 +487,18 @@ def string_stock_add():
 @restrings_bp.route('/string-stock/<int:stock_id>/delete', methods=['POST'])
 @login_required
 def string_stock_delete(stock_id):
+    from flask import current_app
     db = get_db()
+    row = db.execute('SELECT id, brand, model FROM strings_stock WHERE id = ?', (stock_id,)).fetchone()
+    if not row:
+        return redirect(url_for('restrings.string_stock'))
+    if request.form.get('pin') != current_app.config['RETIRE_PIN']:
+        strings = db.execute(
+            'SELECT id, brand, model, string_type, color, gauges FROM strings_stock ORDER BY brand, model'
+        ).fetchall()
+        return render_template('admin/strings_stock.html', strings=strings,
+                               pin_error_id=stock_id,
+                               pin_error_name=row['brand'] + ' ' + row['model'])
     db.execute('DELETE FROM strings_stock WHERE id = ?', (stock_id,))
     db.commit()
     return redirect(url_for('restrings.string_stock'))

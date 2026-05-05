@@ -82,10 +82,8 @@
         <td>{{ s.color or '—' }}</td>
         <td>{{ s.gauges or '—' }}</td>
         <td>
-          <form method="post" action="{{ url_for('restrings.string_stock_delete', stock_id=s.id) }}"
-                onsubmit="return confirm('Remove {{ s.brand | e }} {{ s.model | e }} from inventory?')">
-            <button type="submit" class="btn btn-danger btn-sm">Remove</button>
-          </form>
+          <button type="button" class="btn btn-danger btn-sm"
+                  onclick="openRemoveModal({{ s.id }}, '{{ s.brand | e }} {{ s.model | e }}')">Remove</button>
         </td>
       </tr>
       {% endfor %}
@@ -98,4 +96,43 @@
   <p>No strings in inventory yet. Add one above.</p>
 </div>
 {% endif %}
+
+<div id="remove-string-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal-panel" style="background:#fff;border-radius:12px;padding:32px 28px;max-width:340px;width:90%;text-align:center;">
+    <h2 style="font-size:1.2rem;margin-bottom:6px;">Remove String</h2>
+    <p id="remove-string-name" style="color:var(--muted);margin-bottom:20px;font-size:0.95rem;"></p>
+    <form id="remove-string-form" method="post">
+      <div class="form-group" style="text-align:left;">
+        <label for="remove-string-pin">Enter PIN to confirm</label>
+        <input type="password" id="remove-string-pin" name="pin"
+               inputmode="numeric" maxlength="10"
+               style="font-size:1.4rem;letter-spacing:0.2em;text-align:center;width:100%;">
+        <p id="remove-string-pin-error" style="display:none;color:var(--red);font-size:0.9rem;margin-top:6px;">Incorrect PIN. Try again.</p>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-danger" style="flex:1;">Remove</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('remove-string-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openRemoveModal(id, name) {
+    document.getElementById('remove-string-name').textContent = name;
+    document.getElementById('remove-string-form').action = '/admin/restrings/string-stock/' + id + '/delete';
+    document.getElementById('remove-string-pin').value = '';
+    document.getElementById('remove-string-pin-error').style.display = 'none';
+    document.getElementById('remove-string-modal').style.display = 'flex';
+    document.getElementById('remove-string-pin').focus();
+  }
+  {% if pin_error_id %}
+    openRemoveModal({{ pin_error_id }}, {{ pin_error_name | tojson }});
+    document.getElementById('remove-string-pin-error').style.display = 'block';
+    var pinEl = document.getElementById('remove-string-pin');
+    pinEl.classList.add('shake');
+    pinEl.addEventListener('animationend', function() { pinEl.classList.remove('shake'); }, { once: true });
+  {% endif %}
+</script>
 {% endblock %}
