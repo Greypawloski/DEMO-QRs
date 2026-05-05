@@ -340,13 +340,13 @@ def restring_update_date(restring_id):
 def restrings_history_view():
     db = get_db()
     months = db.execute(
-        "SELECT DISTINCT substr(date_in,1,7) AS ym FROM restrings WHERE status='picked_up' ORDER BY ym DESC"
+        "SELECT DISTINCT substr(date_in,1,7) AS ym FROM restrings WHERE status IN ('complete','picked_up') ORDER BY ym DESC"
     ).fetchall()
     month_list = [r['ym'] for r in months]
     qall  = request.args.get('qall',  '').strip()
     qallb = request.args.get('qallb', '').strip()
     if qall or qallb:
-        sql = "SELECT * FROM restrings WHERE status='picked_up'"
+        sql = "SELECT * FROM restrings WHERE status IN ('complete','picked_up')"
         params = []
         if qall:
             sql += " AND (customer_name LIKE ? OR member_number LIKE ?)"
@@ -360,7 +360,7 @@ def restrings_history_view():
     selected = request.args.get('ym', month_list[0] if month_list else '')
     q  = request.args.get('q',  '').strip()
     qs = request.args.get('qs', '').strip()
-    sql  = "SELECT * FROM restrings WHERE status='picked_up' AND substr(date_in,1,7)=?"
+    sql  = "SELECT * FROM restrings WHERE status IN ('complete','picked_up') AND substr(date_in,1,7)=?"
     params = [selected]
     if q:
         sql += " AND (customer_name LIKE ? OR member_number LIKE ?)"
@@ -378,7 +378,7 @@ def restrings_history_view():
 def restrings_export_csv():
     db = get_db()
     rows = db.execute(
-        "SELECT * FROM restrings WHERE status = 'picked_up' ORDER BY created_at DESC"
+        "SELECT * FROM restrings WHERE status IN ('complete','picked_up') ORDER BY created_at DESC"
     ).fetchall()
     buf = io.StringIO()
     w = csv.writer(buf)

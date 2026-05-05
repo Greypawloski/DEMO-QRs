@@ -59,6 +59,7 @@
     <table class="data-table">
       <thead>
         <tr>
+          <th>Status</th>
           <th>Name</th>
           <th>Racquet</th>
           <th>String</th>
@@ -74,6 +75,13 @@
       <tbody id="history-tbody">
         {% for r in rows %}
           <tr>
+            <td style="white-space:nowrap;">
+              {% if r.status == 'complete' %}
+                <span style="background:#bbf7d0;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;">Ready</span>
+              {% else %}
+                <span style="background:#e0e7ff;color:#3730a3;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;">Picked Up</span>
+              {% endif %}
+            </td>
             <td>
               {{ r.customer_name }}
               {% if r.member_number == 'Non-member' %}
