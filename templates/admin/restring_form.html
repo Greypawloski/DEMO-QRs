@@ -472,7 +472,13 @@
       fetch('/admin/restrings/string-stock-check?q=' + encodeURIComponent(val.trim()))
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          warn.style.display = data.in_stock ? 'none' : 'block';
+          if (data.in_stock) {
+            warn.style.display = 'none';
+          } else {
+            var names = (data.not_found || []).map(function(s) { return '"' + s + '"'; }).join(' and ');
+            warn.textContent = '⚠ ' + (names ? names + ' may' : 'String may') + ' not be in stock — verify before saving';
+            warn.style.display = 'block';
+          }
         })
         .catch(function() {});
     }, 400);
