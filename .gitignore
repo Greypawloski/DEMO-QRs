@@ -3,3 +3,7 @@
 __pycache__/
 .env
 static/qrcodes/*.png
+tennis_strings_chart.pdf
+merge_member.py
+read_pdf.py
+import_strings.py

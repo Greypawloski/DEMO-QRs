@@ -99,8 +99,11 @@
     <div class="form-group" style="position:relative;">
       <label for="string">String *</label>
       <input type="text" id="string" name="string" value="{{ item.string if item else '' }}" placeholder="e.g. Luxilon Alu Power" required
-             oninput="acSuggest('string',this.value)" autocomplete="off">
+             oninput="acSuggest('string',this.value); stockCheck(this.value)" autocomplete="off">
       <div id="string-dropdown" style="display:none;position:absolute;left:0;right:0;background:var(--card-bg,#fff);border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
+      <div id="string-stock-warn" style="display:none;margin-top:6px;padding:6px 10px;background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;font-size:0.85rem;color:#92400e;">
+        ⚠ String may not be in stock — verify before saving
+      </div>
     </div>
     <div class="form-group">
       <label for="tension">Tension *</label>
@@ -447,17 +450,38 @@
             var div = document.createElement('div');
             div.style.cssText = 'padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:0.92rem;color:var(--text);';
             div.textContent = s;
-            div.onmousedown = function(e) {
+            div.onmousedown = (function(s) { return function(e) {
               e.preventDefault();
               document.getElementById(field).value = s;
               dd.style.display = 'none';
-            };
+              if (field === 'string') stockCheck(s);
+            }; })(s);
             dd.appendChild(div);
           });
           dd.style.display = 'block';
         });
     }, 120);
   }
+
+  var stockTimer;
+  function stockCheck(val) {
+    clearTimeout(stockTimer);
+    var warn = document.getElementById('string-stock-warn');
+    if (val.trim().length < 3) { warn.style.display = 'none'; return; }
+    stockTimer = setTimeout(function() {
+      fetch('/admin/restrings/string-stock-check?q=' + encodeURIComponent(val.trim()))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          warn.style.display = data.in_stock ? 'none' : 'block';
+        })
+        .catch(function() {});
+    }, 400);
+  }
+  // Also re-check when an autocomplete suggestion is selected
+  var _origAcMousedown = null;
+  document.getElementById('string').addEventListener('change', function() {
+    stockCheck(this.value);
+  });
 
   {% if not item and prefill %}
   (function() {

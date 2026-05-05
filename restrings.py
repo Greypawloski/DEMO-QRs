@@ -56,6 +56,24 @@ def racquet_suggest():
     return jsonify([r[0] for r in rows])
 
 
+@restrings_bp.route('/string-stock-check')
+@login_required
+def string_stock_check():
+    from flask import jsonify
+    q = request.args.get('q', '').strip().lower()
+    if len(q) < 3:
+        return jsonify({'in_stock': True, 'match': None})
+    db = get_db()
+    rows = db.execute('SELECT brand, model FROM strings_stock').fetchall()
+    for r in rows:
+        brand = r['brand'].lower()
+        model = r['model'].lower()
+        full  = brand + ' ' + model
+        if q == full or q == model or q in full or model in q:
+            return jsonify({'in_stock': True, 'match': r['brand'] + ' ' + r['model']})
+    return jsonify({'in_stock': False, 'match': None})
+
+
 @restrings_bp.route('/string-suggest')
 @login_required
 def string_suggest():
