@@ -335,6 +335,26 @@ def restring_update_date(restring_id):
     return redirect(url_for('restrings.restrings_history_view'))
 
 
+@restrings_bp.route('/<int:restring_id>/history-delete', methods=['POST'])
+@login_required
+def restring_history_delete(restring_id):
+    from flask import current_app, session
+    db = get_db()
+    job = db.execute("SELECT customer_name, racquet FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    if not job:
+        return redirect(url_for('restrings.restrings_history_view'))
+    if request.form.get('pin') != current_app.config.get('RETIRE_PIN', ''):
+        return redirect(url_for('restrings.restrings_history_view',
+                                pin_error_id=restring_id,
+                                pin_error_name=f"{job['customer_name']} — {job['racquet']}"))
+    db.execute("DELETE FROM restrings WHERE id=?", (restring_id,))
+    staff = session.get('staff_name', 'Unknown')
+    db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?,?,?)",
+               (staff, 'delete_history', f"Deleted restring #{restring_id}: {job['customer_name']} — {job['racquet']}"))
+    db.commit()
+    return redirect(url_for('restrings.restrings_history_view'))
+
+
 @restrings_bp.route('/history')
 @login_required
 def restrings_history_view():
@@ -356,7 +376,8 @@ def restrings_history_view():
             params.append(f'%{qallb}%')
         sql += " ORDER BY date_in DESC"
         rows = db.execute(sql, params).fetchall()
-        return render_template('admin/restrings_history.html', rows=rows, months=month_list, selected='')
+        return render_template('admin/restrings_history.html', rows=rows, months=month_list, selected='',
+                               pin_error_id=None, pin_error_name='')
     selected = request.args.get('ym', month_list[0] if month_list else '')
     q  = request.args.get('q',  '').strip()
     qs = request.args.get('qs', '').strip()
@@ -370,7 +391,9 @@ def restrings_history_view():
         params.append(f'%{qs}%')
     sql += " ORDER BY date_in DESC"
     rows = db.execute(sql, params).fetchall() if selected else []
-    return render_template('admin/restrings_history.html', rows=rows, months=month_list, selected=selected)
+    return render_template('admin/restrings_history.html', rows=rows, months=month_list, selected=selected,
+                           pin_error_id=request.args.get('pin_error_id'),
+                           pin_error_name=request.args.get('pin_error_name', ''))
 
 
 @restrings_bp.route('/export-csv')
