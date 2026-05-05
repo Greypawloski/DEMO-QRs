@@ -284,14 +284,16 @@
     var form = btn.closest('form');
     var card = btn.closest('.anim-card');
     if (card) {
-      card.style.transition = 'transform 0.32s ease, opacity 0.22s ease';
+      card.style.animation = 'none';  // lift fill-mode lock so inline transform takes effect
+      card.offsetHeight;              // force reflow
+      card.style.transition = 'transform 0.35s ease, opacity 0.25s ease';
       card.style.transformOrigin = 'center center';
       card.style.transform = 'perspective(800px) rotateY(90deg) scale(0.92)';
-      card.style.opacity = '0.2';
+      card.style.opacity = '0.15';
       setTimeout(function() {
         sessionStorage.setItem('show_confetti', '1');
         form.submit();
-      }, 340);
+      }, 380);
     } else {
       sessionStorage.setItem('show_confetti', '1');
       form.submit();
