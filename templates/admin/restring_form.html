@@ -528,6 +528,9 @@
       memberField.style.cursor  = 'not-allowed';
       if (nonMemberCb) { nonMemberCb.checked = true; }
 
+      document.getElementById('receipt').value = 'PROMO';
+      document.getElementById('charged').value = 'PROMO';
+
       searchWrap.style.display  = 'none';
       modeToggle.style.display  = 'none';
     } else {
@@ -544,6 +547,11 @@
       memberField.style.opacity = '';
       memberField.style.cursor  = '';
       if (nonMemberCb) { nonMemberCb.checked = false; }
+
+      var receiptField = document.getElementById('receipt');
+      var chargedField = document.getElementById('charged');
+      if (receiptField.value === 'PROMO') receiptField.value = '';
+      if (chargedField.value === 'PROMO') chargedField.value = '';
 
       searchWrap.style.display = '';
       modeToggle.style.display = '';
