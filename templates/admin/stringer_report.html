@@ -2,9 +2,31 @@
 {% block title %}Stringing Report{% endblock %}
 
 {% block content %}
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .print-header { display: block !important; }
+    body, .page-wrap { background: #fff !important; color: #111 !important; }
+    .data-table { border-collapse: collapse; width: 100%; }
+    .data-table th, .data-table td { border: 1px solid #ccc; padding: 8px 12px; }
+    .report-card { break-inside: avoid; border: 1px solid #ccc !important; margin-bottom: 20px; }
+  }
+  .print-header { display: none; text-align: center; margin-bottom: 20px; }
+  .print-header h2 { font-size: 1.2rem; }
+  .print-header p  { font-size: 0.85rem; color: #555; }
+</style>
+
+<div class="no-print" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Stringing Report</h1>
-  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">← Dashboard</a>
+  <div style="display:flex;gap:8px;">
+    <button onclick="window.print()" class="btn btn-secondary btn-sm">Print Report</button>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">← Dashboard</a>
+  </div>
+</div>
+
+<div class="print-header">
+  <h2>Stringing Report</h2>
+  <p>Printed {{ now if now is defined else '' }}</p>
 </div>
 
 {% set month_names = ['','January','February','March','April','May','June','July','August','September','October','November','December'] %}
@@ -12,7 +34,7 @@
 {% if months %}
   {% for ym, stringers in months.items() %}
     {% set parts = ym.split('-') %}
-    <div style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:24px;">
+    <div class="report-card" style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:24px;">
       <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 16px;color:var(--accent);">
         {{ month_names[parts[1]|int] }} {{ parts[0] }}
       </h2>
