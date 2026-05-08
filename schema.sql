@@ -81,7 +81,13 @@ CREATE TABLE IF NOT EXISTS members_contact (
     email1        TEXT,
     email2        TEXT,
     phone1        TEXT,
-    phone2        TEXT
+    phone2        TEXT,
+    notes         TEXT,
+    racquet_used  TEXT,
+    shoe_size     TEXT,
+    skirt_short_size TEXT,
+    hat_size      TEXT,
+    clothing_brand TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_members_contact_name   ON members_contact(member_name);

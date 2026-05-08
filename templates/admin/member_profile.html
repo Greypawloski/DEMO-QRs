@@ -23,7 +23,12 @@
             data-email2="{{ member.email2 or '' }}"
             data-phone1="{{ member.phone1 or '' }}"
             data-phone2="{{ member.phone2 or '' }}"
-            data-notes="{{ member.notes or '' }}">Edit Info</button>
+            data-notes="{{ member.notes or '' }}"
+            data-racquet="{{ member.racquet_used or '' }}"
+            data-shoe="{{ member.shoe_size or '' }}"
+            data-skirt="{{ member.skirt_short_size or '' }}"
+            data-hat="{{ member.hat_size or '' }}"
+            data-brand="{{ member.clothing_brand or '' }}">Edit Info</button>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:0.9rem;">
     <div><span style="color:var(--muted);">Phone 1</span><br>{{ member.phone1 or '—' }}</div>
@@ -35,6 +40,18 @@
   <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
     <span style="color:var(--muted);font-size:0.85rem;">Notes</span><br>
     <span style="background:#fef9c3;color:#854d0e;font-size:0.88rem;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:4px;">{{ member.notes }}</span>
+  </div>
+  {% endif %}
+  {% if member.racquet_used or member.shoe_size or member.skirt_short_size or member.hat_size or member.clothing_brand %}
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+    <span style="color:var(--muted);font-size:0.85rem;font-weight:600;display:block;margin-bottom:8px;">Preferences</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:0.9rem;">
+      {% if member.racquet_used %}<div><span style="color:var(--muted);">Racquet</span><br>{{ member.racquet_used }}</div>{% endif %}
+      {% if member.shoe_size %}<div><span style="color:var(--muted);">Shoe Size</span><br>{{ member.shoe_size }}</div>{% endif %}
+      {% if member.skirt_short_size %}<div><span style="color:var(--muted);">Skirt/Short Size</span><br>{{ member.skirt_short_size }}</div>{% endif %}
+      {% if member.hat_size %}<div><span style="color:var(--muted);">Hat Size</span><br>{{ member.hat_size }}</div>{% endif %}
+      {% if member.clothing_brand %}<div><span style="color:var(--muted);">Fav. Clothing Brand</span><br>{{ member.clothing_brand }}</div>{% endif %}
+    </div>
   </div>
   {% endif %}
 </div>
@@ -136,6 +153,14 @@
         <div class="form-group"><label>Phone 2</label><input type="tel" id="edit-phone2" name="phone2" style="width:100%;"></div>
       </div>
       <div class="form-group"><label>Notes</label><input type="text" id="edit-notes" name="notes" style="width:100%;"></div>
+      <div style="border-top:1px solid var(--border);margin:16px 0 12px;padding-top:4px;font-size:0.85rem;font-weight:600;color:var(--muted);">Preferences</div>
+      <div class="form-group"><label>Racquet Used</label><input type="text" id="edit-racquet" name="racquet_used" style="width:100%;" placeholder="e.g. Wilson Blade 98"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>Shoe Size</label><input type="text" id="edit-shoe" name="shoe_size" style="width:100%;" placeholder="e.g. 9.5 W"></div>
+        <div class="form-group"><label>Skirt/Short Size</label><input type="text" id="edit-skirt" name="skirt_short_size" style="width:100%;" placeholder="e.g. M"></div>
+        <div class="form-group"><label>Hat Size</label><input type="text" id="edit-hat" name="hat_size" style="width:100%;" placeholder="e.g. S/M"></div>
+        <div class="form-group"><label>Fav. Clothing Brand</label><input type="text" id="edit-brand" name="clothing_brand" style="width:100%;" placeholder="e.g. Nike"></div>
+      </div>
       <div style="display:flex;gap:12px;margin-top:8px;">
         <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
         <button type="button" class="btn btn-secondary" style="flex:1;"
@@ -158,6 +183,11 @@
     document.getElementById('edit-phone1').value        = btn.dataset.phone1;
     document.getElementById('edit-phone2').value        = btn.dataset.phone2;
     document.getElementById('edit-notes').value         = btn.dataset.notes || '';
+    document.getElementById('edit-racquet').value       = btn.dataset.racquet || '';
+    document.getElementById('edit-shoe').value          = btn.dataset.shoe || '';
+    document.getElementById('edit-skirt').value         = btn.dataset.skirt || '';
+    document.getElementById('edit-hat').value           = btn.dataset.hat || '';
+    document.getElementById('edit-brand').value         = btn.dataset.brand || '';
     document.getElementById('member-edit-form').action  = '/admin/members/' + btn.dataset.id + '/edit';
     document.getElementById('member-edit-modal').style.display = 'flex';
   });
