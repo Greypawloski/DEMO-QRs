@@ -233,7 +233,6 @@ def restring_edit(restring_id):
     if request.method == 'POST':
         member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
         phone = format_phone(request.form.get('phone', '').strip())
-        print(f"[EDIT DEBUG] no_sms raw={request.form.get('no_sms')!r} customer_own_string={request.form.get('customer_own_string')!r}", flush=True)
         db.execute(
             """
             UPDATE restrings SET
@@ -476,14 +475,10 @@ def restring_status(restring_id):
         db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
                    (staff, label, f"{job['customer_name']} — {job['racquet']}"))
         if new_status == 'complete' and job['phone'] and not job['no_sms']:
-            print(f"[SMS DEBUG] Attempting send to {job['phone']} for {job['customer_name']}", flush=True)
             from sms import send_sms
             send_sms(job['phone'],
                      f"Hi {job['customer_name'].split()[0]}, your racquet is ready for pickup at the SACC Tennis Shop. "
                      f"Please stop by during business hours. Reply STOP to opt out.")
-            print(f"[SMS DEBUG] send_sms returned", flush=True)
-        else:
-            print(f"[SMS DEBUG] Skipped — status={new_status} phone={job['phone']!r} no_sms={job['no_sms']}", flush=True)
     db.commit()
     return redirect(url_for('restrings.list_restrings'))
 
