@@ -233,6 +233,7 @@ def restring_edit(restring_id):
     if request.method == 'POST':
         member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
         phone = format_phone(request.form.get('phone', '').strip())
+        print(f"[EDIT DEBUG] no_sms raw={request.form.get('no_sms')!r} customer_own_string={request.form.get('customer_own_string')!r}", flush=True)
         db.execute(
             """
             UPDATE restrings SET
