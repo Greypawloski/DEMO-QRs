@@ -17,6 +17,17 @@
     </div>
   </div>
 
+  <!-- Demo checkbox -->
+  <div class="form-group" style="margin-bottom:12px;">
+    <label style="display:flex;align-items:center;gap:10px;font-weight:400;cursor:pointer;">
+      <input type="checkbox" id="demo_check" name="demo_restring" value="1"
+             {% if item and item.customer_name == 'Demo' %}checked{% endif %}
+             onchange="toggleDemo(this)"
+             style="width:18px;height:18px;cursor:pointer;accent-color:var(--accent);appearance:auto;-webkit-appearance:checkbox;">
+      <span><strong>Demo restring</strong> <span style="color:var(--muted);font-size:0.88rem;">(club demo racquet, no customer info needed)</span></span>
+    </label>
+  </div>
+
   <!-- Member / Non-Member toggle -->
   <div style="display:flex;gap:0;margin-bottom:16px;border:2px solid #1a5c35;border-radius:8px;overflow:hidden;">
     <button type="button" id="mode-member-btn" onclick="setMode('member')"
@@ -488,11 +499,62 @@
         .catch(function() {});
     }, 400);
   }
-  // Also re-check when an autocomplete suggestion is selected
-  var _origAcMousedown = null;
   document.getElementById('string').addEventListener('change', function() {
     stockCheck(this.value);
   });
+
+  function toggleDemo(cb) {
+    var nameField   = document.getElementById('customer_name');
+    var phoneField  = document.getElementById('phone');
+    var memberField = document.getElementById('member_number');
+    var searchWrap  = document.getElementById('search-wrap');
+    var modeToggle  = searchWrap.previousElementSibling;
+    var nonMemberCb = document.getElementById('non_member_check');
+
+    if (cb.checked) {
+      nameField.value    = 'Demo';
+      nameField.readOnly = true;
+      nameField.style.opacity = '0.5';
+
+      phoneField.value    = '';
+      phoneField.required = false;
+      phoneField.disabled = true;
+      phoneField.style.opacity = '0.4';
+      phoneField.style.cursor  = 'not-allowed';
+
+      memberField.value   = '';
+      memberField.disabled = true;
+      memberField.style.opacity = '0.4';
+      memberField.style.cursor  = 'not-allowed';
+      if (nonMemberCb) { nonMemberCb.checked = true; }
+
+      searchWrap.style.display  = 'none';
+      modeToggle.style.display  = 'none';
+    } else {
+      nameField.value    = '';
+      nameField.readOnly = false;
+      nameField.style.opacity = '';
+
+      phoneField.disabled = false;
+      phoneField.required = true;
+      phoneField.style.opacity = '';
+      phoneField.style.cursor  = '';
+
+      memberField.disabled = false;
+      memberField.style.opacity = '';
+      memberField.style.cursor  = '';
+      if (nonMemberCb) { nonMemberCb.checked = false; }
+
+      searchWrap.style.display = '';
+      modeToggle.style.display = '';
+    }
+  }
+
+  // Apply demo state on page load (edit mode where customer_name == 'Demo')
+  (function() {
+    var cb = document.getElementById('demo_check');
+    if (cb && cb.checked) toggleDemo(cb);
+  })();
 
   {% if not item and prefill %}
   (function() {
