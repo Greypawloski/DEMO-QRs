@@ -1,0 +1,89 @@
+{% extends "base_admin.html" %}
+{% block title %}Employee Roster{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">Employee Roster</h1>
+</div>
+
+<!-- Add employee -->
+<div style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:28px;max-width:480px;">
+  <h2 style="font-size:1rem;margin-bottom:14px;">Add Employee</h2>
+  <form method="post" action="{{ url_for('admin.roster_add') }}" style="display:flex;gap:10px;">
+    <input type="text" name="name" required placeholder="Full name"
+           style="flex:1;padding:9px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;background:var(--card-bg,#fff);color:var(--text);">
+    <button type="submit" class="btn btn-primary">Add</button>
+  </form>
+</div>
+
+<!-- Staff list -->
+{% if staff %}
+<div style="max-width:480px;">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Added</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in staff %}
+        <tr>
+          <td><strong>{{ s.name }}</strong></td>
+          <td style="color:var(--muted);font-size:0.88rem;">{{ s.created_at[:10] }}</td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm"
+                    onclick="openRemoveModal({{ s.id }}, '{{ s.name | e }}')">Remove</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p style="color:var(--muted);font-size:0.85rem;margin-top:10px;">{{ staff|length }} employee{{ 's' if staff|length != 1 }}</p>
+</div>
+{% else %}
+<div class="empty-state" style="max-width:480px;">
+  <p>No employees on the roster yet. Add one above.</p>
+</div>
+{% endif %}
+
+<!-- Remove modal -->
+<div id="remove-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal-panel" style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:32px 28px;max-width:320px;width:90%;text-align:center;">
+    <h2 style="font-size:1.2rem;margin-bottom:6px;">Remove Employee</h2>
+    <p id="remove-name" style="color:var(--muted);margin-bottom:20px;font-size:0.95rem;"></p>
+    <form id="remove-form" method="post">
+      <div class="form-group" style="text-align:left;">
+        <label for="remove-pin">Enter PIN to confirm</label>
+        <input type="password" id="remove-pin" name="pin"
+               inputmode="numeric" maxlength="10"
+               style="font-size:1.4rem;letter-spacing:0.2em;text-align:center;width:100%;">
+        {% if pin_error %}
+        <p style="color:var(--red);font-size:0.9rem;margin-top:6px;">Incorrect PIN. Try again.</p>
+        {% endif %}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-danger" style="flex:1;">Remove</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('remove-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openRemoveModal(id, name) {
+    document.getElementById('remove-name').textContent = name;
+    document.getElementById('remove-form').action = '/admin/roster/' + id + '/remove';
+    document.getElementById('remove-pin').value = '';
+    document.getElementById('remove-modal').style.display = 'flex';
+    document.getElementById('remove-pin').focus();
+  }
+  {% if pin_error %}
+    document.getElementById('remove-modal').style.display = 'flex';
+  {% endif %}
+</script>
+{% endblock %}

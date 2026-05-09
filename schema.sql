@@ -93,6 +93,12 @@ CREATE TABLE IF NOT EXISTS members_contact (
 CREATE INDEX IF NOT EXISTS idx_members_contact_name   ON members_contact(member_name);
 CREATE INDEX IF NOT EXISTS idx_members_contact_number ON members_contact(member_number);
 
+CREATE TABLE IF NOT EXISTS staff (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS activity_log (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     staff_name TEXT NOT NULL,

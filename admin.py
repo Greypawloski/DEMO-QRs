@@ -921,3 +921,39 @@ def regenerate_all_qr():
         db.execute("UPDATE equipment SET qr_filename = ? WHERE id = ?", (filename, item['id']))
     db.commit()
     return redirect(url_for('admin.equipment_list'))
+
+
+@admin_bp.route('/roster')
+@login_required
+def roster():
+    db = get_db()
+    staff = db.execute("SELECT * FROM staff ORDER BY name ASC").fetchall()
+    pin_error = request.args.get('pin_error') == '1'
+    return render_template('admin/roster.html', staff=staff, pin_error=pin_error)
+
+
+@admin_bp.route('/roster/add', methods=['POST'])
+@login_required
+def roster_add():
+    name = request.form.get('name', '').strip()
+    if name:
+        db = get_db()
+        try:
+            db.execute("INSERT INTO staff (name) VALUES (?)", (name,))
+            db.commit()
+        except Exception:
+            pass
+    return redirect(url_for('admin.roster'))
+
+
+@admin_bp.route('/roster/<int:staff_id>/remove', methods=['POST'])
+@login_required
+def roster_remove(staff_id):
+    import config
+    pin = request.form.get('pin', '').strip()
+    if pin != config.RETIRE_PIN:
+        return redirect(url_for('admin.roster', pin_error='1'))
+    db = get_db()
+    db.execute("DELETE FROM staff WHERE id=?", (staff_id,))
+    db.commit()
+    return redirect(url_for('admin.roster'))

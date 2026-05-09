@@ -1,5 +1,6 @@
 from functools import wraps
 from flask import session, redirect, url_for, request, render_template, current_app, Blueprint
+from database import get_db
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -22,7 +23,10 @@ def login():
             session['staff_name'] = request.form.get('staff_name', '').strip() or 'Unknown'
             return redirect(url_for('admin.dashboard'))
         error = 'Incorrect password.'
-    staff_names = current_app.config.get('STAFF_NAMES', [])
+    try:
+        staff_names = [r['name'] for r in get_db().execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
+    except Exception:
+        staff_names = current_app.config.get('STAFF_NAMES', [])
     return render_template('admin/login.html', error=error, staff_names=staff_names)
 
 
