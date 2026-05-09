@@ -28,7 +28,8 @@
             data-shoe="{{ member.shoe_size or '' }}"
             data-skirt="{{ member.skirt_short_size or '' }}"
             data-hat="{{ member.hat_size or '' }}"
-            data-brand="{{ member.clothing_brand or '' }}">Edit Info</button>
+            data-brand="{{ member.clothing_brand or '' }}"
+            data-grip="{{ member.grip_size or '' }}">Edit Info</button>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:0.9rem;">
     <div><span style="color:var(--muted);">Phone 1</span><br>{{ member.phone1 or '—' }}</div>
@@ -47,6 +48,7 @@
     <span style="color:var(--muted);font-size:0.85rem;font-weight:600;display:block;margin-bottom:8px;">Preferences</span>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:0.9rem;">
       {% if member.racquet_used %}<div><span style="color:var(--muted);">Racquet</span><br>{{ member.racquet_used }}</div>{% endif %}
+      {% if member.grip_size %}<div><span style="color:var(--muted);">Grip Size</span><br>{{ member.grip_size }}</div>{% endif %}
       {% if member.shoe_size %}<div><span style="color:var(--muted);">Shoe Size</span><br>{{ member.shoe_size }}</div>{% endif %}
       {% if member.skirt_short_size %}<div><span style="color:var(--muted);">Skirt/Short Size</span><br>{{ member.skirt_short_size }}</div>{% endif %}
       {% if member.hat_size %}<div><span style="color:var(--muted);">Hat Size</span><br>{{ member.hat_size }}</div>{% endif %}
@@ -156,6 +158,7 @@
       <div style="border-top:1px solid var(--border);margin:16px 0 12px;padding-top:4px;font-size:0.85rem;font-weight:600;color:var(--muted);">Preferences</div>
       <div class="form-group"><label>Racquet Used</label><input type="text" id="edit-racquet" name="racquet_used" style="width:100%;" placeholder="e.g. Wilson Blade 98"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group"><label>Grip Size</label><input type="text" id="edit-grip" name="grip_size" style="width:100%;" placeholder="e.g. 4 1/4"></div>
         <div class="form-group"><label>Shoe Size</label><input type="text" id="edit-shoe" name="shoe_size" style="width:100%;" placeholder="e.g. 9.5 W"></div>
         <div class="form-group"><label>Skirt/Short Size</label><input type="text" id="edit-skirt" name="skirt_short_size" style="width:100%;" placeholder="e.g. M"></div>
         <div class="form-group"><label>Hat Size</label><input type="text" id="edit-hat" name="hat_size" style="width:100%;" placeholder="e.g. S/M"></div>
@@ -188,6 +191,7 @@
     document.getElementById('edit-skirt').value         = btn.dataset.skirt || '';
     document.getElementById('edit-hat').value           = btn.dataset.hat || '';
     document.getElementById('edit-brand').value         = btn.dataset.brand || '';
+    document.getElementById('edit-grip').value          = btn.dataset.grip || '';
     document.getElementById('member-edit-form').action  = '/admin/members/' + btn.dataset.id + '/edit';
     document.getElementById('member-edit-modal').style.display = 'flex';
   });

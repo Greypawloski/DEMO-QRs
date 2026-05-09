@@ -583,13 +583,14 @@ def member_edit(member_id):
     skirt_short_size = request.form.get('skirt_short_size', '').strip() or None
     hat_size       = request.form.get('hat_size', '').strip() or None
     clothing_brand = request.form.get('clothing_brand', '').strip() or None
+    grip_size      = request.form.get('grip_size', '').strip() or None
     q              = request.form.get('q', '')
     if name and number:
         db.execute(
             """UPDATE members_contact SET member_name=?, member_number=?, email1=?, email2=?, phone1=?, phone2=?,
-               notes=?, racquet_used=?, shoe_size=?, skirt_short_size=?, hat_size=?, clothing_brand=? WHERE id=?""",
+               notes=?, racquet_used=?, shoe_size=?, skirt_short_size=?, hat_size=?, clothing_brand=?, grip_size=? WHERE id=?""",
             (name, number, email1, email2, phone1, phone2, notes,
-             racquet_used, shoe_size, skirt_short_size, hat_size, clothing_brand, member_id)
+             racquet_used, shoe_size, skirt_short_size, hat_size, clothing_brand, grip_size, member_id)
         )
         db.execute(
             "UPDATE members SET member_name=?, member_number=? WHERE member_number=?",

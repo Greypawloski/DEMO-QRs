@@ -14,6 +14,7 @@ columns = [
     ("skirt_short_size", "TEXT"),
     ("hat_size",         "TEXT"),
     ("clothing_brand",   "TEXT"),
+    ("grip_size",        "TEXT"),
 ]
 
 existing = {row[1] for row in c.execute("PRAGMA table_info(members_contact)").fetchall()}
