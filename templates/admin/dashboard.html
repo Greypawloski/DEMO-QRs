@@ -96,6 +96,8 @@
               <form method="post" action="{{ url_for('admin.checkout_send_reminder', checkout_id=row.id) }}" style="display:inline;" onsubmit="return confirm('Send a text reminder to {{ row.customer_name | e }} at {{ row.phone }}?')">
                 <button type="submit" class="btn btn-sm" style="background:#f59e0b;color:#fff;border-color:#f59e0b;white-space:nowrap;">Send Reminder Text</button>
               </form>
+            {% else %}
+              <span style="background:#fef3c7;color:#92400e;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;">⚠ No phone on file</span>
             {% endif %}
           {% endif %}
           {% if row.checkout_notes %}
