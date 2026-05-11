@@ -497,7 +497,7 @@ def restring_send_pickup_reminder(restring_id):
         send_sms(job['phone'],
             f"Hi! Just a friendly reminder from the SACC Tennis Shop that your {job['racquet']} "
             f"is ready for pickup — it's been waiting for you for over a week. We hope to see you soon!")
-        db.execute("UPDATE restrings SET reminded_at=datetime('now') WHERE id=?", (restring_id,))
+        db.execute("UPDATE restrings SET pickup_reminder_sent_at=datetime('now') WHERE id=?", (restring_id,))
         staff = session.get('staff_name', 'Unknown')
         db.execute(
             "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
