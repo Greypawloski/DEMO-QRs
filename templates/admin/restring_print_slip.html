@@ -59,7 +59,7 @@
     .field {
       display: flex;
       align-items: flex-end;
-      margin-bottom: 0.11in;
+      margin-bottom: 0.19in;
       gap: 5px;
       position: relative;
       z-index: 1;
@@ -73,7 +73,7 @@
       background: #1a1a1a;
       color: #fff;
       font-weight: 700;
-      font-size: 11pt;
+      font-size: 12pt;
       padding: 3px 6px;
       white-space: nowrap;
       flex-shrink: 0;
@@ -85,7 +85,7 @@
       background: #777;
       color: #fff;
       font-weight: 700;
-      font-size: 11pt;
+      font-size: 12pt;
       padding: 3px 6px;
       white-space: nowrap;
       flex-shrink: 0;
@@ -95,7 +95,7 @@
     /* Plain bold labels */
     .lbl-plain {
       font-weight: 700;
-      font-size: 11pt;
+      font-size: 12pt;
       color: #111;
       white-space: nowrap;
       flex-shrink: 0;
@@ -106,10 +106,23 @@
     .val {
       flex: 1;
       border-bottom: 1px solid #111;
-      font-size: 11pt;
+      font-size: 12pt;
       padding-bottom: 2px;
-      min-height: 20px;
+      min-height: 22px;
       line-height: 1.4;
+    }
+
+    /* Yellow highlight for Name */
+    .val-yellow {
+      background: #ffffc0;
+    }
+
+    /* Notes multi-line */
+    .notes-lines {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     /* Yellow highlight for Name */
