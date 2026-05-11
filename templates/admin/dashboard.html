@@ -87,6 +87,7 @@
           <div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;background:var(--border);border-radius:6px;padding:4px 10px;">
             <span style="font-weight:600;">{{ item.equipment_name }}</span>
             <span style="color:var(--muted);font-size:0.82rem;">{{ item.category }}</span>
+            <span style="color:var(--muted);font-size:0.82rem;">Out: {{ item.checked_out_at | central }}</span>
             <span style="margin-left:auto;font-size:0.82rem;">
               {% if item.is_overdue %}<strong style="color:var(--red);">{{ item.due_label }}</strong>
               {% else %}<span style="color:var(--green);">{{ item.due_label }}</span>{% endif %}
