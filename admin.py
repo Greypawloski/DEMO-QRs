@@ -91,30 +91,64 @@ def dashboard():
             {'name': w['customer_name'], 'member': w['member_number']}
         )
 
-    active = []
+    now_utc = datetime.now(timezone.utc)
+    raw = []
     for row in rows:
         due_label, is_overdue = _due_back(row['checked_out_at'])
         checked_out_dt = datetime.fromisoformat(row['checked_out_at']).replace(tzinfo=timezone.utc)
-        days_out = (datetime.now(timezone.utc) - checked_out_dt).total_seconds() / 86400
-        active.append({
-            'id':               row['id'],
-            'customer_name':    row['customer_name'],
-            'member_number':    row['member_number'],
-            'checked_out_at':   row['checked_out_at'],
-            'phone':            row['phone'],
-            'checkout_notes':   row['checkout_notes'],
-            'photo_filename':   row['photo_filename'],
-            'equipment_id':     row['equipment_id'],
-            'equipment_name':   row['equipment_name'],
-            'category':         row['category'],
-            'due_label':        due_label,
-            'is_overdue':       is_overdue,
+        days_out = (now_utc - checked_out_dt).total_seconds() / 86400
+        raw.append({
+            'id':                       row['id'],
+            'customer_name':            row['customer_name'],
+            'member_number':            row['member_number'],
+            'checked_out_at':           row['checked_out_at'],
+            'phone':                    row['phone'],
+            'checkout_notes':           row['checkout_notes'],
+            'photo_filename':           row['photo_filename'],
+            'equipment_id':             row['equipment_id'],
+            'equipment_name':           row['equipment_name'],
+            'category':                 row['category'],
+            'due_label':                due_label,
+            'is_overdue':               is_overdue,
             'days_out':                 days_out,
             'reminder_sent_at':         row['reminder_sent_at'],
             'second_reminder_sent_at':  row['second_reminder_sent_at'],
-            'days_since_reminder':      (datetime.now(timezone.utc) - datetime.fromisoformat(row['reminder_sent_at']).replace(tzinfo=timezone.utc)).total_seconds() / 86400 if row['reminder_sent_at'] else 0,
             'waitlist_count':           waitlist_counts.get(row['equipment_id'], 0),
         })
+
+    from collections import OrderedDict
+    groups = OrderedDict()
+    for r in raw:
+        key = (r['customer_name'].strip().lower(), r['member_number'].strip().lower())
+        if key not in groups:
+            groups[key] = {
+                'id':                      r['id'],
+                'customer_name':           r['customer_name'],
+                'member_number':           r['member_number'],
+                'phone':                   r['phone'],
+                'checkout_notes':          r['checkout_notes'],
+                'photo_filename':          r['photo_filename'],
+                'is_overdue':              False,
+                'days_out':                0,
+                'reminder_sent_at':        None,
+                'second_reminder_sent_at': None,
+                'days_since_reminder':     0,
+                'items':                   [],
+            }
+        g = groups[key]
+        g['items'].append(r)
+        if r['is_overdue']:
+            g['is_overdue'] = True
+        if r['days_out'] > g['days_out']:
+            g['days_out'] = r['days_out']
+        if r['reminder_sent_at'] and (not g['reminder_sent_at'] or r['reminder_sent_at'] > g['reminder_sent_at']):
+            g['reminder_sent_at'] = r['reminder_sent_at']
+            g['days_since_reminder'] = (now_utc - datetime.fromisoformat(r['reminder_sent_at']).replace(tzinfo=timezone.utc)).total_seconds() / 86400
+        if r['second_reminder_sent_at'] and (not g['second_reminder_sent_at'] or r['second_reminder_sent_at'] > g['second_reminder_sent_at']):
+            g['second_reminder_sent_at'] = r['second_reminder_sent_at']
+
+    active = list(groups.values())
+
 
     restring_stats = db.execute("""
         SELECT
@@ -126,11 +160,11 @@ def dashboard():
         FROM restrings
     """).fetchone()
 
-    flag_map = member_flags(db, [(r['customer_name'], r['member_number']) for r in active])
-    for r in active:
-        f = flag_map.get((r['customer_name'], r['member_number']), {'fn': False, 'fm': False})
-        r['flag_name']   = f['fn']
-        r['flag_number'] = f['fm']
+    flag_map = member_flags(db, [(g['customer_name'], g['member_number']) for g in active])
+    for g in active:
+        f = flag_map.get((g['customer_name'], g['member_number']), {'fn': False, 'fm': False})
+        g['flag_name']   = f['fn']
+        g['flag_number'] = f['fm']
 
     available_equipment = db.execute(
         """SELECT e.id, e.name, e.category FROM equipment e
@@ -217,6 +251,21 @@ def checkout_edit(checkout_id):
         )
         _log('Edit Checkout', f"#{checkout_id} — {name}")
         db.commit()
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/return-multiple', methods=['POST'])
+@login_required
+def return_multiple():
+    ids    = request.form.getlist('checkout_ids')
+    notes  = request.form.get('notes', '').strip() or None
+    db     = get_db()
+    for cid in ids:
+        db.execute(
+            "UPDATE checkouts SET returned_at=datetime('now'), return_notes=? WHERE id=?",
+            (notes, int(cid))
+        )
+    db.commit()
     return redirect(url_for('admin.dashboard'))
 
 
