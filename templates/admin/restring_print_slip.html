@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Restring Slip — {{ job.customer_name }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      gap: 16px;
+    }
+
+    .screen-controls {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      padding: 8px 20px; border: none; border-radius: 6px;
+      font-size: 0.95rem; cursor: pointer; font-weight: 600; text-decoration: none;
+    }
+    .btn-print  { background: #059669; color: #fff; }
+    .btn-back   { background: #6b7280; color: #fff; }
+
+    /* ── The slip ── */
+    .slip {
+      width: 4in;
+      min-height: 5in;
+      background: #fff;
+      padding: 0.18in 0.18in 0.18in 0.18in;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    }
+
+    /* Watermark */
+    .slip::before {
+      content: "SACC";
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-20deg);
+      font-size: 72pt;
+      font-weight: 900;
+      color: rgba(0,0,0,0.045);
+      pointer-events: none;
+      white-space: nowrap;
+      letter-spacing: 0.05em;
+    }
+
+    .field {
+      display: flex;
+      align-items: flex-end;
+      margin-bottom: 0.11in;
+      gap: 5px;
+      position: relative;
+      z-index: 1;
+    }
+    .field-notes {
+      align-items: flex-start;
+    }
+
+    /* Black box labels */
+    .lbl-dark {
+      background: #1a1a1a;
+      color: #fff;
+      font-weight: 700;
+      font-size: 8.5pt;
+      padding: 2px 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.3;
+    }
+
+    /* Gray box labels */
+    .lbl-gray {
+      background: #888;
+      color: #fff;
+      font-weight: 700;
+      font-size: 8.5pt;
+      padding: 2px 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      line-height: 1.3;
+    }
+
+    /* Plain bold labels */
+    .lbl-plain {
+      font-weight: 700;
+      font-size: 8.5pt;
+      color: #222;
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding-bottom: 1px;
+    }
+
+    /* Value line */
+    .val {
+      flex: 1;
+      border-bottom: 1px solid #111;
+      font-size: 8.5pt;
+      padding-bottom: 1px;
+      min-height: 16px;
+      line-height: 1.3;
+    }
+
+    /* Yellow highlight for Name */
+    .val-yellow {
+      background: #ffffc0;
+    }
+
+    /* Notes multi-line */
+    .notes-lines {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .notes-lines .val {
+      width: 100%;
+    }
+
+    @media print {
+      @page {
+        size: 4in 5in;
+        margin: 0;
+      }
+      body {
+        background: none;
+        padding: 0;
+        display: block;
+      }
+      .screen-controls { display: none !important; }
+      .slip {
+        width: 4in;
+        min-height: 5in;
+        padding: 0.18in;
+        box-shadow: none;
+        page-break-after: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="screen-controls">
+    <button class="btn btn-print" onclick="window.print()">Print Slip</button>
+    <a class="btn btn-back" href="{{ url_for('restrings.list_restrings') }}">Back to List</a>
+  </div>
+
+  <div class="slip">
+
+    <!-- Date -->
+    <div class="field">
+      <span class="lbl-dark">Date:</span>
+      <span class="val">{{ job.date_in }}</span>
+    </div>
+
+    <!-- Name -->
+    <div class="field">
+      <span class="lbl-gray">Name:</span>
+      <span class="val val-yellow">{{ job.customer_name }}</span>
+    </div>
+
+    <!-- Phone -->
+    <div class="field">
+      <span class="lbl-dark">Phone:</span>
+      <span class="val">{{ job.phone or '' }}</span>
+    </div>
+
+    <!-- Member # -->
+    <div class="field">
+      <span class="lbl-gray">Member #:</span>
+      <span class="val">{{ job.member_number or '' }}</span>
+    </div>
+
+    <!-- Racket -->
+    <div class="field">
+      <span class="lbl-dark">Racket:</span>
+      <span class="val">{{ job.racquet }}</span>
+    </div>
+
+    <!-- String -->
+    <div class="field">
+      <span class="lbl-plain">String:</span>
+      <span class="val">{{ job.string }}</span>
+    </div>
+
+    <!-- Tension -->
+    <div class="field">
+      <span class="lbl-dark">Tension:</span>
+      <span class="val">{{ job.tension }}</span>
+    </div>
+
+    <!-- Notes -->
+    <div class="field field-notes">
+      <span class="lbl-plain">Notes:</span>
+      <div class="notes-lines">
+        <span class="val">{{ job.notes or '' }}</span>
+        <span class="val"></span>
+        <span class="val"></span>
+      </div>
+    </div>
+
+    <!-- Date Promised -->
+    <div class="field">
+      <span class="lbl-dark">Date Promised:</span>
+      <span class="val">{{ job.date_promised }}</span>
+    </div>
+
+    <!-- Receipt (blank — filled in later) -->
+    <div class="field">
+      <span class="lbl-plain">Receipt:</span>
+      <span class="val"></span>
+    </div>
+
+    <!-- Charged (blank — filled in later) -->
+    <div class="field">
+      <span class="lbl-dark">Charged:</span>
+      <span class="val"></span>
+    </div>
+
+  </div>
+
+</body>
+</html>

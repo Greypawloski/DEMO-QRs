@@ -211,9 +211,10 @@ def restring_new():
                 1 if request.form.get('no_sms') else 0,
             )
         )
+        new_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
         db.commit()
         sync_member_phone(db, member, phone)
-        return redirect(url_for('restrings.list_restrings'))
+        return redirect(url_for('restrings.restring_print_slip', restring_id=new_id))
     prefill = {
         'member_number': request.args.get('member_number', ''),
         'customer_name': request.args.get('customer_name', ''),
@@ -481,6 +482,16 @@ def restring_status(restring_id):
                      f"Please stop by during business hours. Reply STOP to opt out.")
     db.commit()
     return redirect(url_for('restrings.list_restrings'))
+
+
+@restrings_bp.route('/<int:restring_id>/print-slip')
+@login_required
+def restring_print_slip(restring_id):
+    db = get_db()
+    job = db.execute("SELECT * FROM restrings WHERE id=?", (restring_id,)).fetchone()
+    if job is None:
+        return redirect(url_for('restrings.list_restrings'))
+    return render_template('admin/restring_print_slip.html', job=job)
 
 
 @restrings_bp.route('/<int:restring_id>/send-pickup-reminder', methods=['POST'])

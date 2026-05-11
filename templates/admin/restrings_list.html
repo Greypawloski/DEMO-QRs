@@ -106,6 +106,7 @@
             <td style="white-space:nowrap;">{{ row.phone or '—' }}</td>
             <td style="white-space:nowrap;">
               <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+            <a href="{{ url_for('restrings.restring_print_slip', restring_id=row.id) }}" class="btn btn-secondary btn-sm" target="_blank">Print Slip</a>
             </td>
           </tr>
           {% endfor %}
@@ -142,6 +143,7 @@
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;">
             <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+            <a href="{{ url_for('restrings.restring_print_slip', restring_id=row.id) }}" class="btn btn-secondary btn-sm" target="_blank">Print Slip</a>
             {% if row.status == 'pending' %}
               <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;">
                 <input type="hidden" name="status" value="complete">
