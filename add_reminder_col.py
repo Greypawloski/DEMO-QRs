@@ -9,11 +9,12 @@ conn = sqlite3.connect(DB_PATH)
 c = conn.cursor()
 
 existing = {row[1] for row in c.execute("PRAGMA table_info(checkouts)").fetchall()}
-if 'reminder_sent_at' not in existing:
-    c.execute("ALTER TABLE checkouts ADD COLUMN reminder_sent_at TEXT")
-    print("Added column: reminder_sent_at")
-else:
-    print("Already exists: reminder_sent_at")
+for col in ('reminder_sent_at', 'second_reminder_sent_at'):
+    if col not in existing:
+        c.execute(f"ALTER TABLE checkouts ADD COLUMN {col} TEXT")
+        print(f"Added column: {col}")
+    else:
+        print(f"Already exists: {col}")
 
 conn.commit()
 conn.close()

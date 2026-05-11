@@ -90,7 +90,13 @@
         <!-- Notes / Photo / Waitlist row -->
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:0.88rem;padding-top:8px;border-top:1px solid var(--border);">
           {% if row.days_out >= 4 %}
-            {% if row.reminder_sent_at %}
+            {% if row.second_reminder_sent_at %}
+              <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Second reminder sent</span>
+            {% elif row.reminder_sent_at and row.days_since_reminder >= 2 %}
+              <form method="post" action="{{ url_for('admin.checkout_send_second_reminder', checkout_id=row.id) }}" style="display:inline;" onsubmit="return confirm('Send a second reminder to {{ row.customer_name | e }} at {{ row.phone }}?')">
+                <button type="submit" class="btn btn-sm" style="background:#dc2626;color:#fff;border-color:#dc2626;white-space:nowrap;">Send Second Reminder</button>
+              </form>
+            {% elif row.reminder_sent_at %}
               <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Text reminder sent</span>
             {% elif row.phone %}
               <form method="post" action="{{ url_for('admin.checkout_send_reminder', checkout_id=row.id) }}" style="display:inline;" onsubmit="return confirm('Send a text reminder to {{ row.customer_name | e }} at {{ row.phone }}?')">

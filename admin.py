@@ -63,7 +63,7 @@ def dashboard():
     q   = request.args.get('q', '').strip()
     sql = """
         SELECT c.id, c.customer_name, c.member_number, c.phone, c.checked_out_at,
-               c.checkout_notes, c.photo_filename, c.reminder_sent_at,
+               c.checkout_notes, c.photo_filename, c.reminder_sent_at, c.second_reminder_sent_at,
                e.id AS equipment_id, e.name AS equipment_name, e.category
         FROM checkouts c
         JOIN equipment e ON c.equipment_id = e.id
@@ -109,9 +109,11 @@ def dashboard():
             'category':         row['category'],
             'due_label':        due_label,
             'is_overdue':       is_overdue,
-            'days_out':         days_out,
-            'reminder_sent_at': row['reminder_sent_at'],
-            'waitlist_count':   waitlist_counts.get(row['equipment_id'], 0),
+            'days_out':                 days_out,
+            'reminder_sent_at':         row['reminder_sent_at'],
+            'second_reminder_sent_at':  row['second_reminder_sent_at'],
+            'days_since_reminder':      (datetime.now(timezone.utc) - datetime.fromisoformat(row['reminder_sent_at']).replace(tzinfo=timezone.utc)).total_seconds() / 86400 if row['reminder_sent_at'] else 0,
+            'waitlist_count':           waitlist_counts.get(row['equipment_id'], 0),
         })
 
     restring_stats = db.execute("""
@@ -236,6 +238,30 @@ def checkout_send_reminder(checkout_id):
             "If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
         db.execute(
             "UPDATE checkouts SET reminder_sent_at=datetime('now') WHERE id=?",
+            (checkout_id,)
+        )
+        db.commit()
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/checkout/<int:checkout_id>/send-second-reminder', methods=['POST'])
+@login_required
+def checkout_send_second_reminder(checkout_id):
+    db = get_db()
+    row = db.execute(
+        "SELECT customer_name, phone FROM checkouts WHERE id=? AND returned_at IS NULL",
+        (checkout_id,)
+    ).fetchone()
+    if row and row['phone']:
+        from sms import send_sms
+        send_sms(row['phone'],
+            "Hello from the San Antonio Country Club Tennis Shop! "
+            "This is a friendly reminder that you currently have a demo racquet and/or paddle checked out "
+            "that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
+            "convenience to avoid incurring any late fees.\n"
+            "If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
+        db.execute(
+            "UPDATE checkouts SET second_reminder_sent_at=datetime('now') WHERE id=?",
             (checkout_id,)
         )
         db.commit()
