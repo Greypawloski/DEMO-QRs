@@ -6,7 +6,7 @@
   .guide-wrap { display:flex; gap:32px; align-items:flex-start; }
   .guide-sidebar {
     position:sticky; top:20px; min-width:200px; max-width:220px;
-    background:#f8faf8; border:1px solid var(--border); border-radius:10px;
+    background:var(--card-bg, #f8faf8); border:1px solid var(--border); border-radius:10px;
     padding:16px; font-size:0.88rem;
   }
   .guide-sidebar h3 { font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin:0 0 10px; }
@@ -31,8 +31,8 @@
     padding:10px 14px; margin:12px 0; font-size:0.9rem; color:#713f12;
   }
   .kbd {
-    background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px;
-    padding:1px 6px; font-size:0.85rem; font-family:monospace;
+    background:var(--border); border:1px solid var(--muted); border-radius:4px;
+    padding:1px 6px; font-size:0.85rem; font-family:monospace; color:var(--text);
   }
   .guide-img {
     width:100%; border-radius:8px; border:1px solid var(--border);
