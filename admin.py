@@ -133,10 +133,10 @@ def dashboard():
                 'reminder_sent_at':        None,
                 'second_reminder_sent_at': None,
                 'days_since_reminder':     0,
-                'items':                   [],
+                'checkouts':               [],
             }
         g = groups[key]
-        g['items'].append(r)
+        g['checkouts'].append(r)
         if r['is_overdue']:
             g['is_overdue'] = True
         if r['days_out'] > g['days_out']:
