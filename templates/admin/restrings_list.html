@@ -203,7 +203,7 @@
             {% if row.strung_by %}{{ row.strung_by }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'strung_by')">—</span>{% endif %}
           </span>
           <span><span style="color:var(--muted);">Receipt:</span>
-            {% if row.receipt %}{{ row.receipt }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'receipt')">—</span>{% endif %}
+            <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'receipt', '{{ row.receipt | e }}')">{{ row.receipt or '—' }}</span>
           </span>
           <span><span style="color:var(--muted);">Charged:</span>
             {% if row.charged %}{{ row.charged }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'charged')">—</span>{% endif %}
