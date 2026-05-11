@@ -72,7 +72,9 @@
                     data-notes="{{ g.checkout_notes or '' | e }}">Edit Info</button>
             {% if multi %}
               <button type="button" class="btn btn-danger btn-sm swipe-desktop-only" style="white-space:nowrap;"
-                      onclick="openMultiReturnModal({{ g.checkouts | tojson | e }}, '{{ g.customer_name | e }}')">Mark Returned</button>
+                      data-checkouts='{{ g.checkouts | tojson }}'
+                      data-customer='{{ g.customer_name | e }}'
+                      onclick="openMultiReturnModal(JSON.parse(this.dataset.checkouts), this.dataset.customer)">Mark Returned</button>
             {% else %}
               <button type="button" class="btn btn-danger btn-sm swipe-desktop-only" style="white-space:nowrap;"
                       onclick="openReturnModal({{ solo.id }}, '{{ solo.equipment_name | e }}')">Mark Returned</button>
@@ -154,7 +156,10 @@
 
       </div><!-- swipe-card-inner -->
       {% if multi %}
-        <button class="swipe-return-btn" onclick="openMultiReturnModal({{ g.checkouts | tojson | e }}, '{{ g.customer_name | e }}')">↩ Return</button>
+        <button class="swipe-return-btn"
+                data-checkouts='{{ g.checkouts | tojson }}'
+                data-customer='{{ g.customer_name | e }}'
+                onclick="openMultiReturnModal(JSON.parse(this.dataset.checkouts), this.dataset.customer)">↩ Return</button>
       {% else %}
         <button class="swipe-return-btn" onclick="openReturnModal({{ solo.id }}, '{{ solo.equipment_name | e }}')">↩ Return</button>
       {% endif %}
