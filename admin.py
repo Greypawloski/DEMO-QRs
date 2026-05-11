@@ -270,28 +270,53 @@ def return_multiple():
     return redirect(url_for('admin.dashboard'))
 
 
+def _reminder_equipment_text(db, customer_name, member_number):
+    """Return (phone, item_text, return_pronoun, all_ids) for all active checkouts by this member."""
+    rows = db.execute(
+        """SELECT c.id, c.phone, e.name AS equipment_name
+           FROM checkouts c JOIN equipment e ON c.equipment_id = e.id
+           WHERE c.customer_name=? AND c.member_number=? AND c.returned_at IS NULL
+           ORDER BY c.checked_out_at ASC""",
+        (customer_name, member_number)
+    ).fetchall()
+    if not rows:
+        return None, None, None, []
+    phone = rows[0]['phone']
+    names = [r['equipment_name'] for r in rows]
+    all_ids = [r['id'] for r in rows]
+    if len(names) == 1:
+        item_text = f"a {names[0]}"
+        pronoun = "it"
+    elif len(names) == 2:
+        item_text = f"a {names[0]} and a {names[1]}"
+        pronoun = "them"
+    else:
+        item_text = ', '.join(f"a {n}" for n in names[:-1]) + f", and a {names[-1]}"
+        pronoun = "them"
+    return phone, item_text, pronoun, all_ids
+
+
 @admin_bp.route('/checkout/<int:checkout_id>/send-reminder', methods=['POST'])
 @login_required
 def checkout_send_reminder(checkout_id):
     db = get_db()
-    row = db.execute(
-        """SELECT c.customer_name, c.phone, e.name AS equipment_name
-           FROM checkouts c JOIN equipment e ON c.equipment_id = e.id
-           WHERE c.id=? AND c.returned_at IS NULL""",
+    member = db.execute(
+        "SELECT customer_name, member_number FROM checkouts WHERE id=? AND returned_at IS NULL",
         (checkout_id,)
     ).fetchone()
-    if row and row['phone']:
+    if not member:
+        return redirect(url_for('admin.dashboard'))
+    phone, item_text, pronoun, all_ids = _reminder_equipment_text(db, member['customer_name'], member['member_number'])
+    if phone:
         from sms import send_sms
-        send_sms(row['phone'],
+        send_sms(phone,
             f"Hello from the San Antonio Country Club Tennis Shop! "
-            f"This is a friendly reminder that you currently have a {row['equipment_name']} checked out "
-            f"that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
+            f"This is a friendly reminder that you currently have {item_text} checked out "
+            f"that has been out for more than 3 days. Please return {pronoun} to the Tennis Shop at your earliest "
             f"convenience to avoid incurring any late fees.\n"
             f"If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
-        db.execute(
-            "UPDATE checkouts SET reminder_sent_at=datetime('now') WHERE id=?",
-            (checkout_id,)
-        )
+        for cid in all_ids:
+            db.execute("UPDATE checkouts SET reminder_sent_at=datetime('now') WHERE id=?", (cid,))
         db.commit()
     return redirect(url_for('admin.dashboard'))
 
@@ -300,24 +325,23 @@ def checkout_send_reminder(checkout_id):
 @login_required
 def checkout_send_second_reminder(checkout_id):
     db = get_db()
-    row = db.execute(
-        """SELECT c.customer_name, c.phone, e.name AS equipment_name
-           FROM checkouts c JOIN equipment e ON c.equipment_id = e.id
-           WHERE c.id=? AND c.returned_at IS NULL""",
+    member = db.execute(
+        "SELECT customer_name, member_number FROM checkouts WHERE id=? AND returned_at IS NULL",
         (checkout_id,)
     ).fetchone()
-    if row and row['phone']:
+    if not member:
+        return redirect(url_for('admin.dashboard'))
+    phone, item_text, pronoun, all_ids = _reminder_equipment_text(db, member['customer_name'], member['member_number'])
+    if phone:
         from sms import send_sms
-        send_sms(row['phone'],
+        send_sms(phone,
             f"Hello from the San Antonio Country Club Tennis Shop! "
-            f"This is a friendly reminder that you currently have a {row['equipment_name']} checked out "
-            f"that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
+            f"This is a friendly reminder that you currently have {item_text} checked out "
+            f"that has been out for more than 3 days. Please return {pronoun} to the Tennis Shop at your earliest "
             f"convenience to avoid incurring any late fees.\n"
             f"If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
-        db.execute(
-            "UPDATE checkouts SET second_reminder_sent_at=datetime('now') WHERE id=?",
-            (checkout_id,)
-        )
+        for cid in all_ids:
+            db.execute("UPDATE checkouts SET second_reminder_sent_at=datetime('now') WHERE id=?", (cid,))
         db.commit()
     return redirect(url_for('admin.dashboard'))
 
