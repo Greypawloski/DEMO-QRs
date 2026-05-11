@@ -45,93 +45,118 @@
 
 {% if active %}
   <div style="display:flex;flex-direction:column;gap:10px;">
-    {% for row in active %}
-      <div class="swipe-wrap" data-checkout-id="{{ row.id }}" data-equip-name="{{ row.equipment_name | e }}">
+    {% for g in active %}
+      {% set multi = g.items|length > 1 %}
+      {% set solo  = g.items[0] %}
+      <div class="swipe-wrap" data-checkout-id="{{ g.id }}">
       <div class="swipe-track">
-      <div class="swipe-card-inner anim-card {% if row.is_overdue %}card-overdue-red{% endif %}" style="border:1px solid {% if row.is_overdue %}#fca5a5{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;animation-delay:{{ loop.index0 * 0.06 }}s;">
+      <div class="swipe-card-inner anim-card {% if g.is_overdue %}card-overdue-red{% endif %}" style="border:1px solid {% if g.is_overdue %}#fca5a5{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;animation-delay:{{ loop.index0 * 0.06 }}s;">
 
-        <!-- Top row: equipment + buttons -->
+        <!-- Top row -->
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;">
           <div>
-            <strong style="font-size:1rem;">{{ row.equipment_name }}</strong>
-            <span style="color:var(--muted);font-size:0.82rem;margin-left:8px;">{{ row.category }}</span>
+            {% if multi %}
+              <strong style="font-size:1rem;">{{ g.customer_name }}</strong>
+              <span style="background:#e0e7ff;color:#3730a3;font-size:0.75rem;padding:1px 7px;border-radius:12px;margin-left:6px;font-weight:700;">{{ g.items|length }} demos</span>
+            {% else %}
+              <strong style="font-size:1rem;">{{ solo.equipment_name }}</strong>
+              <span style="color:var(--muted);font-size:0.82rem;margin-left:8px;">{{ solo.category }}</span>
+            {% endif %}
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0;">
             <button type="button" class="btn btn-secondary btn-sm checkout-edit-btn"
-                    data-id="{{ row.id }}"
-                    data-name="{{ row.customer_name | e }}"
-                    data-member="{{ row.member_number | e }}"
-                    data-phone="{{ row.phone or '' }}"
-                    data-notes="{{ row.checkout_notes or '' | e }}">
-              Edit Info
-            </button>
-            <button type="button" class="btn btn-danger btn-sm swipe-desktop-only" style="white-space:nowrap;"
-                    onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">
-              Mark Returned
-            </button>
+                    data-id="{{ g.id }}"
+                    data-name="{{ g.customer_name | e }}"
+                    data-member="{{ g.member_number | e }}"
+                    data-phone="{{ g.phone or '' }}"
+                    data-notes="{{ g.checkout_notes or '' | e }}">Edit Info</button>
+            {% if multi %}
+              <button type="button" class="btn btn-danger btn-sm swipe-desktop-only" style="white-space:nowrap;"
+                      onclick="openMultiReturnModal({{ g.items | tojson | e }}, '{{ g.customer_name | e }}')">Mark Returned</button>
+            {% else %}
+              <button type="button" class="btn btn-danger btn-sm swipe-desktop-only" style="white-space:nowrap;"
+                      onclick="openReturnModal({{ solo.id }}, '{{ solo.equipment_name | e }}')">Mark Returned</button>
+            {% endif %}
           </div>
         </div>
 
+        <!-- Equipment list (multi only) -->
+        {% if multi %}
+        <div style="margin-bottom:8px;display:flex;flex-direction:column;gap:4px;">
+          {% for item in g.items %}
+          <div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;background:var(--border);border-radius:6px;padding:4px 10px;">
+            <span style="font-weight:600;">{{ item.equipment_name }}</span>
+            <span style="color:var(--muted);font-size:0.82rem;">{{ item.category }}</span>
+            <span style="margin-left:auto;font-size:0.82rem;">
+              {% if item.is_overdue %}<strong style="color:var(--red);">{{ item.due_label }}</strong>
+              {% else %}<span style="color:var(--green);">{{ item.due_label }}</span>{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Customer details -->
         <div style="display:flex;flex-wrap:wrap;gap:6px 24px;font-size:0.9rem;margin-bottom:8px;">
-          <span><span style="color:var(--muted);">Name:</span> {{ row.customer_name }}{% if row.flag_name %} <span class="flag-badge" title="Name doesn't match the directory record for this member number">⚠</span>{% endif %}</span>
-          <span><span style="color:var(--muted);">Member #:</span> {{ row.member_number }}{% if row.flag_number %} <span class="flag-badge" title="Member number not found in directory">⚠</span>{% endif %}</span>
-          {% if row.phone %}<span><span style="color:var(--muted);">Phone:</span> {{ row.phone }}</span>{% endif %}
-          <span><span style="color:var(--muted);">Out:</span> {{ row.checked_out_at | central }}</span>
-          <span><span style="color:var(--muted);">Due:</span>
-            {% if row.is_overdue %}
-              <strong style="color:var(--red);">{{ row.due_label }}</strong>
-            {% else %}
-              <span style="color:var(--green);">{{ row.due_label }}</span>
-            {% endif %}
-          </span>
+          {% if not multi %}<span><span style="color:var(--muted);">Name:</span> {{ g.customer_name }}{% if g.flag_name %} <span class="flag-badge" title="Name doesn't match the directory record for this member number">⚠</span>{% endif %}</span>{% endif %}
+          <span><span style="color:var(--muted);">Member #:</span> {{ g.member_number }}{% if g.flag_number %} <span class="flag-badge" title="Member number not found in directory">⚠</span>{% endif %}</span>
+          {% if g.phone %}<span><span style="color:var(--muted);">Phone:</span> {{ g.phone }}</span>{% endif %}
+          {% if not multi %}
+            <span><span style="color:var(--muted);">Out:</span> {{ solo.checked_out_at | central }}</span>
+            <span><span style="color:var(--muted);">Due:</span>
+              {% if solo.is_overdue %}<strong style="color:var(--red);">{{ solo.due_label }}</strong>
+              {% else %}<span style="color:var(--green);">{{ solo.due_label }}</span>{% endif %}
+            </span>
+          {% endif %}
         </div>
 
-        <!-- Notes / Photo / Waitlist row -->
+        <!-- Notes / Photo / Reminder row -->
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:0.88rem;padding-top:8px;border-top:1px solid var(--border);">
-          {% if row.days_out >= 4 %}
-            {% if row.second_reminder_sent_at %}
+          {% if g.days_out >= 4 %}
+            {% if g.second_reminder_sent_at %}
               <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Second reminder sent</span>
-            {% elif row.reminder_sent_at and row.days_since_reminder >= 2 %}
-              <form method="post" action="{{ url_for('admin.checkout_send_second_reminder', checkout_id=row.id) }}" style="display:inline;" onsubmit="return confirm('Send a second reminder to {{ row.customer_name | e }} at {{ row.phone }}?')">
+            {% elif g.reminder_sent_at and g.days_since_reminder >= 2 %}
+              <form method="post" action="{{ url_for('admin.checkout_send_second_reminder', checkout_id=g.id) }}" style="display:inline;" onsubmit="return confirm('Send a second reminder to {{ g.customer_name | e }} at {{ g.phone }}?')">
                 <button type="submit" class="btn btn-sm" style="background:#dc2626;color:#fff;border-color:#dc2626;white-space:nowrap;">Send Second Reminder</button>
               </form>
-            {% elif row.reminder_sent_at %}
+            {% elif g.reminder_sent_at %}
               <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Text reminder sent</span>
-            {% elif row.phone %}
-              <form method="post" action="{{ url_for('admin.checkout_send_reminder', checkout_id=row.id) }}" style="display:inline;" onsubmit="return confirm('Send a text reminder to {{ row.customer_name | e }} at {{ row.phone }}?')">
+            {% elif g.phone %}
+              <form method="post" action="{{ url_for('admin.checkout_send_reminder', checkout_id=g.id) }}" style="display:inline;" onsubmit="return confirm('Send a text reminder to {{ g.customer_name | e }} at {{ g.phone }}?')">
                 <button type="submit" class="btn btn-sm" style="background:#f59e0b;color:#fff;border-color:#f59e0b;white-space:nowrap;">Send Reminder Text</button>
               </form>
             {% else %}
               <span style="background:#fef3c7;color:#92400e;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;">⚠ No phone on file</span>
             {% endif %}
           {% endif %}
-          {% if row.checkout_notes %}
-            <span style="color:var(--muted);">Notes:</span>
-            <span>{{ row.checkout_notes }}</span>
+          {% if g.checkout_notes %}
+            <span style="color:var(--muted);">Notes:</span><span>{{ g.checkout_notes }}</span>
           {% endif %}
-          {% if row.photo_filename %}
-            <a href="{{ url_for('static', filename='checkout_photos/' ~ row.photo_filename) }}" target="_blank">
-              <img src="{{ url_for('static', filename='checkout_photos/' ~ row.photo_filename) }}"
+          {% if g.photo_filename %}
+            <a href="{{ url_for('static', filename='checkout_photos/' ~ g.photo_filename) }}" target="_blank">
+              <img src="{{ url_for('static', filename='checkout_photos/' ~ g.photo_filename) }}"
                    style="height:40px;width:40px;object-fit:cover;border-radius:4px;border:1px solid var(--border);vertical-align:middle;">
             </a>
             <button type="button" class="btn btn-secondary btn-sm"
-                    onclick="openPhotoModal({{ row.id }}, '{{ row.equipment_name | e }}')">Replace Photo</button>
+                    onclick="openPhotoModal({{ g.id }}, '{{ (solo.equipment_name if not multi else g.customer_name) | e }}')">Replace Photo</button>
           {% else %}
             <button type="button" class="btn btn-secondary btn-sm"
-                    onclick="openPhotoModal({{ row.id }}, '{{ row.equipment_name | e }}')">Upload Photo</button>
+                    onclick="openPhotoModal({{ g.id }}, '{{ (solo.equipment_name if not multi else g.customer_name) | e }}')">Upload Photo</button>
           {% endif %}
-          {% if row.waitlist_count > 0 %}
-            <span style="font-weight:700;color:var(--accent);">{{ row.waitlist_count }} waiting</span>
+          {% if not multi and solo.waitlist_count > 0 %}
+            <span style="font-weight:700;color:var(--accent);">{{ solo.waitlist_count }} waiting</span>
             <button type="button" class="btn btn-secondary btn-sm"
-                    data-eid="{{ row.equipment_id }}"
-                    data-ename="{{ row.equipment_name | e }}"
+                    data-eid="{{ solo.equipment_id }}" data-ename="{{ solo.equipment_name | e }}"
                     onclick="openWaitlistModal(this)">View Waitlist</button>
           {% endif %}
         </div>
 
       </div><!-- swipe-card-inner -->
-      <button class="swipe-return-btn" onclick="openReturnModal({{ row.id }}, '{{ row.equipment_name | e }}')">↩ Return</button>
+      {% if multi %}
+        <button class="swipe-return-btn" onclick="openMultiReturnModal({{ g.items | tojson | e }}, '{{ g.customer_name | e }}')">↩ Return</button>
+      {% else %}
+        <button class="swipe-return-btn" onclick="openReturnModal({{ solo.id }}, '{{ solo.equipment_name | e }}')">↩ Return</button>
+      {% endif %}
       </div><!-- swipe-track -->
       </div><!-- swipe-wrap -->
     {% endfor %}
@@ -224,6 +249,44 @@
   </div>
 </div>
 
+<!-- Multi-item Return modal -->
+<div id="multi-return-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div class="modal-panel" style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:420px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:6px;">Mark Returned</h2>
+    <p id="multi-return-customer" style="color:var(--muted);margin-bottom:14px;font-size:0.95rem;"></p>
+    <form id="multi-return-form" method="post" action="{{ url_for('admin.return_multiple') }}">
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:8px;">Select items being returned:</p>
+      <div id="multi-return-items" style="margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="multiReturnSelectAll(true)">Select All</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="multiReturnSelectAll(false)">Deselect All</button>
+      </div>
+      {% if staff_names %}
+      <div class="form-group">
+        <label for="multi-return-staff">Returned by</label>
+        <select id="multi-return-staff" name="staff_name" style="width:100%;padding:8px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;background:var(--card-bg,#fff);color:var(--text);">
+          <option value="">— Select staff —</option>
+          {% for sn in staff_names %}
+            <option value="{{ sn }}" {% if sn == current_staff %}selected{% endif %}>{{ sn }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="form-group">
+        <label>Damage / Condition Notes <span class="text-muted">(optional)</span></label>
+        <textarea id="multi-return-notes" name="notes" rows="3"
+                  placeholder="Note any scratches, cracks, or missing parts…"
+                  style="width:100%;font-size:0.95rem;"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-danger" style="flex:1;">Confirm Returned</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('multi-return-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Waitlist modal -->
 <div id="waitlist-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
   <div class="modal-panel" style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:32px 28px;max-width:420px;width:90%;text-align:center;">
@@ -305,6 +368,27 @@
     document.getElementById('photo-input').value = '';
     document.getElementById('photo-modal').style.display = 'flex';
   }
+  function openMultiReturnModal(items, customerName) {
+    document.getElementById('multi-return-customer').textContent = customerName;
+    var container = document.getElementById('multi-return-items');
+    container.innerHTML = '';
+    items.forEach(function(item) {
+      var label = document.createElement('label');
+      label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.9rem;background:var(--card-bg,#fff);';
+      label.innerHTML = '<input type="checkbox" name="checkout_ids" value="' + item.id + '" checked'
+        + ' style="width:auto;appearance:auto;-webkit-appearance:auto;padding:0;border:none;box-shadow:none;flex-shrink:0;">'
+        + '<span><strong>' + item.equipment_name + '</strong>'
+        + '<span style="color:var(--muted);margin-left:8px;font-size:0.82rem;">' + item.category + '</span></span>';
+      container.appendChild(label);
+    });
+    document.getElementById('multi-return-notes').value = '';
+    document.getElementById('multi-return-modal').style.display = 'flex';
+  }
+  function multiReturnSelectAll(checked) {
+    document.querySelectorAll('#multi-return-items input[type="checkbox"]').forEach(function(cb) {
+      cb.checked = checked;
+    });
+  }
   function openReturnModal(checkoutId, name) {
     document.getElementById('return-modal-name').textContent = name;
     document.getElementById('return-form').action = '/admin/return/' + checkoutId;
@@ -347,7 +431,8 @@
       // Tap while swiped open → trigger return modal directly (bypasses iOS click-on-transform bug)
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8 && wrap.classList.contains('swiped')) {
         wrap.classList.remove('swiped');
-        openReturnModal(parseInt(wrap.dataset.checkoutId), wrap.dataset.equipName);
+        var retBtn = wrap.querySelector('.swipe-return-btn');
+        if (retBtn) retBtn.click();
         return;
       }
       if (Math.abs(dx) > Math.abs(dy)) {
@@ -433,6 +518,9 @@
   }
 
   document.getElementById('return-form').addEventListener('submit', function() {
+    sessionStorage.setItem('show_confetti', '1');
+  });
+  document.getElementById('multi-return-form').addEventListener('submit', function() {
     sessionStorage.setItem('show_confetti', '1');
   });
 
