@@ -161,6 +161,16 @@
                 <button type="submit" class="btn btn-secondary btn-sm"
                         onclick="return confirm('Revert {{ row.customer_name | e }}\'s racquet back to Pending?')">Unmark Ready</button>
               </form>
+              {% if row.id in overdue_ids and not row.no_sms and row.phone %}
+                {% if row.reminded_at %}
+                  <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Pickup reminder sent {{ row.reminded_at | central }}</span>
+                {% else %}
+                  <form method="post" action="{{ url_for('restrings.restring_send_pickup_reminder', restring_id=row.id) }}" style="display:inline;"
+                        onsubmit="return confirm('Send pickup reminder to {{ row.customer_name | e }} at {{ row.phone }}?')">
+                    <button type="submit" class="btn btn-sm" style="background:#f59e0b;color:#fff;border-color:#f59e0b;white-space:nowrap;">Send Pickup Reminder</button>
+                  </form>
+                {% endif %}
+              {% endif %}
             {% endif %}
           </div>
         </div>
