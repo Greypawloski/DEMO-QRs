@@ -318,6 +318,7 @@ def checkout_send_reminder(checkout_id):
         for cid in all_ids:
             db.execute("UPDATE checkouts SET reminder_sent_at=datetime('now') WHERE id=?", (cid,))
         db.commit()
+        _log('Demo Reminder Sent', f"{member['customer_name']} ({member['member_number']}) — {item_text}")
     return redirect(url_for('admin.dashboard'))
 
 
@@ -343,6 +344,7 @@ def checkout_send_second_reminder(checkout_id):
         for cid in all_ids:
             db.execute("UPDATE checkouts SET second_reminder_sent_at=datetime('now') WHERE id=?", (cid,))
         db.commit()
+        _log('Demo 2nd Reminder Sent', f"{member['customer_name']} ({member['member_number']}) — {item_text}")
     return redirect(url_for('admin.dashboard'))
 
 

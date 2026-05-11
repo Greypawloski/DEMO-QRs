@@ -115,13 +115,13 @@
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:0.88rem;padding-top:8px;border-top:1px solid var(--border);">
           {% if g.days_out >= 4 %}
             {% if g.second_reminder_sent_at %}
-              <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Second reminder sent</span>
+              <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ 2nd reminder sent {{ g.second_reminder_sent_at | central }}</span>
             {% elif g.reminder_sent_at and g.days_since_reminder >= 2 %}
               <form method="post" action="{{ url_for('admin.checkout_send_second_reminder', checkout_id=g.id) }}" style="display:inline;" onsubmit="return confirm('Send a second reminder to {{ g.customer_name | e }} at {{ g.phone }}?')">
                 <button type="submit" class="btn btn-sm" style="background:#dc2626;color:#fff;border-color:#dc2626;white-space:nowrap;">Send Second Reminder</button>
               </form>
             {% elif g.reminder_sent_at %}
-              <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Text reminder sent</span>
+              <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Reminder sent {{ g.reminder_sent_at | central }}</span>
             {% elif g.phone %}
               <form method="post" action="{{ url_for('admin.checkout_send_reminder', checkout_id=g.id) }}" style="display:inline;" onsubmit="return confirm('Send a text reminder to {{ g.customer_name | e }} at {{ g.phone }}?')">
                 <button type="submit" class="btn btn-sm" style="background:#f59e0b;color:#fff;border-color:#f59e0b;white-space:nowrap;">Send Reminder Text</button>
