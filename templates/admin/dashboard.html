@@ -89,6 +89,15 @@
 
         <!-- Notes / Photo / Waitlist row -->
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:0.88rem;padding-top:8px;border-top:1px solid var(--border);">
+          {% if row.days_out >= 4 %}
+            {% if row.reminder_sent_at %}
+              <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Text reminder sent</span>
+            {% elif row.phone %}
+              <form method="post" action="{{ url_for('admin.checkout_send_reminder', checkout_id=row.id) }}" style="display:inline;" onsubmit="return confirm('Send a text reminder to {{ row.customer_name | e }} at {{ row.phone }}?')">
+                <button type="submit" class="btn btn-sm" style="background:#f59e0b;color:#fff;border-color:#f59e0b;white-space:nowrap;">Send Reminder Text</button>
+              </form>
+            {% endif %}
+          {% endif %}
           {% if row.checkout_notes %}
             <span style="color:var(--muted);">Notes:</span>
             <span>{{ row.checkout_notes }}</span>

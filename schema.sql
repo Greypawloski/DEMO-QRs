@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS checkouts (
     returned_at    TEXT,
     return_notes   TEXT,
     photo_filename TEXT,
-    checkout_notes TEXT
+    checkout_notes TEXT,
+    reminder_sent_at TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_checkouts_equipment ON checkouts(equipment_id);

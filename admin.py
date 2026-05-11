@@ -63,7 +63,7 @@ def dashboard():
     q   = request.args.get('q', '').strip()
     sql = """
         SELECT c.id, c.customer_name, c.member_number, c.phone, c.checked_out_at,
-               c.checkout_notes, c.photo_filename,
+               c.checkout_notes, c.photo_filename, c.reminder_sent_at,
                e.id AS equipment_id, e.name AS equipment_name, e.category
         FROM checkouts c
         JOIN equipment e ON c.equipment_id = e.id
@@ -94,20 +94,24 @@ def dashboard():
     active = []
     for row in rows:
         due_label, is_overdue = _due_back(row['checked_out_at'])
+        checked_out_dt = datetime.fromisoformat(row['checked_out_at']).replace(tzinfo=timezone.utc)
+        days_out = (datetime.now(timezone.utc) - checked_out_dt).total_seconds() / 86400
         active.append({
-            'id':             row['id'],
-            'customer_name':  row['customer_name'],
-            'member_number':  row['member_number'],
-            'checked_out_at': row['checked_out_at'],
-            'phone':          row['phone'],
-            'checkout_notes': row['checkout_notes'],
-            'photo_filename': row['photo_filename'],
-            'equipment_id':   row['equipment_id'],
-            'equipment_name': row['equipment_name'],
-            'category':       row['category'],
-            'due_label':      due_label,
-            'is_overdue':     is_overdue,
-            'waitlist_count': waitlist_counts.get(row['equipment_id'], 0),
+            'id':               row['id'],
+            'customer_name':    row['customer_name'],
+            'member_number':    row['member_number'],
+            'checked_out_at':   row['checked_out_at'],
+            'phone':            row['phone'],
+            'checkout_notes':   row['checkout_notes'],
+            'photo_filename':   row['photo_filename'],
+            'equipment_id':     row['equipment_id'],
+            'equipment_name':   row['equipment_name'],
+            'category':         row['category'],
+            'due_label':        due_label,
+            'is_overdue':       is_overdue,
+            'days_out':         days_out,
+            'reminder_sent_at': row['reminder_sent_at'],
+            'waitlist_count':   waitlist_counts.get(row['equipment_id'], 0),
         })
 
     restring_stats = db.execute("""
@@ -210,6 +214,30 @@ def checkout_edit(checkout_id):
             (name, member, phone, notes, checkout_id)
         )
         _log('Edit Checkout', f"#{checkout_id} — {name}")
+        db.commit()
+    return redirect(url_for('admin.dashboard'))
+
+
+@admin_bp.route('/checkout/<int:checkout_id>/send-reminder', methods=['POST'])
+@login_required
+def checkout_send_reminder(checkout_id):
+    db = get_db()
+    row = db.execute(
+        "SELECT customer_name, phone FROM checkouts WHERE id=? AND returned_at IS NULL",
+        (checkout_id,)
+    ).fetchone()
+    if row and row['phone']:
+        from sms import send_sms
+        send_sms(row['phone'],
+            "Hello from the San Antonio Country Club Tennis Shop! "
+            "This is a friendly reminder that you currently have a demo racquet and/or paddle checked out "
+            "that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
+            "convenience to avoid incurring any late fees.\n"
+            "If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
+        db.execute(
+            "UPDATE checkouts SET reminder_sent_at=datetime('now') WHERE id=?",
+            (checkout_id,)
+        )
         db.commit()
     return redirect(url_for('admin.dashboard'))
 
