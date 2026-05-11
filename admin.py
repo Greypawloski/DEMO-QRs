@@ -225,17 +225,19 @@ def checkout_edit(checkout_id):
 def checkout_send_reminder(checkout_id):
     db = get_db()
     row = db.execute(
-        "SELECT customer_name, phone FROM checkouts WHERE id=? AND returned_at IS NULL",
+        """SELECT c.customer_name, c.phone, e.name AS equipment_name
+           FROM checkouts c JOIN equipment e ON c.equipment_id = e.id
+           WHERE c.id=? AND c.returned_at IS NULL""",
         (checkout_id,)
     ).fetchone()
     if row and row['phone']:
         from sms import send_sms
         send_sms(row['phone'],
-            "Hello from the San Antonio Country Club Tennis Shop! "
-            "This is a friendly reminder that you currently have a demo racquet and/or paddle checked out "
-            "that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
-            "convenience to avoid incurring any late fees.\n"
-            "If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
+            f"Hello from the San Antonio Country Club Tennis Shop! "
+            f"This is a friendly reminder that you currently have a {row['equipment_name']} checked out "
+            f"that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
+            f"convenience to avoid incurring any late fees.\n"
+            f"If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
         db.execute(
             "UPDATE checkouts SET reminder_sent_at=datetime('now') WHERE id=?",
             (checkout_id,)
@@ -249,17 +251,19 @@ def checkout_send_reminder(checkout_id):
 def checkout_send_second_reminder(checkout_id):
     db = get_db()
     row = db.execute(
-        "SELECT customer_name, phone FROM checkouts WHERE id=? AND returned_at IS NULL",
+        """SELECT c.customer_name, c.phone, e.name AS equipment_name
+           FROM checkouts c JOIN equipment e ON c.equipment_id = e.id
+           WHERE c.id=? AND c.returned_at IS NULL""",
         (checkout_id,)
     ).fetchone()
     if row and row['phone']:
         from sms import send_sms
         send_sms(row['phone'],
-            "Hello from the San Antonio Country Club Tennis Shop! "
-            "This is a friendly reminder that you currently have a demo racquet and/or paddle checked out "
-            "that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
-            "convenience to avoid incurring any late fees.\n"
-            "If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
+            f"Hello from the San Antonio Country Club Tennis Shop! "
+            f"This is a friendly reminder that you currently have a {row['equipment_name']} checked out "
+            f"that has been out for more than 3 days. Please return it to the Tennis Shop at your earliest "
+            f"convenience to avoid incurring any late fees.\n"
+            f"If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
         db.execute(
             "UPDATE checkouts SET second_reminder_sent_at=datetime('now') WHERE id=?",
             (checkout_id,)
