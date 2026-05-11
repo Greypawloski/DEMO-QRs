@@ -141,6 +141,7 @@ def dashboard():
             g['is_overdue'] = True
         if r['days_out'] > g['days_out']:
             g['days_out'] = r['days_out']
+            g['id'] = r['id']
         if r['reminder_sent_at'] and (not g['reminder_sent_at'] or r['reminder_sent_at'] > g['reminder_sent_at']):
             g['reminder_sent_at'] = r['reminder_sent_at']
             g['days_since_reminder'] = (now_utc - datetime.fromisoformat(r['reminder_sent_at']).replace(tzinfo=timezone.utc)).total_seconds() / 86400
