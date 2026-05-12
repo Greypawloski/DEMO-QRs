@@ -518,6 +518,26 @@ def restring_send_pickup_reminder(restring_id):
     return redirect(url_for('restrings.list_restrings'))
 
 
+@restrings_bp.route('/<int:restring_id>/mark-notified', methods=['POST'])
+@login_required
+def restring_mark_notified(restring_id):
+    from flask import session
+    db = get_db()
+    job = db.execute(
+        "SELECT customer_name, racquet FROM restrings WHERE id=? AND status='complete'",
+        (restring_id,)
+    ).fetchone()
+    if job:
+        db.execute("UPDATE restrings SET pickup_reminder_sent_at=datetime('now') WHERE id=?", (restring_id,))
+        staff = session.get('staff_name', 'Unknown')
+        db.execute(
+            "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+            (staff, 'Marked Notified (In Person/Phone)', f"{job['customer_name']} — {job['racquet']}")
+        )
+        db.commit()
+    return redirect(url_for('restrings.list_restrings'))
+
+
 @restrings_bp.route('/<int:restring_id>/string-label')
 @login_required
 def restring_string_label(restring_id):
