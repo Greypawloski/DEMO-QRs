@@ -334,13 +334,20 @@ def checkout_send_second_reminder(checkout_id):
         return redirect(url_for('admin.dashboard'))
     phone, item_text, pronoun, all_ids = _reminder_equipment_text(db, member['customer_name'], member['member_number'])
     if phone:
+        oldest = db.execute(
+            """SELECT MIN(checked_out_at) AS oldest_out FROM checkouts
+               WHERE customer_name=? AND member_number=? AND returned_at IS NULL""",
+            (member['customer_name'], member['member_number'])
+        ).fetchone()
+        from datetime import datetime, timezone
+        days_out = int((datetime.now(timezone.utc) - datetime.fromisoformat(oldest['oldest_out']).replace(tzinfo=timezone.utc)).total_seconds() / 86400)
         from sms import send_sms
         send_sms(phone,
-            f"Hello from the San Antonio Country Club Tennis Shop! "
-            f"This is a friendly reminder that you currently have {item_text} checked out "
-            f"that has been out for more than 3 days. Please return {pronoun} to the Tennis Shop at your earliest "
-            f"convenience to avoid incurring any late fees.\n"
-            f"If you have any questions, please call the Tennis Shop at 210-824-5951. Thank you!")
+            f"Hello from the SACC Tennis Shop! This is a second reminder that you currently have "
+            f"{item_text} checked out for {days_out} days. "
+            f"Please return {pronoun} to the Tennis Shop at your earliest convenience. "
+            f"Please note that demos checked out for more than 30 days will result in the member being charged the full price of the equipment. "
+            f"If you have any questions, please call us at 210-824-5951. Thank you!")
         for cid in all_ids:
             db.execute("UPDATE checkouts SET second_reminder_sent_at=datetime('now') WHERE id=?", (cid,))
         db.commit()
