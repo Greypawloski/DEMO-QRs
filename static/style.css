@@ -26,81 +26,88 @@ a:hover { text-decoration: underline; }
 
 /* ── Kiosk layout ── */
 .kiosk-wrap {
-  max-width: 700px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 24px 20px 60px;
 }
 
 .kiosk-header {
   text-align: center;
-  padding: 20px 0 28px;
+  padding: 20px 0 32px;
 }
 
 .kiosk-header h1 {
-  font-size: 2rem;
+  font-size: 2.6rem;
   color: var(--green);
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .kiosk-header p {
   color: var(--muted);
-  margin-top: 6px;
+  margin-top: 8px;
+  font-size: 1.15rem;
 }
 
 /* ── Equipment card grid (home) ── */
 .equipment-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
 }
 
 .equipment-card {
   background: var(--card-bg);
   border: 2px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px 20px;
+  padding: 32px 24px 24px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
   display: block;
   color: var(--text);
   position: relative;
+  min-height: 130px;
+}
+
+.equipment-card:active {
+  transform: scale(0.98);
 }
 
 .equipment-card:hover {
   border-color: var(--green-light);
-  box-shadow: 0 4px 16px rgba(45,106,79,0.12);
+  box-shadow: 0 6px 20px rgba(45,106,79,0.15);
   text-decoration: none;
 }
 
 .equipment-card.unavailable {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: pointer;
 }
 
 .equipment-card .card-name {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-size: 1.45rem;
+  font-weight: 800;
   margin-bottom: 6px;
+  line-height: 1.25;
 }
 
 .equipment-card .card-category {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--green);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .badge-out {
   display: inline-block;
   background: var(--red);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 3px 10px;
+  padding: 5px 12px;
   border-radius: 100px;
   position: absolute;
   top: 14px;
@@ -111,11 +118,11 @@ a:hover { text-decoration: underline; }
   display: inline-block;
   background: var(--green-light);
   color: #fff;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  padding: 3px 10px;
+  padding: 5px 12px;
   border-radius: 100px;
   position: absolute;
   top: 14px;

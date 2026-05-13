@@ -159,10 +159,14 @@ def list_restrings():
         f"SELECT * FROM restrings WHERE {where_completed} ORDER BY COALESCE(picked_up_at, date_in) DESC",
         params_completed
     ).fetchall()
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    today_central = datetime.now(ZoneInfo('America/Chicago')).strftime('%Y-%m-%d')
     stats = {
         'pending':    db.execute("SELECT COUNT(*) FROM restrings WHERE status='pending'").fetchone()[0],
         'ready':      db.execute("SELECT COUNT(*) FROM restrings WHERE status='complete'").fetchone()[0],
         'this_month': db.execute("SELECT COUNT(*) FROM restrings WHERE strftime('%Y-%m', date_in) = strftime('%Y-%m', 'now')").fetchone()[0],
+        'today':      db.execute("SELECT COUNT(*) FROM restrings WHERE date_in = ?", (today_central,)).fetchone()[0],
     }
     overdue_ids = {r['id'] for r in db.execute(
         "SELECT id FROM restrings WHERE status='complete' AND completed_at < datetime('now', '-7 days')"
