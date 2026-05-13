@@ -379,14 +379,15 @@ def stringer_report():
     db = get_db()
     current_ym = date.today().strftime('%Y-%m')
     rows = db.execute("""
-        SELECT strftime('%Y-%m', date_in) AS ym,
+        SELECT strftime('%Y-%m', completed_at) AS ym,
                strung_by,
                COUNT(*) AS job_count
         FROM restrings
         WHERE status IN ('complete','picked_up')
           AND strung_by IS NOT NULL AND strung_by != ''
-          AND strftime('%Y-%m', date_in) >= '2026-04'
-          AND strftime('%Y-%m', date_in) < ?
+          AND completed_at IS NOT NULL
+          AND strftime('%Y-%m', completed_at) >= '2026-04'
+          AND strftime('%Y-%m', completed_at) < ?
         GROUP BY ym, strung_by
         ORDER BY ym DESC, job_count DESC
     """, (current_ym,)).fetchall()
