@@ -957,7 +957,7 @@ def qr_code_list():
     from pathlib import Path
     db = get_db()
     rows = db.execute(
-        "SELECT id, name, category, qr_filename, notes FROM equipment WHERE active = 1 ORDER BY category, name"
+        "SELECT id, name, category, qr_filename, notes FROM equipment WHERE active = 1 AND (notes IS NULL OR notes NOT LIKE '%DNC%') ORDER BY category, name"
     ).fetchall()
     qr_dir = Path(current_app.root_path) / 'static' / 'qrcodes'
     items = []
