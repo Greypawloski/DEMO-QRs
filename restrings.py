@@ -154,9 +154,9 @@ def list_restrings():
         f"SELECT * FROM restrings WHERE {where_pending} ORDER BY CASE WHEN status='pending' THEN 0 ELSE 1 END, date_promised ASC",
         params_pending
     ).fetchall()
-    where_completed += " AND date_in >= date('now', '-7 days')"
+    where_completed += " AND date(picked_up_at) >= date('now', '-7 days')"
     completed = db.execute(
-        f"SELECT * FROM restrings WHERE {where_completed} ORDER BY date_in DESC, id DESC",
+        f"SELECT * FROM restrings WHERE {where_completed} ORDER BY picked_up_at DESC",
         params_completed
     ).fetchall()
     stats = {
@@ -278,7 +278,7 @@ def restring_delete(restring_id):
     from flask import current_app
     if pin != current_app.config.get('RETIRE_PIN', ''):
         pending = db.execute("SELECT * FROM restrings WHERE status != 'picked_up' ORDER BY date_promised ASC").fetchall()
-        completed = db.execute("SELECT * FROM restrings WHERE status = 'picked_up' AND date_in >= date('now', '-7 days') ORDER BY date_in DESC, id DESC").fetchall()
+        completed = db.execute("SELECT * FROM restrings WHERE status = 'picked_up' AND date(picked_up_at) >= date('now', '-7 days') ORDER BY picked_up_at DESC").fetchall()
         return render_template('admin/restrings_list.html', pending=pending, completed=completed,
                                q='', qb='', delete_pin_error=True,
                                delete_pin_error_id=restring_id,
@@ -312,7 +312,7 @@ def restring_undo_pickup(restring_id):
     from flask import session
     db = get_db()
     job = db.execute("SELECT customer_name, racquet FROM restrings WHERE id=?", (restring_id,)).fetchone()
-    db.execute("UPDATE restrings SET status='complete' WHERE id=?", (restring_id,))
+    db.execute("UPDATE restrings SET status='complete', picked_up_at=NULL WHERE id=?", (restring_id,))
     if job:
         staff = session.get('staff_name', 'Unknown')
         db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
@@ -467,6 +467,9 @@ def restring_status(restring_id):
     job = db.execute("SELECT customer_name, racquet, phone, no_sms FROM restrings WHERE id=?", (restring_id,)).fetchone()
     if new_status == 'complete':
         db.execute("UPDATE restrings SET status=?, completed_at=datetime('now') WHERE id=?",
+                   (new_status, restring_id))
+    elif new_status == 'picked_up':
+        db.execute("UPDATE restrings SET status=?, picked_up_at=datetime('now') WHERE id=?",
                    (new_status, restring_id))
     else:
         db.execute("UPDATE restrings SET status=? WHERE id=?", (new_status, restring_id))
