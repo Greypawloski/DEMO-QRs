@@ -2,7 +2,7 @@ import io
 import csv
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from flask import Blueprint, render_template, request, redirect, url_for, send_file
+from flask import Blueprint, render_template, request, redirect, url_for, send_file, current_app
 from database import get_db, sync_member_phone, format_phone, member_flags
 from auth import login_required
 
@@ -224,7 +224,8 @@ def restring_new():
         'customer_name': request.args.get('customer_name', ''),
         'phone':         request.args.get('phone', ''),
     }
-    return render_template('admin/restring_form.html', item=None, prefill=prefill)
+    return render_template('admin/restring_form.html', item=None, prefill=prefill,
+                           staff_names=current_app.config.get('STAFF_NAMES', []))
 
 
 @restrings_bp.route('/<int:restring_id>/edit', methods=['GET', 'POST'])
@@ -267,7 +268,8 @@ def restring_edit(restring_id):
         db.commit()
         sync_member_phone(db, member, phone)
         return redirect(url_for('restrings.list_restrings'))
-    return render_template('admin/restring_form.html', item=item)
+    return render_template('admin/restring_form.html', item=item,
+                           staff_names=current_app.config.get('STAFF_NAMES', []))
 
 
 @restrings_bp.route('/<int:restring_id>/delete', methods=['POST'])
