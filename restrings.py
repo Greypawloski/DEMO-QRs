@@ -224,8 +224,9 @@ def restring_new():
         'customer_name': request.args.get('customer_name', ''),
         'phone':         request.args.get('phone', ''),
     }
+    staff_names = [r['name'] for r in get_db().execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
     return render_template('admin/restring_form.html', item=None, prefill=prefill,
-                           staff_names=current_app.config.get('STAFF_NAMES', []))
+                           staff_names=staff_names)
 
 
 @restrings_bp.route('/<int:restring_id>/edit', methods=['GET', 'POST'])
@@ -268,8 +269,9 @@ def restring_edit(restring_id):
         db.commit()
         sync_member_phone(db, member, phone)
         return redirect(url_for('restrings.list_restrings'))
+    staff_names = [r['name'] for r in get_db().execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
     return render_template('admin/restring_form.html', item=item,
-                           staff_names=current_app.config.get('STAFF_NAMES', []))
+                           staff_names=staff_names)
 
 
 @restrings_bp.route('/<int:restring_id>/delete', methods=['POST'])
