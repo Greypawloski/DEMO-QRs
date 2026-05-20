@@ -127,12 +127,17 @@
 
     @media print {
       @page { size: 4in 6in; margin: 0; }
-      html { zoom: 0.95; }
-      body { background: none; padding: 0; display: block; }
+      html {
+        background: #c8eac8 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body { background: transparent; padding: 0; margin: 0; display: block; }
       .screen-controls { display: none !important; }
       .slip {
+        background: transparent;
         width: 4in;
-        height: 6in;
+        min-height: 5.4in;
         padding: 0.18in;
         box-shadow: none;
         page-break-after: avoid;
