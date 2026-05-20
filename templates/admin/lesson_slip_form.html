@@ -1,0 +1,76 @@
+{% extends "base_admin.html" %}
+{% block title %}Non-Member Lesson Slip{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">Non-Member Lesson Slip</h1>
+</div>
+
+<form method="post" action="{{ url_for('admin.lesson_slip_print') }}" target="_blank"
+      style="max-width:520px;">
+
+  <div class="form-group">
+    <label for="lesson_date">Lesson Date</label>
+    <input type="date" id="lesson_date" name="lesson_date" required>
+  </div>
+
+  <div class="form-group">
+    <label for="lesson_name">Lesson Name</label>
+    <input type="text" id="lesson_name" name="lesson_name" placeholder="e.g. John Smith" required>
+  </div>
+
+  <div class="form-group">
+    <label for="pro_name">Pro Name</label>
+    <input type="text" id="pro_name" name="pro_name" placeholder="Pro's name">
+  </div>
+
+  <div class="form-group">
+    <label>Type of Lesson</label>
+    <div style="display:flex;flex-wrap:wrap;gap:14px 24px;margin-top:6px;">
+      {% for opt in ['Private', 'Clinic', 'Cardio', '1/2 Hour', '1 Hour'] %}
+      <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:1rem;cursor:pointer;">
+        <input type="checkbox" name="lesson_type" value="{{ opt }}"
+               style="width:18px;height:18px;cursor:pointer;">
+        {{ opt }}
+      </label>
+      {% endfor %}
+      <label id="other-label" style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:1rem;cursor:pointer;">
+        <input type="checkbox" name="lesson_type" value="other" id="other-check"
+               style="width:18px;height:18px;cursor:pointer;" onchange="toggleOther(this)">
+        Other:
+        <input type="text" name="other_text" id="other-text"
+               style="display:none;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.95rem;width:140px;"
+               placeholder="describe…">
+      </label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="amount">Amount To Be Charged</label>
+    <input type="text" id="amount" name="amount" placeholder="e.g. $65">
+  </div>
+
+  <div class="form-group">
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" rows="3" placeholder="Any additional notes…"
+              style="resize:vertical;"></textarea>
+  </div>
+
+  <button type="submit" class="btn btn-primary" style="margin-top:8px;">Print Slip</button>
+</form>
+
+<script>
+  function toggleOther(cb) {
+    var txt = document.getElementById('other-text');
+    txt.style.display = cb.checked ? 'inline-block' : 'none';
+    if (!cb.checked) txt.value = '';
+  }
+  // Default lesson date to today
+  (function() {
+    var d = new Date();
+    var s = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var el = document.getElementById('lesson_date');
+    if (!el.value) el.value = s;
+  })();
+</script>
+{% endblock %}

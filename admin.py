@@ -1113,3 +1113,24 @@ def roster_remove(staff_id):
     db.execute("DELETE FROM staff WHERE id=?", (staff_id,))
     db.commit()
     return redirect(url_for('admin.roster'))
+
+
+@admin_bp.route('/lesson-slips', methods=['GET'])
+@login_required
+def lesson_slip_form():
+    return render_template('admin/lesson_slip_form.html')
+
+
+@admin_bp.route('/lesson-slips/print', methods=['POST'])
+@login_required
+def lesson_slip_print():
+    data = {
+        'lesson_date':  request.form.get('lesson_date', ''),
+        'lesson_name':  request.form.get('lesson_name', ''),
+        'pro_name':     request.form.get('pro_name', ''),
+        'lesson_types': request.form.getlist('lesson_type'),
+        'other_text':   request.form.get('other_text', ''),
+        'amount':       request.form.get('amount', ''),
+        'notes':        request.form.get('notes', ''),
+    }
+    return render_template('admin/lesson_slip_print.html', data=data)
