@@ -17,18 +17,12 @@
       gap: 16px;
     }
 
-    .screen-controls {
-      display: flex;
-      gap: 10px;
-    }
-    .btn {
-      padding: 8px 20px; border: none; border-radius: 6px;
-      font-size: 0.95rem; cursor: pointer; font-weight: 600; text-decoration: none;
-    }
+    .screen-controls { display: flex; gap: 10px; }
+    .btn { padding: 8px 20px; border: none; border-radius: 6px;
+           font-size: 0.95rem; cursor: pointer; font-weight: 600; text-decoration: none; }
     .btn-print { background: #059669; color: #fff; }
     .btn-back  { background: #6b7280; color: #fff; }
 
-    /* ── The slip ── */
     .slip {
       width: 4in;
       height: 6in;
@@ -42,7 +36,6 @@
       justify-content: space-between;
     }
 
-    /* SACC watermark */
     .slip::before {
       content: "SACC";
       position: absolute;
@@ -50,7 +43,7 @@
       transform: translate(-50%, -50%) rotate(-20deg);
       font-size: 80pt;
       font-weight: 900;
-      color: rgba(0,0,0,0.06);
+      color: rgba(0,0,0,0.07);
       pointer-events: none;
       white-space: nowrap;
       letter-spacing: 0.05em;
@@ -63,7 +56,6 @@
       position: relative;
       z-index: 1;
     }
-    .field-top { align-items: center; }
     .field-notes { align-items: flex-start; }
 
     .lbl-dark {
@@ -95,18 +87,20 @@
       line-height: 1.4;
     }
 
-    /* Type of lesson checkboxes area */
+    /* Type of lesson section */
     .lesson-type-block {
       position: relative;
       z-index: 1;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
     .lesson-type-row {
       display: flex;
-      gap: 18px;
+      gap: 20px;
       flex-wrap: wrap;
+      align-items: center;
+      padding-left: 4px;
     }
     .lesson-type-item {
       display: flex;
@@ -114,19 +108,21 @@
       gap: 5px;
       font-size: 11pt;
     }
-    .checkbox-box {
-      width: 14px;
-      height: 14px;
-      border: 1.5px solid #111;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11pt;
-      font-weight: 900;
+
+    /* Circle selector — empty = white circle, filled = solid black */
+    .sel-circle {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 2px solid #111;
+      background: #fff;
+      display: inline-block;
       flex-shrink: 0;
-      background: #c8eac8;
     }
-    .checkbox-box.checked { background: #1a1a1a; color: #fff; font-size: 9pt; }
+    .sel-circle.selected {
+      background: #1a1a1a;
+      border-color: #1a1a1a;
+    }
 
     .notes-lines {
       flex: 1;
@@ -180,27 +176,27 @@
     <!-- Type of Lesson -->
     <div class="lesson-type-block">
       <span class="lbl-plain">Type Of Lesson:</span>
+      <!-- Row 1: Private / Clinic / Cardio -->
       <div class="lesson-type-row">
         {% for opt in ['Private', 'Clinic', 'Cardio'] %}
           <div class="lesson-type-item">
-            <span class="checkbox-box {% if opt in data.lesson_types %}checked{% endif %}">{% if opt in data.lesson_types %}✓{% endif %}</span>
+            <span class="sel-circle {% if data.lesson_category == opt %}selected{% endif %}"></span>
             {{ opt }}
           </div>
         {% endfor %}
       </div>
+      <!-- Row 2: 1/2 Hour / 1 Hour / Other -->
       <div class="lesson-type-row">
         {% for opt in ['1/2 Hour', '1 Hour'] %}
           <div class="lesson-type-item">
-            <span class="checkbox-box {% if opt in data.lesson_types %}checked{% endif %}">{% if opt in data.lesson_types %}✓{% endif %}</span>
+            <span class="sel-circle {% if data.lesson_duration == opt %}selected{% endif %}"></span>
             {{ opt }}
           </div>
         {% endfor %}
-        {% if 'other' in data.lesson_types %}
-          <div class="lesson-type-item">
-            <span class="checkbox-box checked">✓</span>
-            Other: {{ data.other_text }}
-          </div>
-        {% endif %}
+        <div class="lesson-type-item">
+          <span class="sel-circle {% if data.lesson_duration == 'other' %}selected{% endif %}"></span>
+          Other{% if data.lesson_duration == 'other' and data.other_text %}: {{ data.other_text }}{% endif %}
+        </div>
       </div>
     </div>
 

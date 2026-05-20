@@ -1125,12 +1125,13 @@ def lesson_slip_form():
 @login_required
 def lesson_slip_print():
     data = {
-        'lesson_date':  request.form.get('lesson_date', ''),
-        'lesson_name':  request.form.get('lesson_name', ''),
-        'pro_name':     request.form.get('pro_name', ''),
-        'lesson_types': request.form.getlist('lesson_type'),
-        'other_text':   request.form.get('other_text', ''),
-        'amount':       request.form.get('amount', ''),
-        'notes':        request.form.get('notes', ''),
+        'lesson_date':     request.form.get('lesson_date', ''),
+        'lesson_name':     request.form.get('lesson_name', ''),
+        'pro_name':        request.form.get('pro_name', ''),
+        'lesson_category': request.form.get('lesson_category', ''),
+        'lesson_duration': request.form.get('lesson_duration', ''),
+        'other_text':      request.form.get('other_text', ''),
+        'amount':          request.form.get('amount', ''),
+        'notes':           request.form.get('notes', ''),
     }
     return render_template('admin/lesson_slip_print.html', data=data)
