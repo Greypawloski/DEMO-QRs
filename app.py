@@ -52,6 +52,12 @@ def create_app():
             active_demos = db.execute(
                 "SELECT COUNT(*) FROM checkouts WHERE returned_at IS NULL"
             ).fetchone()[0]
+            approaching_charge = db.execute(
+                """SELECT COUNT(DISTINCT customer_name || member_number)
+                   FROM checkouts
+                   WHERE returned_at IS NULL
+                   AND CAST((julianday('now') - julianday(checked_out_at)) AS INTEGER) >= 25"""
+            ).fetchone()[0]
         except Exception:
             return {}
         return {
@@ -59,6 +65,7 @@ def create_app():
             'nav_ready_restrings':    ready_restrings,
             'nav_pending_restrings':  pending_restrings,
             'nav_active_demos':       active_demos,
+            'nav_approaching_charge': approaching_charge,
         }
 
     # Auto-initialize DB on first request if it doesn't exist

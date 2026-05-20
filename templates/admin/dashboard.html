@@ -115,6 +115,9 @@
 
         <!-- Notes / Photo / Reminder row -->
         <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:0.88rem;padding-top:8px;border-top:1px solid var(--border);">
+          {% if g.days_out >= 25 %}
+            <span style="background:#f59e0b;color:#fff;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">⚠ {{ g.days_out }} days out — approaching 30-day charge</span>
+          {% endif %}
           {% if g.days_out >= 4 %}
             {% if g.second_reminder_sent_at %}
               <span style="background:#d1fae5;color:#065f46;font-size:0.78rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ 2nd reminder sent {{ g.second_reminder_sent_at | central }}</span>
