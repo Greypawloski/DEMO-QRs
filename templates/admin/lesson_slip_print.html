@@ -127,14 +127,16 @@
 
     @media print {
       @page { size: 4in 6in; margin: 0; }
-      body { background: none; padding: 0; display: block; }
+      html, body { width: 4in; height: 6in; overflow: hidden; background: none; padding: 0; margin: 0; display: block; }
       .screen-controls { display: none !important; }
       .slip {
         width: 4in;
         height: 6in;
         padding: 0.22in 0.2in;
         box-shadow: none;
+        overflow: hidden;
         page-break-after: avoid;
+        page-break-inside: avoid;
       }
     }
   </style>
@@ -213,7 +215,6 @@
       <span class="lbl-plain">Notes:</span>
       <div class="notes-lines">
         <span class="val">{{ data.notes }}</span>
-        <span class="val"></span>
         <span class="val"></span>
         <span class="val"></span>
         <span class="val"></span>
