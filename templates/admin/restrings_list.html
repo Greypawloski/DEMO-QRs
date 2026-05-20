@@ -421,11 +421,22 @@
   function openQuickEdit(trigger, id, field, currentVal) {
     var labels = { strung_by: 'Strung By', receipt: 'Receipt', charged: 'Charged', additional_charges: 'Additional Charges' };
     document.getElementById('quick-edit-title').textContent = labels[field] || field;
-    document.getElementById('quick-edit-input').value = currentVal || '';
     document.getElementById('quick-edit-form').action = '/admin/restrings/' + id + '/quick-update';
     document.getElementById('quick-edit-field').value = field;
+    var input  = document.getElementById('quick-edit-input');
+    var select = document.getElementById('quick-edit-select');
+    if (field === 'strung_by') {
+      input.style.display = 'none'; input.name = '';
+      select.style.display = ''; select.name = 'value';
+      select.value = currentVal || '';
+      select.focus();
+    } else {
+      select.style.display = 'none'; select.name = '';
+      input.style.display = ''; input.name = 'value';
+      input.value = currentVal || '';
+      input.focus();
+    }
     document.getElementById('quick-edit-modal').style.display = 'flex';
-    document.getElementById('quick-edit-input').focus();
   }
 
   document.addEventListener('click', function(e) {
@@ -453,6 +464,12 @@
       <input type="hidden" id="quick-edit-field" name="field">
       <input type="text" id="quick-edit-input" name="value"
              style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:16px;">
+      <select id="quick-edit-select" name="" style="display:none;width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;margin-bottom:16px;">
+        <option value="">— Select stringer —</option>
+        {% for name in staff_names %}
+          <option value="{{ name }}">{{ name }}</option>
+        {% endfor %}
+      </select>
       <div style="display:flex;gap:12px;">
         <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
         <button type="button" class="btn btn-secondary" style="flex:1;"

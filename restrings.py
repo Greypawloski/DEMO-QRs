@@ -174,13 +174,14 @@ def list_restrings():
     stringer_names = [r[0] for r in db.execute(
         "SELECT DISTINCT strung_by FROM restrings WHERE strung_by IS NOT NULL AND strung_by != '' ORDER BY strung_by"
     ).fetchall()]
+    staff_names = [r['name'] for r in db.execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
     flag_data = member_flags(db, [(r['customer_name'], r['member_number']) for r in pending])
     mflags = {}
     for r in pending:
         f = flag_data.get((r['customer_name'], r['member_number']), {'fn': False, 'fm': False})
         mflags[r['id']] = f
 
-    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids, stringer_names=stringer_names, mflags=mflags)
+    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids, stringer_names=stringer_names, staff_names=staff_names, mflags=mflags)
 
 
 @restrings_bp.route('/new', methods=['GET', 'POST'])
