@@ -23,7 +23,7 @@
     <div style="font-size:0.82rem;color:var(--muted);margin-top:2px;">Need to be Strung</div>
   </a>
   <div class="anim-card stat-card" style="background:var(--card-bg,#fff);border:1px solid {% if restring_stats.overdue_pickup %}#fca5a5{% elif restring_stats.ready_pickup %}#bbf7d0{% else %}var(--border){% endif %};border-radius:10px;padding:14px 18px;text-align:center;animation-delay:0.28s;">
-    <div data-count="{{ restring_stats.ready_pickup }}" style="font-size:2rem;font-weight:700;color:{% if restring_stats.overdue_pickup %}#dc2626{% elif restring_stats.ready_pickup %}#059669{% else %}var(--muted){% endif %};">0</div>
+    <div data-count="{{ restring_stats.ready_pickup }}" style="font-size:2rem;font-weight:700;color:{% if restring_stats.ready_pickup %}#059669{% else %}var(--muted){% endif %};">0</div>
     <div style="font-size:0.82rem;color:var(--muted);margin-top:2px;">Ready for Pickup{% if restring_stats.overdue_pickup %}<br><span style="font-size:0.75rem;color:#dc2626;">{{ restring_stats.overdue_pickup }} overdue</span>{% endif %}</div>
   </div>
 </div>
