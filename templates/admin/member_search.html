@@ -24,11 +24,19 @@
 </div>
 
 {% if mode == 'members' %}
-<form method="get" action="{{ url_for('admin.member_search_page') }}" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search by name or member number…" autofocus
-         style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;">
+<form method="get" action="{{ url_for('admin.member_search_page') }}" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;align-items:flex-end;">
+  <div style="display:flex;flex-direction:column;gap:4px;">
+    <label style="font-size:0.82rem;font-weight:600;color:var(--muted);">First Name</label>
+    <input type="text" name="qf" value="{{ qf }}" placeholder="First name or member #…" autofocus
+           style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;width:200px;">
+  </div>
+  <div style="display:flex;flex-direction:column;gap:4px;">
+    <label style="font-size:0.82rem;font-weight:600;color:var(--muted);">Last Name</label>
+    <input type="text" name="ql" value="{{ ql }}" placeholder="Last name or member #…"
+           style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;width:200px;">
+  </div>
   <button type="submit" class="btn btn-primary">Search</button>
-  {% if q %}<a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary">Clear</a>{% endif %}
+  {% if qf or ql %}<a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary">Clear</a>{% endif %}
 </form>
 {% else %}
 <form method="get" action="{{ url_for('admin.non_member_search') }}" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
@@ -39,8 +47,8 @@
 </form>
 {% endif %}
 
-{% if q and not rows %}
-  <div class="empty-state"><p>No {{ 'members' if mode == 'members' else 'non-members' }} found for "<strong>{{ q }}</strong>".</p></div>
+{% if (q or qf or ql) and not rows %}
+  <div class="empty-state"><p>No {{ 'members' if mode == 'members' else 'non-members' }} found for "<strong>{{ qf or ql or q }}</strong>".</p></div>
 {% elif rows %}
   <p class="text-muted" style="margin-bottom:16px;font-size:0.9rem;">
     {{ rows|length }} result{{ 's' if rows|length != 1 }} for "<strong>{{ q }}</strong>"

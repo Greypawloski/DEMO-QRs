@@ -621,9 +621,28 @@ def non_member_name_search():
 @login_required
 def member_search_page():
     db = get_db()
-    q = request.args.get('q', '').strip()
+    q  = request.args.get('q',  '').strip()
+    qf = request.args.get('qf', '').strip()
+    ql = request.args.get('ql', '').strip()
     rows = []
-    if q:
+
+    def run_query(where, params):
+        return db.execute(
+            f'''SELECT mc.id, mc.member_name, mc.member_number, mc.email1, mc.email2, mc.phone1, mc.phone2, mc.notes,
+                       (SELECT COUNT(*) FROM restrings r WHERE r.member_number = mc.member_number) AS restring_count
+                FROM members_contact mc WHERE {where} ORDER BY mc.member_name''',
+            params
+        ).fetchall()
+
+    if qf:
+        # First-name search: "Last, FirstPrefix%" OR member number
+        clauses = [f'member_name LIKE ?', 'member_number LIKE ?']
+        rows = run_query(' OR '.join(clauses), [f'%, {qf}%', f'{qf}%'])
+    elif ql:
+        # Last-name search: "LastPrefix%" OR member number
+        clauses = [f'member_name LIKE ?', 'member_number LIKE ?']
+        rows = run_query(' OR '.join(clauses), [f'{ql}%', f'{ql}%'])
+    elif q:
         name_patterns, number_pattern = _member_name_patterns(q)
         if name_patterns:
             or_clauses = ['member_name LIKE ?' for _ in name_patterns]
@@ -631,14 +650,9 @@ def member_search_page():
             if number_pattern:
                 or_clauses.append('member_number LIKE ?')
                 params.append(number_pattern)
-            where = ' OR '.join(or_clauses)
-            rows = db.execute(
-                f'''SELECT mc.id, mc.member_name, mc.member_number, mc.email1, mc.email2, mc.phone1, mc.phone2, mc.notes,
-                           (SELECT COUNT(*) FROM restrings r WHERE r.member_number = mc.member_number) AS restring_count
-                    FROM members_contact mc WHERE {where} ORDER BY mc.member_name''',
-                params
-            ).fetchall()
-    return render_template('admin/member_search.html', rows=rows, q=q, mode='members')
+            rows = run_query(' OR '.join(or_clauses), params)
+
+    return render_template('admin/member_search.html', rows=rows, q=q, qf=qf, ql=ql, mode='members')
 
 
 @admin_bp.route('/non-members')
