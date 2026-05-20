@@ -21,7 +21,16 @@
 
   <div class="form-group">
     <label for="pro_name">Pro Name</label>
+    {% if staff_names %}
+    <select id="pro_name" name="pro_name">
+      <option value="">— Select Pro —</option>
+      {% for name in staff_names %}
+      <option value="{{ name }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+    {% else %}
     <input type="text" id="pro_name" name="pro_name" placeholder="Pro's name">
+    {% endif %}
   </div>
 
   <div class="form-group">

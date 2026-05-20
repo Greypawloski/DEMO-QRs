@@ -1118,7 +1118,9 @@ def roster_remove(staff_id):
 @admin_bp.route('/lesson-slips', methods=['GET'])
 @login_required
 def lesson_slip_form():
-    return render_template('admin/lesson_slip_form.html')
+    db = get_db()
+    staff_names = [r['name'] for r in db.execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
+    return render_template('admin/lesson_slip_form.html', staff_names=staff_names)
 
 
 @admin_bp.route('/lesson-slips/print', methods=['POST'])
