@@ -109,19 +109,11 @@
       font-size: 11pt;
     }
 
-    /* Circle selector — empty = white circle, filled = solid black */
     .sel-circle {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      border: 2px solid #111;
-      background: #fff;
-      display: inline-block;
+      font-size: 14pt;
+      line-height: 1;
       flex-shrink: 0;
-    }
-    .sel-circle.selected {
-      background: #1a1a1a;
-      border-color: #1a1a1a;
+      color: #111;
     }
 
     .notes-lines {
@@ -180,7 +172,7 @@
       <div class="lesson-type-row">
         {% for opt in ['Private', 'Clinic', 'Cardio'] %}
           <div class="lesson-type-item">
-            <span class="sel-circle {% if data.lesson_category == opt %}selected{% endif %}"></span>
+            <span class="sel-circle">{% if data.lesson_category == opt %}●{% else %}○{% endif %}</span>
             {{ opt }}
           </div>
         {% endfor %}
@@ -189,12 +181,12 @@
       <div class="lesson-type-row">
         {% for opt in ['1/2 Hour', '1 Hour'] %}
           <div class="lesson-type-item">
-            <span class="sel-circle {% if data.lesson_duration == opt %}selected{% endif %}"></span>
+            <span class="sel-circle">{% if data.lesson_duration == opt %}●{% else %}○{% endif %}</span>
             {{ opt }}
           </div>
         {% endfor %}
         <div class="lesson-type-item">
-          <span class="sel-circle {% if data.lesson_duration == 'other' %}selected{% endif %}"></span>
+          <span class="sel-circle">{% if data.lesson_duration == 'other' %}●{% else %}○{% endif %}</span>
           Other{% if data.lesson_duration == 'other' and data.other_text %}: {{ data.other_text }}{% endif %}
         </div>
       </div>
