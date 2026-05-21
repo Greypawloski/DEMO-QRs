@@ -665,12 +665,12 @@ def member_autocomplete():
         return jsonify([])
     db = get_db()
     rows = db.execute(
-        '''SELECT member_name, member_number FROM members_contact
+        '''SELECT id, member_name, member_number FROM members_contact
            WHERE member_name LIKE ? OR member_number LIKE ?
            ORDER BY member_name LIMIT 12''',
         (f'{q}%', f'{q}%')
     ).fetchall()
-    return jsonify([{'name': r['member_name'], 'number': r['member_number']} for r in rows])
+    return jsonify([{'id': r['id'], 'name': r['member_name'], 'number': r['member_number']} for r in rows])
 
 
 @admin_bp.route('/non-members')

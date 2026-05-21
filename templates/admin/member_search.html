@@ -344,10 +344,7 @@
       setActive(Array.from(dropdown.children).indexOf(div));
     });
     div.addEventListener('click', function() {
-      var lastName = result.name.split(',')[0].trim();
-      input.value = lastName;
-      dropdown.style.display = 'none';
-      form.submit();
+      window.location.href = '/admin/members/' + result.id + '/profile';
     });
     return div;
   }
