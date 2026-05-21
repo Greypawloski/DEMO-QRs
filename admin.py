@@ -652,7 +652,8 @@ def member_search_page():
                 params.append(number_pattern)
             rows = run_query(' OR '.join(or_clauses), params)
 
-    return render_template('admin/member_search.html', rows=rows, q=q, qf=qf, ql=ql, mode='members')
+    cleared = request.args.get('cleared') == '1'
+    return render_template('admin/member_search.html', rows=rows, q=q, qf=qf, ql=ql, mode='members', cleared=cleared)
 
 
 @admin_bp.route('/non-members')
@@ -702,6 +703,8 @@ def member_profile(member_id):
         ('qf', request.args.get('back_qf', '')),
         ('ql', request.args.get('back_ql', '')),
     ] if v}
+    if back_kwargs:
+        back_kwargs['cleared'] = '1'
     back_url = url_for('admin.member_search_page', **back_kwargs)
     return render_template('admin/member_profile.html',
                            member=member, restrings=restrings, checkouts=checkouts,
