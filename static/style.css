@@ -332,7 +332,7 @@ a:hover { text-decoration: underline; }
 
 /* ── Admin layout ── */
 .admin-nav {
-  background: linear-gradient(180deg, rgba(58,122,86,0.78) 0%, rgba(36,89,65,0.78) 100%);
+  background: linear-gradient(180deg, rgba(58,122,86,0.62) 0%, rgba(36,89,65,0.62) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   color: #fff;
@@ -518,7 +518,7 @@ body.dark {
   --muted:   #8aa396;
   --border:  #2d4535;
 }
-body.dark .admin-nav { background: linear-gradient(180deg, rgba(18,33,24,0.78) 0%, rgba(10,26,15,0.78) 100%); }
+body.dark .admin-nav { background: linear-gradient(180deg, rgba(18,33,24,0.65) 0%, rgba(10,26,15,0.65) 100%); }
 body.dark .btn-secondary { background: transparent; border-color: var(--green-light); color: var(--green-light); }
 body.dark .btn-secondary:hover { background: #1c2b21; }
 body.dark .form-group input,
