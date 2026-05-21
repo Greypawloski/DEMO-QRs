@@ -657,6 +657,22 @@ def member_search_page():
     return render_template('admin/member_search.html', rows=rows, q=q, qf=qf, ql=ql, mode='members', cleared=cleared, focus_ql=focus_ql)
 
 
+@admin_bp.route('/members/autocomplete')
+@login_required
+def member_autocomplete():
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify([])
+    db = get_db()
+    rows = db.execute(
+        '''SELECT member_name, member_number FROM members_contact
+           WHERE member_name LIKE ? OR member_number LIKE ?
+           ORDER BY member_name LIMIT 12''',
+        (f'{q}%', f'{q}%')
+    ).fetchall()
+    return jsonify([{'name': r['member_name'], 'number': r['member_number']} for r in rows])
+
+
 @admin_bp.route('/non-members')
 @login_required
 def non_member_search():

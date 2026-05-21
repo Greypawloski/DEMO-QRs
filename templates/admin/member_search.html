@@ -30,9 +30,10 @@
     <input type="text" name="qf" value="{{ '' if cleared else qf }}" placeholder="First name or member #…" {% if not focus_ql %}autofocus{% endif %}
            style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;width:200px;">
   </div>
-  <div style="display:flex;flex-direction:column;gap:4px;">
+  <div id="ql-wrap" style="display:flex;flex-direction:column;gap:4px;position:relative;">
     <label style="font-size:0.82rem;font-weight:600;color:var(--muted);">Last Name</label>
-    <input type="text" name="ql" value="{{ '' if cleared else ql }}" placeholder="Last name or member #…" {% if focus_ql %}autofocus{% endif %}
+    <input type="text" name="ql" id="ql-input" value="{{ '' if cleared else ql }}" placeholder="Last name or member #…" {% if focus_ql %}autofocus{% endif %}
+           autocomplete="off"
            style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;width:200px;">
   </div>
   <button type="submit" class="btn btn-primary">Search</button>
@@ -307,5 +308,96 @@
     document.getElementById('contact-edit-modal').style.display = 'flex';
     document.getElementById('contact-edit-input').focus();
   });
+</script>
+
+<script>
+(function() {
+  var input = document.getElementById('ql-input');
+  if (!input) return;
+  var form  = input.closest('form');
+  var wrap  = document.getElementById('ql-wrap');
+
+  var dropdown = document.createElement('div');
+  dropdown.style.cssText = [
+    'position:absolute', 'top:100%', 'left:0', 'min-width:100%', 'width:max-content',
+    'background:var(--card-bg,#fff)', 'border:2px solid var(--border)',
+    'border-radius:8px', 'box-shadow:0 6px 20px rgba(0,0,0,0.15)',
+    'z-index:300', 'max-height:340px', 'overflow-y:auto',
+    'display:none', 'margin-top:4px'
+  ].join(';');
+  wrap.appendChild(dropdown);
+
+  var timer, activeIdx = -1;
+
+  function buildRow(result, query) {
+    var div = document.createElement('div');
+    div.style.cssText = 'padding:9px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:24px;border-bottom:1px solid var(--border);font-size:0.95rem;';
+    var name = result.name;
+    var ql = query.toLowerCase();
+    var idx = name.toLowerCase().indexOf(ql);
+    var highlighted = idx >= 0
+      ? name.slice(0, idx) + '<strong>' + name.slice(idx, idx + query.length) + '</strong>' + name.slice(idx + query.length)
+      : name;
+    div.innerHTML = '<span>' + highlighted + '</span>'
+                  + '<span style="color:var(--muted);font-size:0.82rem;white-space:nowrap;">' + result.number + '</span>';
+    div.addEventListener('mouseenter', function() {
+      setActive(Array.from(dropdown.children).indexOf(div));
+    });
+    div.addEventListener('click', function() {
+      var lastName = result.name.split(',')[0].trim();
+      input.value = lastName;
+      dropdown.style.display = 'none';
+      form.submit();
+    });
+    return div;
+  }
+
+  function setActive(idx) {
+    var rows = dropdown.querySelectorAll('div');
+    rows.forEach(function(r, i) {
+      r.style.background = i === idx ? 'rgba(5,150,105,0.10)' : '';
+    });
+    activeIdx = idx;
+  }
+
+  function hide() { dropdown.style.display = 'none'; activeIdx = -1; }
+
+  input.addEventListener('input', function() {
+    clearTimeout(timer);
+    activeIdx = -1;
+    var q = this.value.trim();
+    if (!q) { hide(); return; }
+    timer = setTimeout(function() {
+      fetch('{{ url_for("admin.member_autocomplete") }}?q=' + encodeURIComponent(q))
+        .then(function(r) { return r.json(); })
+        .then(function(results) {
+          dropdown.innerHTML = '';
+          if (!results.length) { hide(); return; }
+          results.forEach(function(r) { dropdown.appendChild(buildRow(r, q)); });
+          dropdown.style.display = 'block';
+        });
+    }, 120);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    var rows = dropdown.querySelectorAll('div');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActive(Math.min(activeIdx + 1, rows.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActive(Math.max(activeIdx - 1, 0));
+    } else if (e.key === 'Enter' && activeIdx >= 0) {
+      e.preventDefault();
+      rows[activeIdx].click();
+    } else if (e.key === 'Escape') {
+      hide();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!wrap.contains(e.target)) hide();
+  });
+})();
 </script>
 {% endblock %}
