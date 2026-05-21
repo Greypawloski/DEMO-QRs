@@ -255,6 +255,7 @@ a:hover { text-decoration: underline; }
   background: var(--green);
   color: #fff;
   width: 100%;
+  border-radius: 100px;
 }
 
 .btn-primary:hover { background: #235c42; color: #fff; text-decoration: none; }
@@ -331,13 +332,18 @@ a:hover { text-decoration: underline; }
 
 /* ── Admin layout ── */
 .admin-nav {
-  background: linear-gradient(180deg, #3a7a56 0%, #245941 100%);
+  background: linear-gradient(180deg, rgba(58,122,86,0.92) 0%, rgba(36,89,65,0.92) 100%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   color: #fff;
   padding: 0 24px;
   display: flex;
   align-items: center;
   gap: 24px;
   height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .admin-nav .brand {
@@ -388,10 +394,12 @@ a:hover { text-decoration: underline; }
 .admin-wrap h1 {
   font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   color: var(--green);
   border-left: 4px solid var(--green-light);
   padding-left: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
 }
 
 /* ── Tables ── */
@@ -510,7 +518,7 @@ body.dark {
   --muted:   #8aa396;
   --border:  #2d4535;
 }
-body.dark .admin-nav { background: linear-gradient(180deg, #122118 0%, #0a1a0f 100%); }
+body.dark .admin-nav { background: linear-gradient(180deg, rgba(18,33,24,0.88) 0%, rgba(10,26,15,0.88) 100%); }
 body.dark .btn-secondary { background: transparent; border-color: var(--green-light); color: var(--green-light); }
 body.dark .btn-secondary:hover { background: #1c2b21; }
 body.dark .form-group input,
@@ -601,7 +609,17 @@ body.dark .card-overdue-red   { background: #2d1515; }
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.anim-card { animation: fadeSlideUp 0.35s ease both; }
+.anim-card {
+  animation: fadeSlideUp 0.35s ease both;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+body.dark .anim-card {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.35);
+}
+
+/* ── Tabular / monospace numbers ── */
+[data-count] { font-variant-numeric: tabular-nums; }
+table.data-table td { font-variant-numeric: tabular-nums; }
 
 /* ── Status badge pulse (pending) ── */
 @keyframes pulse-glow {
@@ -743,6 +761,7 @@ input[type="number"]:focus:not(:placeholder-shown) {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
 }
 .stat-card::before {
   content: '';
@@ -768,3 +787,10 @@ input[type="number"]:focus:not(:placeholder-shown) {
   display: inline-block;
   animation: badge-tick-in 0.28s cubic-bezier(0.34,1.56,0.64,1) both;
 }
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 100px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+* { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
