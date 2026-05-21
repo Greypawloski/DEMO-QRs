@@ -127,21 +127,16 @@
 
     @media print {
       @page { size: 4in 6in; margin: 0; }
-      html {
-        background: #c8eac8 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        min-height: 100vh;
-      }
-      body { background: transparent; padding: 0; margin: 0; display: block; min-height: 100vh; }
+      html, body { background: none; padding: 0; margin: 0; display: block; }
       .screen-controls { display: none !important; }
       .slip {
-        background: transparent;
         width: 4in;
-        min-height: 100vh;
+        height: 6in;
         padding: 0.18in;
         box-shadow: none;
+        overflow: hidden;
         page-break-after: avoid;
+        page-break-inside: avoid;
       }
     }
   </style>
@@ -151,6 +146,7 @@
   <div class="screen-controls">
     <button class="btn btn-print" onclick="window.print()">Print Slip</button>
     <a class="btn btn-back" href="{{ url_for('admin.lesson_slip_form') }}">Back</a>
+    <span style="font-size:0.85rem;color:#374151;align-self:center;">⚠ Set Margins to <strong>None</strong> in the print dialog</span>
   </div>
 
   <div class="slip">
