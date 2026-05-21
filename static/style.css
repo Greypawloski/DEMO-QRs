@@ -6,7 +6,7 @@
   --green-light:#52b788;
   --red:        #e63946;
   --bg:         #f4f6f4;
-  --card-bg:    #ffffff;
+  --card-bg:    #f7fdf7;
   --text:       #1b2a22;
   --muted:      #6c757d;
   --border:     #d8e4dc;
@@ -331,7 +331,7 @@ a:hover { text-decoration: underline; }
 
 /* ── Admin layout ── */
 .admin-nav {
-  background: var(--green);
+  background: linear-gradient(180deg, #3a7a56 0%, #245941 100%);
   color: #fff;
   padding: 0 24px;
   display: flex;
@@ -390,6 +390,8 @@ a:hover { text-decoration: underline; }
   font-weight: 700;
   margin-bottom: 24px;
   color: var(--green);
+  border-left: 4px solid var(--green-light);
+  padding-left: 12px;
 }
 
 /* ── Tables ── */
@@ -434,8 +436,10 @@ table.data-table tr:hover td { background: rgba(5,150,105,0.07); }
 
 /* ── Status badges ── */
 .status-badge {
-  display: inline-block;
-  padding: 3px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
   border-radius: 100px;
   font-size: 0.78rem;
   font-weight: 700;
@@ -447,6 +451,16 @@ table.data-table tr:hover td { background: rgba(5,150,105,0.07); }
 .status-avail { background: #d4edda; color: #155724; }
 .status-done  { background: #e2e3e5; color: #383d41; }
 .status-retired { background: #fff3cd; color: #856404; }
+
+.status-out::before   { content: '●'; font-size: 0.6em; }
+.status-avail::before { content: '✓'; font-size: 0.85em; }
+.status-done::before  { content: '↩'; font-size: 0.85em; }
+.status-retired::before { content: '✕'; font-size: 0.75em; }
+
+body.dark .status-out   { background: rgba(220,38,38,0.18); color: #f87171; }
+body.dark .status-avail { background: rgba(5,150,105,0.18); color: #4ade80; }
+body.dark .status-done  { background: rgba(107,114,128,0.18); color: #9ca3af; }
+body.dark .status-retired { background: rgba(234,179,8,0.18); color: #fbbf24; }
 
 /* ── QR print page ── */
 @media print {
@@ -491,18 +505,18 @@ table.data-table tr:hover td { background: rgba(5,150,105,0.07); }
 /* ── Dark mode ── */
 body.dark {
   --bg:      #111b15;
-  --card-bg: #1c2b21;
+  --card-bg: #1b2d1e;
   --text:    #e2ede6;
   --muted:   #8aa396;
   --border:  #2d4535;
 }
-body.dark .admin-nav { background: #0d1f13; }
+body.dark .admin-nav { background: linear-gradient(180deg, #122118 0%, #0a1a0f 100%); }
 body.dark .btn-secondary { background: transparent; border-color: var(--green-light); color: var(--green-light); }
 body.dark .btn-secondary:hover { background: #1c2b21; }
 body.dark .form-group input,
 body.dark .form-group select,
 body.dark .form-group textarea { background: #1c2b21; color: var(--text); border-color: var(--border); }
-body.dark table.data-table tr:hover td { background: #1c2b21; }
+body.dark table.data-table tr:hover td { background: rgba(5,150,105,0.07); }
 body.dark #member-dropdown,
 body.dark #racquet-dropdown,
 body.dark #string-dropdown { background: #1c2b21 !important; border-color: var(--border) !important; color: var(--text); }
