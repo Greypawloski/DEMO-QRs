@@ -697,8 +697,15 @@ def member_profile(member_id):
            WHERE c.member_number=? ORDER BY c.checked_out_at DESC""",
         (member['member_number'],)
     ).fetchall()
+    back_kwargs = {k: v for k, v in [
+        ('q',  request.args.get('back_q',  '')),
+        ('qf', request.args.get('back_qf', '')),
+        ('ql', request.args.get('back_ql', '')),
+    ] if v}
+    back_url = url_for('admin.member_search_page', **back_kwargs)
     return render_template('admin/member_profile.html',
-                           member=member, restrings=restrings, checkouts=checkouts)
+                           member=member, restrings=restrings, checkouts=checkouts,
+                           back_url=back_url)
 
 
 @admin_bp.route('/members/<int:member_id>/update', methods=['POST'])

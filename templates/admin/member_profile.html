@@ -7,7 +7,7 @@
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
     <a href="{{ url_for('restrings.restring_new') }}?member_number={{ member.member_number | urlencode }}&customer_name={{ member.member_name | urlencode }}&phone={{ (member.phone1 or '') | urlencode }}"
        class="btn btn-primary btn-sm">+ New Restring</a>
-    <a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary btn-sm">← Member Search</a>
+    <a href="{{ back_url }}" class="btn btn-secondary btn-sm">← Member Search</a>
   </div>
 </div>
 
