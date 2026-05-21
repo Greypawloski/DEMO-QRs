@@ -41,6 +41,17 @@
       var on = document.body.classList.toggle('dark');
       localStorage.setItem('dark', on ? '1' : '0');
     }
+    // Highlight active nav tab
+    (function() {
+      var path = window.location.pathname;
+      document.querySelectorAll('.admin-nav a').forEach(function(a) {
+        var href = a.getAttribute('href');
+        if (!href) return;
+        if (path === href || (href.length > 1 && path.startsWith(href + '/')) || (href.length > 1 && path === href)) {
+          a.classList.add('nav-active');
+        }
+      });
+    })();
   </script>
   <div class="admin-wrap">
     {% block content %}{% endblock %}

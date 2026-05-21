@@ -202,14 +202,15 @@ a:hover { text-decoration: underline; }
   color: var(--text);
   -webkit-appearance: none;
   appearance: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: var(--green-light);
-  box-shadow: 0 0 0 3px rgba(82,183,136,0.2);
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(5,150,105,0.18);
 }
 
 .form-group textarea {
@@ -357,6 +358,13 @@ a:hover { text-decoration: underline; }
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
+.admin-nav a.nav-active {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -2px 0 rgba(255,255,255,0.55);
+  transform: none;
+}
+
 .admin-nav a:hover {
   color: #fff;
   text-decoration: none;
@@ -369,6 +377,12 @@ a:hover { text-decoration: underline; }
   max-width: 960px;
   margin: 0 auto;
   padding: 32px 20px 60px;
+  animation: pageIn 0.22s ease both;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .admin-wrap h1 {
@@ -398,6 +412,10 @@ table.data-table th {
   font-weight: 600;
 }
 
+table.data-table tbody tr {
+  transition: background 0.1s ease;
+}
+
 table.data-table td {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border);
@@ -405,7 +423,7 @@ table.data-table td {
 }
 
 table.data-table tr:last-child td { border-bottom: none; }
-table.data-table tr:hover td { background: var(--bg); }
+table.data-table tr:hover td { background: rgba(5,150,105,0.07); }
 
 /* ── Spec row pair in admin form ── */
 .spec-row {
@@ -706,9 +724,19 @@ input[type="number"]:focus:not(:placeholder-shown) {
   animation: input-active-pulse 1.6s ease-in-out infinite;
 }
 
-/* ── Stat card hover lift (desktop/mouse only) ── */
+/* ── Stat card accent bar + hover lift ── */
 .stat-card {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), #34d399);
+  border-radius: 10px 10px 0 0;
 }
 @media (hover: hover) {
   .stat-card:hover {
