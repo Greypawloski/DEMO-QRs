@@ -722,6 +722,8 @@ def member_profile(member_id):
     ] if v}
     if back_kwargs:
         back_kwargs['cleared'] = '1'
+    else:
+        back_kwargs['focus'] = 'last'
     back_url = url_for('admin.member_search_page', **back_kwargs)
     return render_template('admin/member_profile.html',
                            member=member, restrings=restrings, checkouts=checkouts,
