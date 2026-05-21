@@ -634,6 +634,20 @@ body.dark .card-overdue-red   { background: #2d1515; }
 
 
 
+@media (max-width: 1024px) {
+  .admin-nav {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 6px 14px;
+    gap: 4px 6px;
+  }
+  .admin-nav img { display: none; }
+  .admin-nav a {
+    font-size: 0.78rem;
+    padding: 4px 8px;
+  }
+}
+
 @media (max-width: 600px) {
   .admin-nav {
     height: auto;
