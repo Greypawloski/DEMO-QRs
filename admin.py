@@ -1135,5 +1135,6 @@ def lesson_slip_print():
         'other_text':      request.form.get('other_text', ''),
         'amount':          request.form.get('amount', ''),
         'notes':           request.form.get('notes', ''),
+        'green_paper':     request.form.get('green_paper') == '1',
     }
     return render_template('admin/lesson_slip_print.html', data=data)
