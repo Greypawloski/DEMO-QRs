@@ -16,7 +16,7 @@
 <body>
   <nav class="admin-nav">
     <img src="{{ url_for('static', filename='sacc-logo.png') }}" alt="SACC" style="height:36px;filter:brightness(0) invert(1);margin-right:4px;">
-    <span class="brand">Demo Checkout</span>
+
     <a href="{{ url_for('admin.dashboard') }}">Dashboard{% if nav_active_demos %} <span class="nav-badge" style="background:#dc2626;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;">{{ nav_active_demos }}</span>{% endif %}{% if nav_approaching_charge %} <span class="nav-badge" style="background:#f59e0b;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:10px;vertical-align:middle;font-weight:700;" title="{{ nav_approaching_charge }} demo(s) approaching 30-day charge">⚠</span>{% endif %}</a>
     <a href="{{ url_for('admin.equipment_list') }}">Equipment</a>
     <a href="{{ url_for('admin.history') }}">Demo Checkout History</a>
