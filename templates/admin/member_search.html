@@ -27,12 +27,12 @@
 <form method="get" action="{{ url_for('admin.member_search_page') }}" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;align-items:flex-end;">
   <div style="display:flex;flex-direction:column;gap:4px;">
     <label style="font-size:0.82rem;font-weight:600;color:var(--muted);">First Name</label>
-    <input type="text" name="qf" value="{{ '' if cleared else qf }}" placeholder="First name or member #…" {% if not cleared %}autofocus{% endif %}
+    <input type="text" name="qf" value="{{ '' if cleared else qf }}" placeholder="First name or member #…" {% if not focus_ql %}autofocus{% endif %}
            style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;width:200px;">
   </div>
   <div style="display:flex;flex-direction:column;gap:4px;">
     <label style="font-size:0.82rem;font-weight:600;color:var(--muted);">Last Name</label>
-    <input type="text" name="ql" value="{{ '' if cleared else ql }}" placeholder="Last name or member #…" {% if cleared %}autofocus{% endif %}
+    <input type="text" name="ql" value="{{ '' if cleared else ql }}" placeholder="Last name or member #…" {% if focus_ql %}autofocus{% endif %}
            style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;width:200px;">
   </div>
   <button type="submit" class="btn btn-primary">Search</button>

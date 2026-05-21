@@ -653,7 +653,8 @@ def member_search_page():
             rows = run_query(' OR '.join(or_clauses), params)
 
     cleared = request.args.get('cleared') == '1'
-    return render_template('admin/member_search.html', rows=rows, q=q, qf=qf, ql=ql, mode='members', cleared=cleared)
+    focus_ql = cleared or request.args.get('focus') == 'last'
+    return render_template('admin/member_search.html', rows=rows, q=q, qf=qf, ql=ql, mode='members', cleared=cleared, focus_ql=focus_ql)
 
 
 @admin_bp.route('/non-members')

@@ -139,7 +139,7 @@
     document.addEventListener('keydown', function(e) {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.metaKey || e.ctrlKey) return;
       if (e.key === 'n' || e.key === 'N') window.location.href = '{{ url_for("restrings.restring_new") }}';
-      if (e.key === 'f' || e.key === 'F') window.location.href = '{{ url_for("admin.member_search_page") }}';
+      if (e.key === 'f' || e.key === 'F') window.location.href = '{{ url_for("admin.member_search_page", focus="last") }}';
     });
   </script>
 </body>
