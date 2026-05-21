@@ -233,10 +233,21 @@ a:hover { text-decoration: underline; }
   border-radius: 8px;
   cursor: pointer;
   text-align: center;
-  transition: background 0.15s, opacity 0.15s;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s, opacity 0.15s;
   text-decoration: none;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+}
+
+.btn:active {
+  transform: translateY(0px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 .btn-primary {
@@ -251,6 +262,7 @@ a:hover { text-decoration: underline; }
   background: transparent;
   color: var(--green);
   border: 2px solid var(--green);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 
 .btn-secondary:hover { background: var(--bg); text-decoration: none; }
