@@ -204,7 +204,7 @@ def create_app():
             return render_template('checkout_unavailable.html', item=item, joined=False, maintenance=True)
 
         if existing:
-            return redirect(url_for('checkout_unavailable', equipment_id=equipment_id))
+            return redirect(url_for('checkout_return_scan', equipment_id=equipment_id))
 
         specs = _get_specs(item)
         return render_template('checkout_scan.html', item=item, specs=specs, is_checked_out=False)
@@ -218,6 +218,49 @@ def create_app():
             (equipment_id,)
         ).fetchone()
         return render_template('checkout_confirm.html', item=item, checkout=checkout)
+
+    @app.route('/checkout/<int:equipment_id>/return-scan', methods=['GET', 'POST'])
+    def checkout_return_scan(equipment_id):
+        from flask import current_app
+        db = get_db()
+        item = db.execute("SELECT * FROM equipment WHERE id=? AND active=1", (equipment_id,)).fetchone()
+        if item is None:
+            return render_template('errors/404.html'), 404
+        checkout = db.execute(
+            "SELECT c.id, c.customer_name, c.member_number, c.photo_filename "
+            "FROM checkouts c WHERE c.equipment_id=? AND c.returned_at IS NULL",
+            (equipment_id,)
+        ).fetchone()
+        if not checkout:
+            return redirect(url_for('checkout', equipment_id=equipment_id))
+        if request.method == 'POST':
+            if checkout['photo_filename']:
+                photo_path = Path(current_app.root_path) / 'static' / 'checkout_photos' / checkout['photo_filename']
+                if photo_path.exists():
+                    photo_path.unlink()
+            db.execute(
+                "UPDATE checkouts SET returned_at=datetime('now') WHERE id=?",
+                (checkout['id'],)
+            )
+            db.execute(
+                "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+                ('QR Scan', 'Mark Returned',
+                 f"{item['name']} — {checkout['customer_name']} (#{checkout['member_number']}) — returned via QR scan")
+            )
+            waitlist = db.execute(
+                "SELECT customer_name, phone FROM waitlist WHERE equipment_id=? ORDER BY created_at",
+                (equipment_id,)
+            ).fetchall()
+            if waitlist:
+                from sms import send_sms
+                for w in waitlist:
+                    if w['phone']:
+                        send_sms(w['phone'],
+                                 f"Hi {w['customer_name'].split()[0]}, the {item['name']} demo is now "
+                                 f"available at the SACC Tennis Shop. Stop by the front desk to check it out. Reply STOP to opt out.")
+            db.commit()
+            return render_template('checkout_return_scan.html', item=item, returned=True)
+        return render_template('checkout_return_scan.html', item=item, checkout=checkout, returned=False)
 
     @app.route('/checkout/<int:equipment_id>/unavailable', methods=['GET', 'POST'])
     def checkout_unavailable(equipment_id):

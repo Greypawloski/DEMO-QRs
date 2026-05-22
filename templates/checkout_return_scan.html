@@ -1,0 +1,44 @@
+{% extends "base_kiosk.html" %}
+{% block title %}Return {{ item.name }}{% endblock %}
+
+{% block content %}
+<div class="confirm-wrap">
+
+  {% if returned %}
+
+    <div class="confirm-icon" style="color:#059669;">✓</div>
+    <h2 style="color:#059669;">Return Recorded</h2>
+    <p><strong>{{ item.name }}</strong> has been marked as returned.<br>
+       Please bring the item to the front desk.</p>
+    <a href="{{ url_for('home') }}" class="btn btn-primary" style="max-width:280px;display:inline-block;margin-top:8px;">
+      Back to Equipment List
+    </a>
+
+  {% else %}
+
+    <div class="confirm-icon" style="color:#f59e0b;">↩</div>
+    <h2>Return This Demo?</h2>
+    <p style="margin-bottom:6px;">
+      <strong>{{ item.name }}</strong> is currently checked out to<br>
+      <strong>{{ checkout.customer_name }}</strong>
+      {% if checkout.member_number %}<span style="color:var(--muted);font-size:0.9rem;"> (#{{ checkout.member_number }})</span>{% endif %}
+    </p>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:28px;">
+      Tap the button below to confirm the item has been returned.
+    </p>
+
+    <form method="post" style="width:100%;max-width:280px;">
+      <button type="submit" class="btn btn-primary" style="width:100%;font-size:1.1rem;padding:18px;">
+        ✓ Confirm Returned
+      </button>
+    </form>
+
+    <a href="{{ url_for('checkout_unavailable', equipment_id=item.id) }}"
+       style="display:inline-block;margin-top:20px;color:var(--muted);font-size:0.9rem;text-decoration:underline;">
+      Join waitlist instead
+    </a>
+
+  {% endif %}
+
+</div>
+{% endblock %}
