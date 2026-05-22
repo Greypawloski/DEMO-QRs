@@ -234,6 +234,9 @@ def create_app():
         if not checkout:
             return redirect(url_for('checkout', equipment_id=equipment_id))
         if request.method == 'POST':
+            if request.form.get('pin', '') != current_app.config['RETIRE_PIN']:
+                return render_template('checkout_return_scan.html', item=item, checkout=checkout,
+                                       returned=False, pin_error=True)
             if checkout['photo_filename']:
                 photo_path = Path(current_app.root_path) / 'static' / 'checkout_photos' / checkout['photo_filename']
                 if photo_path.exists():
