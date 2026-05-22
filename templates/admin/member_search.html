@@ -25,6 +25,7 @@
 
 {% if mode == 'members' %}
 <form method="get" action="{{ url_for('admin.member_search_page') }}" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;align-items:flex-end;">
+  <input type="hidden" name="focus" value="last">
   <div style="display:flex;flex-direction:column;gap:4px;">
     <label style="font-size:0.82rem;font-weight:600;color:var(--muted);">First Name</label>
     <input type="text" name="qf" value="{{ '' if cleared else qf }}" placeholder="First name or member #…" {% if not focus_ql %}autofocus{% endif %}
@@ -37,7 +38,7 @@
            style="padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:1rem;width:200px;">
   </div>
   <button type="submit" class="btn btn-primary">Search</button>
-  {% if qf or ql %}<a href="{{ url_for('admin.member_search_page') }}" class="btn btn-secondary">Clear</a>{% endif %}
+  {% if qf or ql %}<a href="{{ url_for('admin.member_search_page', focus='last') }}" class="btn btn-secondary">Clear</a>{% endif %}
 </form>
 {% else %}
 <form method="get" action="{{ url_for('admin.non_member_search') }}" style="display:flex;gap:8px;max-width:500px;margin-bottom:28px;">
@@ -376,9 +377,7 @@
             seeAll.style.cssText = 'padding:9px 14px;cursor:pointer;font-size:0.88rem;font-weight:600;color:var(--green);text-align:center;background:var(--bg);border-top:1px solid var(--border);border-radius:0 0 8px 8px;';
             seeAll.textContent = 'See all ' + data.total + ' results →';
             seeAll.addEventListener('click', function() {
-              input.value = q;
-              hide();
-              form.submit();
+              window.location.href = '{{ url_for("admin.member_search_page") }}?ql=' + encodeURIComponent(q) + '&focus=last';
             });
             dropdown.appendChild(seeAll);
           }
