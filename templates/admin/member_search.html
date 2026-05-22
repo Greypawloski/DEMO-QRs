@@ -11,7 +11,7 @@
 
 <!-- Mode toggle -->
 <div style="display:flex;gap:0;margin-bottom:20px;border:2px solid #1a5c35;border-radius:8px;overflow:hidden;max-width:320px;">
-  <a href="{{ url_for('admin.member_search_page') }}"
+  <a href="{{ url_for('admin.member_search_page', focus='last') }}"
      style="flex:1;text-align:center;padding:8px 0;font-size:0.95rem;font-weight:700;text-decoration:none;
             {% if mode == 'members' %}background:#1a5c35;color:#fff;{% else %}background:#fff;color:#1a5c35;{% endif %}">
     Members
