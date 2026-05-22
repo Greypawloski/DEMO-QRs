@@ -64,6 +64,8 @@
             {% endif %}
           </div>
           <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="openAddDemoModal('{{ g.customer_name | e }}', '{{ g.member_number | e }}', '{{ g.phone or '' }}')">+ Add Demo</button>
             <button type="button" class="btn btn-secondary btn-sm checkout-edit-btn"
                     data-id="{{ g.id }}"
                     data-name="{{ g.customer_name | e }}"
@@ -601,12 +603,30 @@
     document.getElementById('qco-nonmember').checked  = false;
     document.getElementById('qco-member').disabled    = false;
     document.getElementById('qco-dropdown').style.display = 'none';
+    document.getElementById('quick-checkout-modal').querySelector('h2').textContent = 'Quick Check Out';
     document.getElementById('quick-checkout-modal').style.display = 'flex';
     setTimeout(function() { document.getElementById('qco-search').focus(); }, 50);
   }
 
+  function openAddDemoModal(name, member, phone) {
+    document.getElementById('qco-name').value   = name;
+    document.getElementById('qco-member').value = member;
+    document.getElementById('qco-phone').value  = phone;
+    document.getElementById('qco-nonmember').checked = false;
+    document.getElementById('qco-member').disabled   = false;
+    document.getElementById('qco-search').value = name + (member && member !== 'Non-member' ? ' #' + member : '');
+    document.getElementById('qco-dropdown').style.display = 'none';
+    document.querySelector('#quick-checkout-modal select[name="equipment_id"]').value = '';
+    document.getElementById('quick-checkout-modal').querySelector('h2').textContent = 'Add Demo — ' + name;
+    document.getElementById('quick-checkout-modal').style.display = 'flex';
+    setTimeout(function() {
+      document.querySelector('#quick-checkout-modal select[name="equipment_id"]').focus();
+    }, 50);
+  }
+
   function closeQcoModal() {
     document.getElementById('quick-checkout-modal').style.display = 'none';
+    document.getElementById('quick-checkout-modal').querySelector('h2').textContent = 'Quick Check Out';
   }
 </script>
 {% endblock %}
