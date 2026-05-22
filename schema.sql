@@ -109,3 +109,13 @@ CREATE TABLE IF NOT EXISTS activity_log (
     details    TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS non_members (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT NOT NULL,
+    phone      TEXT,
+    notes      TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_non_members_name_lower ON non_members(LOWER(name));

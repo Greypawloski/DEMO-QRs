@@ -6,6 +6,13 @@
   <h1 style="margin-bottom:0;">Member Search</h1>
   {% if mode == 'members' %}
   <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-member-modal').style.display='flex'">+ Add Member</button>
+  {% elif mode == 'non_members' %}
+  <div style="display:flex;gap:8px;">
+    <form method="post" action="{{ url_for('admin.non_member_sync') }}" style="margin:0;">
+      <button type="submit" class="btn btn-secondary btn-sm" title="Auto-import non-members from existing restrings and checkouts">⟳ Sync from Records</button>
+    </form>
+    <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('add-nm-modal').style.display='flex'">+ Add Non-Member</button>
+  </div>
   {% endif %}
 </div>
 
@@ -49,32 +56,63 @@
 </form>
 {% endif %}
 
-{% if (q or qf or ql) and not rows %}
+{% if mode == 'non_members' and not rows and not q %}
+  <div class="empty-state">
+    <p>No non-members in the directory yet.</p>
+    <p style="font-size:0.9rem;color:var(--muted);">Click <strong>Sync from Records</strong> to auto-import from existing restrings and checkouts, or use <strong>+ Add Non-Member</strong> to add manually.</p>
+  </div>
+{% elif (q or qf or ql) and not rows %}
   <div class="empty-state"><p>No {{ 'members' if mode == 'members' else 'non-members' }} found for "<strong>{{ qf or ql or q }}</strong>".</p></div>
 {% elif rows %}
   <p class="text-muted" style="margin-bottom:16px;font-size:0.9rem;">
-    {{ rows|length }} result{{ 's' if rows|length != 1 }} for "<strong>{{ q }}</strong>"
+    {% if mode == 'non_members' and not q %}
+      {{ rows|length }} non-member{{ 's' if rows|length != 1 }} in directory
+    {% else %}
+      {{ rows|length }} result{{ 's' if rows|length != 1 }} for "<strong>{{ q }}</strong>"
+    {% endif %}
   </p>
 
 {% if mode == 'non_members' %}
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr><th>Name</th><th>String Jobs</th><th>Last Seen</th><th>Racquets</th><th></th></tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
-        <tr>
-          <td><strong>{{ row.customer_name }}</strong></td>
-          <td>{{ row.job_count }}</td>
-          <td style="white-space:nowrap;">{{ row.last_seen }}</td>
-          <td style="color:var(--muted);font-size:0.88rem;max-width:260px;">{{ row.racquets }}</td>
-          <td><a href="{{ url_for('restrings.restrings_history_view') }}?qall={{ row.customer_name | urlencode }}"
-                 class="btn btn-secondary btn-sm">View History</a></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
+    {% for row in rows %}
+    <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;">
+      <!-- Card header -->
+      <div style="background:var(--green,#059669);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <strong style="color:#fff;font-size:0.95rem;">{{ row.name }}</strong>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+          <a href="{{ url_for('admin.non_member_profile', nm_id=row.id, back_q=q) }}"
+             style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:2px 10px;border-radius:6px;font-size:0.8rem;white-space:nowrap;text-decoration:none;">
+            Profile
+          </a>
+          <button type="button" class="nm-edit-btn"
+                  data-id="{{ row.id }}"
+                  data-name="{{ row.name | e }}"
+                  data-phone="{{ row.phone or '' }}"
+                  data-notes="{{ row.notes or '' }}"
+                  style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;padding:2px 10px;border-radius:6px;cursor:pointer;font-size:0.8rem;white-space:nowrap;">
+            Edit
+          </button>
+        </div>
+      </div>
+      <!-- Card body -->
+      <div style="padding:10px 14px;display:flex;flex-direction:column;gap:5px;font-size:0.88rem;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="color:var(--muted);min-width:52px;">Phone</span>
+          <span>{{ row.phone or '—' }}</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="color:var(--muted);min-width:52px;">Restrings</span>
+          <span>{{ row.restring_count or 0 }}</span>
+          {% if row.checkout_count %}<span style="color:var(--muted);">·</span><span style="color:var(--muted);">{{ row.checkout_count }} demo{{ 's' if row.checkout_count != 1 }}</span>{% endif %}
+        </div>
+        {% if row.notes %}
+        <div style="margin-top:4px;padding-top:6px;border-top:1px solid var(--border);">
+          <span style="background:#fef9c3;color:#854d0e;font-size:0.82rem;padding:3px 8px;border-radius:6px;display:inline-block;">{{ row.notes }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
   </div>
 {% else %}
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;">
@@ -406,5 +444,71 @@
     if (!wrap.contains(e.target)) hide();
   });
 })();
+</script>
+
+<!-- Add Non-Member modal -->
+<div id="add-nm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:380px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Add Non-Member</h2>
+    <form method="post" action="{{ url_for('admin.non_member_add') }}">
+      <input type="hidden" name="q" value="{{ q }}">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" name="name" placeholder="e.g. Jane Smith" required style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Phone <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="tel" name="phone" placeholder="e.g. 210-555-1234" style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Notes <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="text" name="notes" placeholder="e.g. guest player" style="width:100%;">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('add-nm-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Non-Member modal -->
+<div id="nm-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:380px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit Non-Member</h2>
+    <form id="nm-edit-form" method="post">
+      <input type="hidden" name="q" value="{{ q }}">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="nm-edit-name" name="name" required style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Phone <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="tel" id="nm-edit-phone" name="phone" style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Notes <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="text" id="nm-edit-notes" name="notes" style="width:100%;">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('nm-edit-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.nm-edit-btn');
+    if (!btn) return;
+    document.getElementById('nm-edit-name').value  = btn.dataset.name;
+    document.getElementById('nm-edit-phone').value = btn.dataset.phone;
+    document.getElementById('nm-edit-notes').value = btn.dataset.notes;
+    document.getElementById('nm-edit-form').action = '/admin/non-members/' + btn.dataset.id + '/edit';
+    document.getElementById('nm-edit-modal').style.display = 'flex';
+  });
 </script>
 {% endblock %}

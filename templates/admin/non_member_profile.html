@@ -1,0 +1,152 @@
+{% extends "base_admin.html" %}
+{% block title %}{{ nm.name }} — Non-Member Profile{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">{{ nm.name }}</h1>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{{ url_for('restrings.restring_new') }}?customer_name={{ nm.name | urlencode }}&phone={{ (nm.phone or '') | urlencode }}&member_number=Non-member"
+       class="btn btn-primary btn-sm">+ New Restring</a>
+    <a href="{{ back_url }}" class="btn btn-secondary btn-sm">← Non-Member Search</a>
+  </div>
+</div>
+
+<!-- Info card -->
+<div style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:32px;max-width:480px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <span style="font-size:0.9rem;font-weight:600;color:var(--muted);">Non-Member</span>
+    <button type="button" class="btn btn-secondary btn-sm nm-edit-btn"
+            data-id="{{ nm.id }}"
+            data-name="{{ nm.name | e }}"
+            data-phone="{{ nm.phone or '' }}"
+            data-notes="{{ nm.notes or '' }}">Edit Info</button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:0.9rem;">
+    <div><span style="color:var(--muted);">Phone</span><br>{{ nm.phone or '—' }}</div>
+    <div><span style="color:var(--muted);">Added</span><br>{{ nm.created_at | central }}</div>
+  </div>
+  {% if nm.notes %}
+  <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+    <span style="color:var(--muted);font-size:0.85rem;">Notes</span><br>
+    <span style="background:#fef9c3;color:#854d0e;font-size:0.88rem;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:4px;">{{ nm.notes }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Restring history -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Restring History <span style="color:var(--muted);font-weight:400;font-size:0.9rem;">({{ restrings|length }})</span></h2>
+{% if restrings %}
+<div class="table-wrap" style="margin-bottom:40px;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Racquet</th>
+        <th>String</th>
+        <th>Tension</th>
+        <th>Stringer</th>
+        <th>Charged</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in restrings %}
+      <tr>
+        <td style="white-space:nowrap;">{{ r.date_in }}</td>
+        <td>{{ r.racquet }}</td>
+        <td>
+          {{ r.string }}
+          {% if r.customer_own_string %}
+            <span style="background:#fef3c7;color:#92400e;font-size:0.72rem;padding:1px 5px;border-radius:4px;margin-left:3px;">Own</span>
+          {% endif %}
+        </td>
+        <td>{{ r.tension }}</td>
+        <td>{{ r.strung_by or '—' }}</td>
+        <td>{{ r.charged or '—' }}</td>
+        <td>
+          {% if r.status == 'picked_up' %}
+            <span style="color:var(--muted);font-size:0.85rem;">Picked up</span>
+          {% elif r.status == 'complete' %}
+            <span style="color:#059669;font-weight:600;font-size:0.85rem;">Ready</span>
+          {% else %}
+            <span style="color:var(--accent);font-size:0.85rem;">Pending</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state" style="margin-bottom:40px;"><p>No restring history.</p></div>
+{% endif %}
+
+<!-- Demo checkout history -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">Demo Checkout History <span style="color:var(--muted);font-weight:400;font-size:0.9rem;">({{ checkouts|length }})</span></h2>
+{% if checkouts %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Equipment</th>
+        <th>Checked Out</th>
+        <th>Returned</th>
+        <th>Duration</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in checkouts %}
+      <tr>
+        <td>{{ c.equipment_name }}</td>
+        <td style="white-space:nowrap;">{{ c.checked_out_at | central }}</td>
+        <td style="white-space:nowrap;">
+          {% if c.returned_at %}{{ c.returned_at | central }}{% else %}<span style="color:var(--accent);font-weight:600;">Out now</span>{% endif %}
+        </td>
+        <td>{% set d = c.duration_days | int %}{% if d < 1 %}< 1 day{% elif d == 1 %}1 day{% elif d < 14 %}{{ d }} days{% else %}{{ (d / 7) | int }}w {{ d % 7 }}d{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state"><p>No demo checkout history.</p></div>
+{% endif %}
+
+<!-- Edit modal -->
+<div id="nm-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:380px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:20px;">Edit Non-Member</h2>
+    <form id="nm-edit-form" method="post">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="nm-edit-name" name="name" required style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Phone <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="tel" id="nm-edit-phone" name="phone" style="width:100%;">
+      </div>
+      <div class="form-group">
+        <label>Notes <span style="font-weight:400;color:var(--muted);">(optional)</span></label>
+        <input type="text" id="nm-edit-notes" name="notes" style="width:100%;">
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('nm-edit-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.nm-edit-btn');
+    if (!btn) return;
+    document.getElementById('nm-edit-name').value  = btn.dataset.name;
+    document.getElementById('nm-edit-phone').value = btn.dataset.phone;
+    document.getElementById('nm-edit-notes').value = btn.dataset.notes;
+    document.getElementById('nm-edit-form').action = '/admin/non-members/' + btn.dataset.id + '/edit';
+    document.getElementById('nm-edit-modal').style.display = 'flex';
+  });
+</script>
+{% endblock %}

@@ -686,21 +686,121 @@ def member_autocomplete():
 def non_member_search():
     db = get_db()
     q = request.args.get('q', '').strip()
-    rows = []
-    if q:
-        rows = db.execute(
-            """SELECT customer_name,
-                      COUNT(*) AS job_count,
-                      MAX(date_in) AS last_seen,
-                      GROUP_CONCAT(DISTINCT racquet) AS racquets
-               FROM restrings
-               WHERE member_number = 'Non-member'
-                 AND customer_name LIKE ?
-               GROUP BY LOWER(customer_name)
-               ORDER BY customer_name""",
-            (f'%{q}%',)
-        ).fetchall()
+    where = "WHERE LOWER(nm.name) LIKE ?" if q else ""
+    params = [f'%{q.lower()}%'] if q else []
+    rows = db.execute(f"""
+        SELECT nm.id, nm.name, nm.phone, nm.notes, nm.created_at,
+               (SELECT COUNT(*) FROM restrings r
+                WHERE LOWER(r.customer_name)=LOWER(nm.name) AND r.member_number='Non-member') AS restring_count,
+               (SELECT COUNT(*) FROM checkouts c
+                WHERE LOWER(c.customer_name)=LOWER(nm.name) AND c.member_number='Non-member') AS checkout_count,
+               MAX(COALESCE(
+                   (SELECT MAX(r2.date_in) FROM restrings r2
+                    WHERE LOWER(r2.customer_name)=LOWER(nm.name) AND r2.member_number='Non-member'),
+                   (SELECT MAX(c2.checked_out_at) FROM checkouts c2
+                    WHERE LOWER(c2.customer_name)=LOWER(nm.name) AND c2.member_number='Non-member')
+               )) AS last_seen
+        FROM non_members nm
+        {where}
+        GROUP BY nm.id
+        ORDER BY nm.name
+    """, params).fetchall()
     return render_template('admin/member_search.html', rows=rows, q=q, mode='non_members')
+
+
+@admin_bp.route('/non-members/add', methods=['POST'])
+@login_required
+def non_member_add():
+    db = get_db()
+    from database import format_phone
+    name  = request.form.get('name', '').strip()
+    phone = format_phone(request.form.get('phone', '').strip()) or None
+    notes = request.form.get('notes', '').strip() or None
+    q     = request.form.get('q', '')
+    if name:
+        try:
+            db.execute("INSERT INTO non_members (name, phone, notes) VALUES (?, ?, ?)", (name, phone, notes))
+            db.commit()
+        except Exception:
+            pass  # duplicate name — silently skip
+    return redirect(url_for('admin.non_member_search', q=q))
+
+
+@admin_bp.route('/non-members/<int:nm_id>/edit', methods=['POST'])
+@login_required
+def non_member_edit(nm_id):
+    db = get_db()
+    from database import format_phone
+    name  = request.form.get('name', '').strip()
+    phone = format_phone(request.form.get('phone', '').strip()) or None
+    notes = request.form.get('notes', '').strip() or None
+    q     = request.form.get('q', '')
+    if name:
+        try:
+            db.execute("UPDATE non_members SET name=?, phone=?, notes=? WHERE id=?", (name, phone, notes, nm_id))
+            db.commit()
+        except Exception:
+            pass
+    return redirect(url_for('admin.non_member_search', q=q))
+
+
+@admin_bp.route('/non-members/sync', methods=['POST'])
+@login_required
+def non_member_sync():
+    db = get_db()
+    from database import format_phone
+    # Gather unique non-members from restrings + checkouts
+    seen = {}
+    for row in db.execute(
+        "SELECT customer_name, phone FROM restrings WHERE member_number='Non-member'"
+    ).fetchall():
+        key = row['customer_name'].strip().lower()
+        if key and key not in seen:
+            seen[key] = {'name': row['customer_name'].strip(), 'phone': format_phone(row['phone']) if row['phone'] else None}
+    for row in db.execute(
+        "SELECT customer_name, phone FROM checkouts WHERE member_number='Non-member'"
+    ).fetchall():
+        key = row['customer_name'].strip().lower()
+        if key and key not in seen:
+            seen[key] = {'name': row['customer_name'].strip(), 'phone': format_phone(row['phone']) if row['phone'] else None}
+    existing = {r['name'].lower() for r in db.execute("SELECT name FROM non_members").fetchall()}
+    added = 0
+    for key, data in seen.items():
+        if key not in existing:
+            try:
+                db.execute("INSERT INTO non_members (name, phone) VALUES (?, ?)", (data['name'], data['phone']))
+                added += 1
+            except Exception:
+                pass
+    db.commit()
+    return redirect(url_for('admin.non_member_search'))
+
+
+@admin_bp.route('/non-members/<int:nm_id>/profile')
+@login_required
+def non_member_profile(nm_id):
+    db = get_db()
+    nm = db.execute("SELECT * FROM non_members WHERE id=?", (nm_id,)).fetchone()
+    if not nm:
+        return redirect(url_for('admin.non_member_search'))
+    restrings = db.execute(
+        """SELECT * FROM restrings
+           WHERE LOWER(customer_name)=LOWER(?) AND member_number='Non-member'
+           ORDER BY date_in DESC""",
+        (nm['name'],)
+    ).fetchall()
+    checkouts = db.execute(
+        """SELECT c.*, e.name AS equipment_name, e.category,
+                  ROUND(julianday(COALESCE(c.returned_at, datetime('now'))) - julianday(c.checked_out_at)) AS duration_days
+           FROM checkouts c JOIN equipment e ON c.equipment_id=e.id
+           WHERE LOWER(c.customer_name)=LOWER(?) AND c.member_number='Non-member'
+           ORDER BY c.checked_out_at DESC""",
+        (nm['name'],)
+    ).fetchall()
+    back_q = request.args.get('back_q', '')
+    back_url = url_for('admin.non_member_search', q=back_q) if back_q else url_for('admin.non_member_search')
+    return render_template('admin/non_member_profile.html',
+                           nm=nm, restrings=restrings, checkouts=checkouts, back_url=back_url)
 
 
 @admin_bp.route('/members/<int:member_id>/profile')

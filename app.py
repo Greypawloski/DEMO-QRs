@@ -68,13 +68,25 @@ def create_app():
             'nav_approaching_charge': approaching_charge,
         }
 
-    # Auto-initialize DB on first request if it doesn't exist
+    # Auto-initialize DB on first request if it doesn't exist; run safe migrations
     @app.before_request
     def ensure_db():
         import os
         if not os.path.exists(app.config['DB_PATH']):
             with app.app_context():
                 init_db()
+        else:
+            db = get_db()
+            db.executescript("""
+                CREATE TABLE IF NOT EXISTS non_members (
+                    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name       TEXT NOT NULL,
+                    phone      TEXT,
+                    notes      TEXT,
+                    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_non_members_name_lower ON non_members(LOWER(name));
+            """)
 
     @app.route('/')
     def home():
