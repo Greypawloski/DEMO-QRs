@@ -667,10 +667,18 @@ def member_autocomplete():
     rows = db.execute(
         '''SELECT id, member_name, member_number FROM members_contact
            WHERE member_name LIKE ? OR member_number LIKE ?
-           ORDER BY member_name LIMIT 12''',
+           ORDER BY member_name LIMIT 20''',
         (f'{q}%', f'{q}%')
     ).fetchall()
-    return jsonify([{'id': r['id'], 'name': r['member_name'], 'number': r['member_number']} for r in rows])
+    total = db.execute(
+        '''SELECT COUNT(*) FROM members_contact
+           WHERE member_name LIKE ? OR member_number LIKE ?''',
+        (f'{q}%', f'{q}%')
+    ).fetchone()[0]
+    return jsonify({
+        'results': [{'id': r['id'], 'name': r['member_name'], 'number': r['member_number']} for r in rows],
+        'total': total
+    })
 
 
 @admin_bp.route('/non-members')
