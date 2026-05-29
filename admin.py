@@ -1038,6 +1038,8 @@ def guide():
 @login_required
 def reports():
     db = get_db()
+    from datetime import date
+    import calendar
 
     popular = db.execute(
         """
@@ -1085,7 +1087,36 @@ def reports():
         """
     ).fetchall()
 
-    return render_template('admin/reports.html', popular=popular, durations=durations, members=members, turnaround=turnaround)
+    # Daily restring intake chart — month selector
+    today = date.today()
+    selected_month = request.args.get('month', today.strftime('%Y-%m'))
+    try:
+        year, mon = (int(x) for x in selected_month.split('-'))
+        if not (1 <= mon <= 12):
+            raise ValueError
+    except (ValueError, AttributeError):
+        year, mon = today.year, today.month
+        selected_month = f'{year:04d}-{mon:02d}'
+
+    days_in_month = calendar.monthrange(year, mon)[1]
+    daily_rows = db.execute(
+        """SELECT CAST(strftime('%d', date_in) AS INTEGER) AS day, COUNT(*) AS cnt
+           FROM restrings
+           WHERE strftime('%Y-%m', date_in) = ?
+           GROUP BY day ORDER BY day""",
+        (selected_month,)
+    ).fetchall()
+    daily_map = {r['day']: r['cnt'] for r in daily_rows}
+    chart_days   = list(range(1, days_in_month + 1))
+    chart_counts = [daily_map.get(d, 0) for d in chart_days]
+    chart_month_label = date(year, mon, 1).strftime('%B %Y')
+
+    return render_template('admin/reports.html',
+                           popular=popular, durations=durations,
+                           members=members, turnaround=turnaround,
+                           chart_days=chart_days, chart_counts=chart_counts,
+                           chart_month_label=chart_month_label,
+                           selected_month=selected_month)
 
 
 @admin_bp.route('/label/<int:equipment_id>/download')

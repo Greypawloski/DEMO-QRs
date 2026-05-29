@@ -5,6 +5,19 @@
 {% block content %}
 <h1 style="margin-bottom:32px;">Reports</h1>
 
+<!-- Restrings Per Day -->
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+  <h2 style="font-size:1.1rem;margin:0;">Racquets Brought In Per Day</h2>
+  <form method="get" style="display:flex;align-items:center;gap:8px;margin:0;">
+    <input type="month" name="month" value="{{ selected_month }}"
+           style="padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--card-bg);color:var(--text);">
+    <button type="submit" class="btn btn-primary btn-sm">Go</button>
+  </form>
+</div>
+<div class="anim-card" style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:20px 20px 12px;margin-bottom:40px;">
+  <canvas id="dailyChart" height="90"></canvas>
+</div>
+
 <!-- Most Popular Demos -->
 <h2 style="font-size:1.1rem;margin-bottom:12px;">Most Popular Demos</h2>
 <div class="table-wrap" style="margin-bottom:40px;">
@@ -132,4 +145,58 @@
   <div class="empty-state"><p>No checkout data yet.</p></div>
   {% endif %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  var isDark = document.body.classList.contains('dark');
+  var gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+  var labelColor = isDark ? 'rgba(255,255,255,0.6)'  : 'rgba(0,0,0,0.5)';
+
+  var ctx = document.getElementById('dailyChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: {{ chart_days | tojson }},
+      datasets: [{
+        label: 'Racquets — {{ chart_month_label }}',
+        data: {{ chart_counts | tojson }},
+        borderColor: '#059669',
+        backgroundColor: 'rgba(5,150,105,0.10)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#059669',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.35,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: function(items) { return 'Day ' + items[0].label; },
+            label: function(item) { return item.raw + ' racquet' + (item.raw !== 1 ? 's' : ''); }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Day of Month', color: labelColor, font: { size: 11 } },
+          ticks: { color: labelColor, maxTicksLimit: 16 },
+          grid: { color: gridColor }
+        },
+        y: {
+          title: { display: true, text: 'Racquets', color: labelColor, font: { size: 11 } },
+          ticks: { color: labelColor, stepSize: 1, precision: 0 },
+          grid: { color: gridColor },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+})();
+</script>
 {% endblock %}
