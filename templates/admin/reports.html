@@ -18,6 +18,13 @@
   <canvas id="dailyChart" height="90"></canvas>
 </div>
 
+<!-- Queue Depth Per Day -->
+<h2 style="font-size:1.1rem;margin:0 0 4px;">Racquet Queue Depth Per Day</h2>
+<p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px;">Racquets in the shop (submitted but not yet complete) on each day — peaks show pileup days.</p>
+<div class="anim-card" style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:20px 20px 12px;margin-bottom:40px;">
+  <canvas id="queueChart" height="90"></canvas>
+</div>
+
 <!-- Most Popular Demos -->
 <h2 style="font-size:1.1rem;margin-bottom:12px;">Most Popular Demos</h2>
 <div class="table-wrap" style="margin-bottom:40px;">
@@ -153,50 +160,63 @@
   var gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
   var labelColor = isDark ? 'rgba(255,255,255,0.6)'  : 'rgba(0,0,0,0.5)';
 
-  var ctx = document.getElementById('dailyChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: {{ chart_days | tojson }},
-      datasets: [{
-        label: 'Racquets — {{ chart_month_label }}',
-        data: {{ chart_counts | tojson }},
-        borderColor: '#059669',
-        backgroundColor: 'rgba(5,150,105,0.10)',
-        borderWidth: 2.5,
-        pointBackgroundColor: '#059669',
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        tension: 0.35,
-        fill: true,
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: function(items) { return 'Day ' + items[0].label; },
-            label: function(item) { return item.raw + ' racquet' + (item.raw !== 1 ? 's' : ''); }
+  function makeLineChart(id, labels, data, color, fillColor, yLabel, tooltipSuffix) {
+    var ctx = document.getElementById(id).getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          borderColor: color,
+          backgroundColor: fillColor,
+          borderWidth: 2.5,
+          pointBackgroundColor: color,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          tension: 0.35,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function(items) { return 'Day ' + items[0].label; },
+              label: function(item) { return item.raw + tooltipSuffix; }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Day of Month', color: labelColor, font: { size: 11 } },
+            ticks: { color: labelColor, maxTicksLimit: 16 },
+            grid: { color: gridColor }
+          },
+          y: {
+            title: { display: true, text: yLabel, color: labelColor, font: { size: 11 } },
+            ticks: { color: labelColor, stepSize: 1, precision: 0 },
+            grid: { color: gridColor },
+            beginAtZero: true
           }
         }
-      },
-      scales: {
-        x: {
-          title: { display: true, text: 'Day of Month', color: labelColor, font: { size: 11 } },
-          ticks: { color: labelColor, maxTicksLimit: 16 },
-          grid: { color: gridColor }
-        },
-        y: {
-          title: { display: true, text: 'Racquets', color: labelColor, font: { size: 11 } },
-          ticks: { color: labelColor, stepSize: 1, precision: 0 },
-          grid: { color: gridColor },
-          beginAtZero: true
-        }
       }
-    }
-  });
+    });
+  }
+
+  var days   = {{ chart_days | tojson }};
+  var counts = {{ chart_counts | tojson }};
+  var queue  = {{ queue_depth | tojson }};
+
+  makeLineChart('dailyChart', days, counts,
+    '#059669', 'rgba(5,150,105,0.10)',
+    'Racquets brought in', ' racquet' + (counts.length === 1 ? '' : 's'));
+
+  makeLineChart('queueChart', days, queue,
+    '#d97706', 'rgba(217,119,6,0.10)',
+    'Racquets in queue', ' in queue');
 })();
 </script>
 {% endblock %}

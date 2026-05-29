@@ -1111,12 +1111,31 @@ def reports():
     chart_counts = [daily_map.get(d, 0) for d in chart_days]
     chart_month_label = date(year, mon, 1).strftime('%B %Y')
 
+    # Queue depth per day: racquets in shop (submitted on/before day, not yet complete)
+    month_start = f'{year:04d}-{mon:02d}-01'
+    month_end   = f'{year:04d}-{mon:02d}-{days_in_month:02d}'
+    open_jobs = db.execute(
+        """SELECT date_in, completed_at FROM restrings
+           WHERE date_in <= ? AND (completed_at IS NULL OR DATE(completed_at) >= ?)""",
+        (month_end, month_start)
+    ).fetchall()
+    queue_depth = []
+    for d in chart_days:
+        day_str = f'{year:04d}-{mon:02d}-{d:02d}'
+        count = sum(
+            1 for r in open_jobs
+            if r['date_in'][:10] <= day_str and
+               (r['completed_at'] is None or r['completed_at'][:10] >= day_str)
+        )
+        queue_depth.append(count)
+
     return render_template('admin/reports.html',
                            popular=popular, durations=durations,
                            members=members, turnaround=turnaround,
                            chart_days=chart_days, chart_counts=chart_counts,
                            chart_month_label=chart_month_label,
-                           selected_month=selected_month)
+                           selected_month=selected_month,
+                           queue_depth=queue_depth)
 
 
 @admin_bp.route('/label/<int:equipment_id>/download')
