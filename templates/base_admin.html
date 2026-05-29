@@ -141,6 +141,15 @@
       if (e.key === 'n' || e.key === 'N') window.location.href = '{{ url_for("restrings.restring_new") }}';
       if (e.key === 'f' || e.key === 'F') window.location.href = '{{ url_for("admin.member_search_page", focus="last") }}';
     });
+
+    // Move modals to <body> so position:fixed is viewport-relative.
+    // .admin-wrap uses a transform animation, which makes it a containing block
+    // for fixed descendants — modals end up centered in the page, not the screen.
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('[id$="-modal"]').forEach(function(el) {
+        document.body.appendChild(el);
+      });
+    });
   </script>
 </body>
 </html>
