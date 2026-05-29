@@ -372,6 +372,18 @@ def create_app():
             return redirect(url_for('home'))
         return render_template('checkout_multi_confirm.html', data=data)
 
+    @app.route('/stringing-queue')
+    def stringing_queue():
+        db = get_db()
+        jobs = db.execute(
+            """SELECT customer_name, racquet, string, tension, date_in,
+                      date_promised, strung_by, notes, customer_own_string
+               FROM restrings
+               WHERE status = 'pending'
+               ORDER BY date_promised ASC, date_in ASC"""
+        ).fetchall()
+        return render_template('stringing_queue.html', jobs=jobs)
+
     @app.errorhandler(404)
     def not_found(e):
         return render_template('errors/404.html'), 404

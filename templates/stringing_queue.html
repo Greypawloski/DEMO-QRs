@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stringing Queue — SACC Tennis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#059669">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f0fdf4;
+      color: #111;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a5c35;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    }
+    header h1 {
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    header .count-badge {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+    }
+    header .updated {
+      margin-left: auto;
+      color: rgba(255,255,255,0.65);
+      font-size: 0.78rem;
+    }
+
+    main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 20px 16px 48px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+    .empty .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .empty h2 { font-size: 1.1rem; color: #374151; margin-bottom: 6px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid #d1fae5;
+      border-left: 4px solid #f59e0b;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    .customer-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #111;
+    }
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .details {
+      font-size: 0.9rem;
+      color: #374151;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .detail-row {
+      display: flex;
+      gap: 6px;
+    }
+    .detail-label {
+      color: #6b7280;
+      min-width: 70px;
+      flex-shrink: 0;
+    }
+    .detail-val {
+      font-weight: 500;
+    }
+    .own-string {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.72rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-left: 4px;
+      white-space: nowrap;
+    }
+    .notes-row {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #f0fdf4;
+      font-size: 0.85rem;
+      color: #4b5563;
+      font-style: italic;
+    }
+
+    .promised-soon {
+      color: #dc2626;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎾 Stringing Queue</h1>
+  {% if jobs %}
+  <span class="count-badge">{{ jobs|length }} racquet{{ 's' if jobs|length != 1 }}</span>
+  {% endif %}
+  <span class="updated">Live · SACC Tennis</span>
+</header>
+
+<main>
+  {% if not jobs %}
+  <div class="empty">
+    <div class="icon">✅</div>
+    <h2>All caught up!</h2>
+    <p>No racquets are currently waiting to be strung.</p>
+  </div>
+  {% else %}
+  {% for job in jobs %}
+  <div class="card">
+    <div class="card-header">
+      <span class="customer-name">{{ job.customer_name }}</span>
+      <span class="badge-pending">Pending</span>
+    </div>
+    <div class="details">
+      <div class="detail-row">
+        <span class="detail-label">Racquet</span>
+        <span class="detail-val">{{ job.racquet }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">String</span>
+        <span class="detail-val">
+          {{ job.string }}
+          {% if job.customer_own_string %}<span class="own-string">Own String</span>{% endif %}
+        </span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Tension</span>
+        <span class="detail-val">{{ job.tension }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Brought In</span>
+        <span class="detail-val">{{ job.date_in }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Promised</span>
+        <span class="detail-val promised-date" data-date="{{ job.date_promised }}">{{ job.date_promised }}</span>
+      </div>
+      {% if job.strung_by %}
+      <div class="detail-row">
+        <span class="detail-label">Assigned</span>
+        <span class="detail-val">{{ job.strung_by }}</span>
+      </div>
+      {% endif %}
+      {% if job.notes %}
+      <div class="notes-row">📝 {{ job.notes }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</main>
+
+<script>
+  // Highlight overdue promised dates in red
+  document.querySelectorAll('.promised-date').forEach(function(el) {
+    var d = el.dataset.date;
+    if (d && d < new Date().toISOString().slice(0, 10)) {
+      el.classList.add('promised-soon');
+    }
+  });
+</script>
+
+</body>
+</html>

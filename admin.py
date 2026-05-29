@@ -1034,6 +1034,22 @@ def guide():
     return render_template('admin/guide.html')
 
 
+@admin_bp.route('/stringing-queue/qr')
+@login_required
+def stringing_queue_qr():
+    import qrcode, io, base64
+    base_url = current_app.config['QR_BASE_URL'].rstrip('/')
+    queue_url = f"{base_url}/stringing-queue"
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=10, border=4)
+    qr.add_data(queue_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    qr_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+    return render_template('admin/stringing_queue_qr.html', qr_b64=qr_b64, queue_url=queue_url)
+
+
 @admin_bp.route('/reports')
 @login_required
 def reports():
