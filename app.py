@@ -374,6 +374,7 @@ def create_app():
 
     @app.route('/stringing-queue')
     def stringing_queue():
+        from flask import make_response
         db = get_db()
         jobs = db.execute(
             """SELECT customer_name, racquet, string, tension, date_in,
@@ -382,7 +383,9 @@ def create_app():
                WHERE status = 'pending'
                ORDER BY date_promised ASC, date_in ASC"""
         ).fetchall()
-        return render_template('stringing_queue.html', jobs=jobs)
+        resp = make_response(render_template('stringing_queue.html', jobs=jobs))
+        resp.headers['Cache-Control'] = 'no-store'
+        return resp
 
     @app.errorhandler(404)
     def not_found(e):
