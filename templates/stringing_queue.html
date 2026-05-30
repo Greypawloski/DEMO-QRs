@@ -69,7 +69,26 @@
       border-radius: 10px;
       padding: 14px 16px;
       margin-bottom: 10px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
     }
+
+    .queue-num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #d1d5db;
+      min-width: 32px;
+      text-align: right;
+      line-height: 1.2;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+    .card-num-1 .queue-num { color: #f59e0b; }
+    .card-num-2 .queue-num { color: #9ca3af; }
+    .card-num-3 .queue-num { color: #b45309; }
+
+    .card-body { flex: 1; min-width: 0; }
 
     .card-header {
       display: flex;
@@ -84,13 +103,9 @@
       font-weight: 700;
       color: #111;
     }
-    .badge-pending {
-      background: #fef3c7;
-      color: #92400e;
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 20px;
+    .time-in {
+      color: #6b7280;
+      font-size: 0.8rem;
       white-space: nowrap;
     }
 
@@ -156,44 +171,49 @@
   </div>
   {% else %}
   {% for job in jobs %}
-  <div class="card">
-    <div class="card-header">
-      <span class="customer-name">{{ job.customer_name }}</span>
-      <span class="badge-pending">Pending</span>
-    </div>
-    <div class="details">
-      <div class="detail-row">
-        <span class="detail-label">Racquet</span>
-        <span class="detail-val">{{ job.racquet }}</span>
+  <div class="card card-num-{{ loop.index }}">
+    <div class="queue-num">#{{ loop.index }}</div>
+    <div class="card-body">
+      <div class="card-header">
+        <span class="customer-name">{{ job.customer_name }}</span>
+        {% if job.created_at %}
+        <span class="time-in">{{ job.created_at[5:7] }}/{{ job.created_at[8:10] }} {{ job.created_at[11:16] }}</span>
+        {% endif %}
       </div>
-      <div class="detail-row">
-        <span class="detail-label">String</span>
-        <span class="detail-val">
-          {{ job.string }}
-          {% if job.customer_own_string %}<span class="own-string">Own String</span>{% endif %}
-        </span>
+      <div class="details">
+        <div class="detail-row">
+          <span class="detail-label">Racquet</span>
+          <span class="detail-val">{{ job.racquet }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">String</span>
+          <span class="detail-val">
+            {{ job.string }}
+            {% if job.customer_own_string %}<span class="own-string">Own String</span>{% endif %}
+          </span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Tension</span>
+          <span class="detail-val">{{ job.tension }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Brought In</span>
+          <span class="detail-val">{{ job.date_in }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Promised</span>
+          <span class="detail-val promised-date" data-date="{{ job.date_promised }}">{{ job.date_promised }}</span>
+        </div>
+        {% if job.strung_by %}
+        <div class="detail-row">
+          <span class="detail-label">Assigned</span>
+          <span class="detail-val">{{ job.strung_by }}</span>
+        </div>
+        {% endif %}
+        {% if job.notes %}
+        <div class="notes-row">📝 {{ job.notes }}</div>
+        {% endif %}
       </div>
-      <div class="detail-row">
-        <span class="detail-label">Tension</span>
-        <span class="detail-val">{{ job.tension }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Brought In</span>
-        <span class="detail-val">{{ job.date_in }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="detail-label">Promised</span>
-        <span class="detail-val promised-date" data-date="{{ job.date_promised }}">{{ job.date_promised }}</span>
-      </div>
-      {% if job.strung_by %}
-      <div class="detail-row">
-        <span class="detail-label">Assigned</span>
-        <span class="detail-val">{{ job.strung_by }}</span>
-      </div>
-      {% endif %}
-      {% if job.notes %}
-      <div class="notes-row">📝 {{ job.notes }}</div>
-      {% endif %}
     </div>
   </div>
   {% endfor %}

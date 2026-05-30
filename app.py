@@ -378,10 +378,10 @@ def create_app():
         db = get_db()
         jobs = db.execute(
             """SELECT customer_name, racquet, string, tension, date_in,
-                      date_promised, strung_by, notes, customer_own_string
+                      date_promised, strung_by, notes, customer_own_string, created_at
                FROM restrings
                WHERE status = 'pending'
-               ORDER BY date_promised ASC, date_in ASC"""
+               ORDER BY date_in ASC, created_at ASC"""
         ).fetchall()
         resp = make_response(render_template('stringing_queue.html', jobs=jobs))
         resp.headers['Cache-Control'] = 'no-store'
