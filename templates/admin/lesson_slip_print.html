@@ -145,7 +145,7 @@
 <body>
 
   <div class="screen-controls">
-    <button class="btn btn-print" onclick="openPrintWindow()">Print Slip</button>
+    <button class="btn btn-print" onclick="window.print()">Print Slip</button>
     <a class="btn btn-back" href="{{ url_for('admin.lesson_slip_form') }}">Back</a>
     <span style="font-size:0.85rem;color:#374151;align-self:center;">⚠ Set Margins to <strong>None</strong> · turn off <strong>Headers &amp; Footers</strong> in the print dialog</span>
   </div>
@@ -224,37 +224,5 @@
 
   </div>
 
-<script>
-function openPrintWindow() {
-  var slip = document.querySelector('.slip');
-  var styles = '';
-  document.querySelectorAll('style').forEach(function(s) { styles += s.textContent; });
-
-  var html = [
-    '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">',
-    '<style>',
-    '* { box-sizing: border-box; margin: 0; padding: 0;',
-    '    -webkit-print-color-adjust: exact; print-color-adjust: exact; }',
-    'html, body { background: none !important; padding: 0 !important; margin: 0 !important; display: block !important; }',
-    styles,
-    '</style></head><body>',
-    slip.outerHTML,
-    '<script>',
-    'var r=document.readyState;',
-    'if(r==="complete"||r==="interactive"){window.print();}',
-    'else{window.addEventListener("load",function(){window.print();});}',
-    '<\\/script></body></html>'
-  ].join('');
-
-  var win = window.open('', '_blank');
-  if (win) {
-    win.document.open('text/html', 'replace');
-    win.document.write(html);
-    win.document.close();
-  } else {
-    window.print();
-  }
-}
-</script>
 </body>
 </html>
