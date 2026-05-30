@@ -203,20 +203,18 @@
 </form>
 
 {% if item %}
-<form id="mark-ready-form" method="post" action="{{ url_for('restrings.restring_status', restring_id=item.id) }}" style="display:none;">
-  <input type="hidden" name="status" value="complete">
-</form>
+<input type="hidden" id="mark-ready-flag" name="mark_ready" value="">
 
 <!-- Confirmation modal -->
 <div id="mark-ready-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
   <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:360px;width:90%;text-align:center;">
     <h2 style="font-size:1.1rem;margin-bottom:12px;">Mark as Ready?</h2>
     <p style="color:var(--muted);font-size:0.95rem;margin-bottom:20px;">
-      This will notify the customer that their racquet is ready for pickup.
+      Changes will be saved and the customer will be notified that their racquet is ready for pickup.
     </p>
     <div style="display:flex;gap:12px;">
       <button type="button" class="btn btn-primary" style="flex:1;background:#059669;border-color:#059669;"
-              onclick="document.getElementById('mark-ready-form').submit()">Yes, Mark Ready</button>
+              onclick="submitMarkReady()">Yes, Mark Ready</button>
       <button type="button" class="btn btn-secondary" style="flex:1;"
               onclick="document.getElementById('mark-ready-modal').style.display='none'">Cancel</button>
     </div>
@@ -226,6 +224,10 @@
 <script>
   function confirmMarkReady() {
     document.getElementById('mark-ready-modal').style.display = 'flex';
+  }
+  function submitMarkReady() {
+    document.getElementById('mark-ready-flag').value = '1';
+    document.getElementById('restring-form').submit();
   }
 </script>
 {% endif %}

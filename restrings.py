@@ -267,6 +267,28 @@ def restring_edit(restring_id):
                 restring_id,
             )
         )
+        if request.form.get('mark_ready') == '1' and item['status'] == 'pending':
+            from flask import session as flask_session
+            db.execute(
+                "UPDATE restrings SET status='complete', completed_at=datetime('now') WHERE id=?",
+                (restring_id,)
+            )
+            staff = flask_session.get('staff_name', 'Unknown')
+            customer_name = request.form['customer_name'].strip()
+            racquet = request.form['racquet'].strip()
+            db.execute(
+                "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+                (staff, 'Marked Restring Ready', f"{customer_name} — {racquet}")
+            )
+            db.commit()
+            sync_member_phone(db, member, phone)
+            no_sms = bool(request.form.get('no_sms'))
+            if phone and not no_sms:
+                from sms import send_sms
+                send_sms(phone,
+                         f"Hi {customer_name.split()[0]}, your racquet is ready for pickup at the SACC Tennis Shop. "
+                         f"Please stop by during business hours. Reply STOP to opt out.")
+            return redirect(url_for('restrings.list_restrings'))
         db.commit()
         sync_member_phone(db, member, phone)
         return redirect(url_for('restrings.list_restrings'))
