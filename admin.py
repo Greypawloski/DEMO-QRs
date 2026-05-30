@@ -2,7 +2,7 @@ import io
 import csv
 import zipfile
 from datetime import datetime, timedelta, timezone
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, current_app, send_from_directory, send_file, jsonify, session
 from pathlib import Path
 from database import get_db, format_phone, sync_member_phone, member_flags
 from auth import login_required
@@ -1340,4 +1340,156 @@ def lesson_slip_print():
         'notes':           request.form.get('notes', ''),
         'green_paper':     request.form.get('green_paper') == '1',
     }
+    session['lesson_slip_data'] = data
     return render_template('admin/lesson_slip_print.html', data=data)
+
+
+def _build_lesson_slip_png(data):
+    """Render a 4×6 lesson slip as a PIL Image (800×1200 @ 200 dpi)."""
+    import os
+    from PIL import Image, ImageDraw, ImageFont
+
+    DPI = 200
+    W, H = 800, 1200
+    PAD = 44          # 0.22 in
+    LEFT, RIGHT = PAD, W - PAD
+    DARK = '#111111'
+
+    def load_font(bold, pt):
+        px = max(10, round(pt * DPI / 72))
+        stems = [
+            ('dejavu',     'DejaVuSans{}.ttf'.format('-Bold' if bold else '')),
+            ('liberation', 'LiberationSans-{}.ttf'.format('Bold' if bold else 'Regular')),
+            ('freefont',   'FreeSans{}.ttf'.format('Bold' if bold else '')),
+        ]
+        for pkg, fname in stems:
+            p = f'/usr/share/fonts/truetype/{pkg}/{fname}'
+            if os.path.exists(p):
+                try:
+                    return ImageFont.truetype(p, px)
+                except Exception:
+                    pass
+        return ImageFont.load_default()
+
+    F12B = load_font(True,  12)
+    F11  = load_font(False, 11)
+    FWM  = load_font(True,  72)
+
+    img  = Image.new('RGB', (W, H), '#ffffff')
+    draw = ImageDraw.Draw(img)
+
+    # ── watermark ──────────────────────────────────────────────────────────
+    wm_bb  = draw.textbbox((0, 0), 'SACC', font=FWM)
+    wm_img = Image.new('RGBA', (wm_bb[2] + 40, wm_bb[3] + 40), (255, 255, 255, 0))
+    ImageDraw.Draw(wm_img).text((20, 20), 'SACC', font=FWM, fill=(0, 0, 0, 46))
+    wm_rot = wm_img.rotate(-20, expand=True)
+    img.paste(wm_rot, ((W - wm_rot.width) // 2, (H - wm_rot.height) // 2), wm_rot)
+
+    # ── helpers ─────────────────────────────────────────────────────────────
+    def _th(font):
+        bb = draw.textbbox((0, 0), 'Ag', font=font)
+        return bb[3] - bb[1]
+
+    H12 = _th(F12B)
+    H11 = _th(F11)
+
+    def dark_field(y, label, value):
+        lbb = draw.textbbox((0, 0), label, font=F12B)
+        lw, lh = lbb[2] - lbb[0], lbb[3] - lbb[1]
+        bx2 = LEFT + lw + 14
+        by2 = y + lh + 6
+        draw.rectangle([LEFT, y, bx2, by2], fill='#1a1a1a')
+        draw.text((LEFT + 7, y + 3), label, font=F12B, fill='#ffffff')
+        vx = bx2 + 8
+        if value:
+            draw.text((vx + 2, by2 - H11 - 1), value, font=F11, fill=DARK)
+        draw.line([(vx, by2 + 2), (RIGHT, by2 + 2)], fill=DARK, width=2)
+
+    def plain_field(y, label, value):
+        lbb = draw.textbbox((0, 0), label, font=F12B)
+        lw, lh = lbb[2] - lbb[0], lbb[3] - lbb[1]
+        draw.text((LEFT, y), label, font=F12B, fill=DARK)
+        vx = LEFT + lw + 8
+        base_y = y + lh + 2
+        if value:
+            draw.text((vx + 2, y), value, font=F11, fill=DARK)
+        draw.line([(vx, base_y), (RIGHT, base_y)], fill=DARK, width=2)
+
+    def draw_option(x, y, text, selected):
+        bb = draw.textbbox((0, 0), text, font=F11)
+        tw, th = bb[2] - bb[0], bb[3] - bb[1]
+        if selected:
+            p = 5
+            draw.ellipse([x - p, y - p, x + tw + p, y + th + p], outline=DARK, width=2)
+        draw.text((x, y), text, font=F11, fill=DARK)
+        return tw
+
+    # ── space-between layout ────────────────────────────────────────────────
+    OPT_ROW_H    = H11 + 10
+    TYPE_BLOCK_H = H12 + 10 + OPT_ROW_H + 6 + OPT_ROW_H
+    NOTE_LINE_H  = H11 + 14
+    NOTES_H      = H12 + 10 + NOTE_LINE_H * 3
+    DARK_FH      = H12 + 8   # dark label box height + line
+    PLAIN_FH     = H12 + 6
+
+    elements = [DARK_FH, DARK_FH, PLAIN_FH, TYPE_BLOCK_H, PLAIN_FH, NOTES_H]
+    gap = ((H - 2 * PAD) - sum(elements)) // (len(elements) - 1)
+
+    ys = []
+    cur = PAD
+    for eh in elements:
+        ys.append(cur)
+        cur += eh + gap
+
+    # ── draw ────────────────────────────────────────────────────────────────
+    dark_field(ys[0], 'Lesson Date:',  data.get('lesson_date', ''))
+    dark_field(ys[1], 'Lesson Name:',  data.get('lesson_name', ''))
+    plain_field(ys[2], 'Pro Name:',    data.get('pro_name', ''))
+
+    # Type of Lesson
+    y = ys[3]
+    draw.text((LEFT, y), 'Type Of Lesson:', font=F12B, fill=DARK)
+    y += H12 + 10
+
+    cat = data.get('lesson_category', '')
+    ox = LEFT + 4
+    for opt in ['Private', 'Clinic', 'Cardio']:
+        w = draw_option(ox, y, opt, cat == opt)
+        ox += w + 28
+    y += OPT_ROW_H
+
+    dur = data.get('lesson_duration', '')
+    ox = LEFT + 4
+    for opt in ['1/2 Hour', '1 Hour']:
+        w = draw_option(ox, y, opt, dur == opt)
+        ox += w + 28
+    other_lbl = ('Other: ' + data['other_text']) if (dur == 'other' and data.get('other_text')) else 'Other'
+    draw_option(ox, y, other_lbl, dur == 'other')
+
+    plain_field(ys[4], 'Amount To Be Charged:', data.get('amount', ''))
+
+    # Notes
+    y = ys[5]
+    draw.text((LEFT, y), 'Notes:', font=F12B, fill=DARK)
+    y += H12 + 10
+    for i, val in enumerate([data.get('notes', ''), '', '']):
+        if val:
+            draw.text((LEFT + 2, y), val, font=F11, fill=DARK)
+        draw.line([(LEFT, y + H11 + 4), (RIGHT, y + H11 + 4)], fill=DARK, width=2)
+        y += NOTE_LINE_H
+
+    return img
+
+
+@admin_bp.route('/lesson-slips/image')
+@login_required
+def lesson_slip_image():
+    data = session.get('lesson_slip_data')
+    if not data:
+        return redirect(url_for('admin.lesson_slip_form'))
+    img = _build_lesson_slip_png(data)
+    buf = io.BytesIO()
+    img.save(buf, format='PNG', dpi=(200, 200))
+    buf.seek(0)
+    return send_file(buf, mimetype='image/png', as_attachment=True,
+                     download_name='lesson_slip.png')
