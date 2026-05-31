@@ -143,8 +143,9 @@
       width: 100%;
     }
 
+    @page { size: 4in 6in; margin: 0; }
+
     @media print {
-      @page { size: 4in 6in; margin: 0; }
       body { background: none; padding: 0; margin: 0; display: block; }
       .screen-controls { display: none !important; }
       .slip {
@@ -224,16 +225,16 @@
       <span class="val">{{ job.date_promised }}</span>
     </div>
 
-    <!-- Receipt (blank — filled in later) -->
+    <!-- Receipt -->
     <div class="field">
       <span class="lbl-plain">Receipt:</span>
-      <span class="val"></span>
+      <span class="val">{{ job.receipt or '' }}</span>
     </div>
 
-    <!-- Charged (blank — filled in later) -->
+    <!-- Charged -->
     <div class="field">
       <span class="lbl-dark">Charged:</span>
-      <span class="val"></span>
+      <span class="val">{{ job.charged or '' }}</span>
     </div>
 
   </div>
