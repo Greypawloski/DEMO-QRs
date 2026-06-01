@@ -8,11 +8,14 @@
 <!-- Restrings Per Day -->
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
   <h2 style="font-size:1.1rem;margin:0;">Racquets Brought In Per Day</h2>
-  <form method="get" style="display:flex;align-items:center;gap:8px;margin:0;">
-    <input type="month" name="month" value="{{ selected_month }}"
-           style="padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--card-bg);color:var(--text);">
-    <button type="submit" class="btn btn-primary btn-sm">Go</button>
-  </form>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <form method="get" style="display:flex;align-items:center;gap:8px;margin:0;">
+      <input type="month" name="month" value="{{ selected_month }}"
+             style="padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--card-bg);color:var(--text);">
+      <button type="submit" class="btn btn-primary btn-sm">Go</button>
+    </form>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.reports_print') }}?month={{ selected_month }}" target="_blank">🖨 Print Report</a>
+  </div>
 </div>
 <div class="anim-card" style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:20px 20px 12px;margin-bottom:40px;">
   <canvas id="dailyChart" height="90"></canvas>

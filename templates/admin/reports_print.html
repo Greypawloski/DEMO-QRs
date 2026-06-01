@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stringing Report — {{ chart_month_label }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 11pt;
+      color: #111;
+      background: #f5f5f5;
+      padding: 24px 20px;
+    }
+
+    .screen-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .btn {
+      padding: 7px 18px; border: none; border-radius: 6px;
+      font-size: 0.9rem; cursor: pointer; font-weight: 600;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-print { background: #059669; color: #fff; }
+    .btn-back  { background: #6b7280; color: #fff; }
+
+    .report-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 28px 32px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+
+    h1 { font-size: 18pt; margin-bottom: 4px; }
+    .subtitle { color: #555; font-size: 10pt; margin-bottom: 28px; }
+
+    h2 { font-size: 12pt; font-weight: 700; margin: 24px 0 8px; border-bottom: 1.5px solid #111; padding-bottom: 4px; }
+
+    .summary-grid {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .summary-box {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px 18px;
+      min-width: 110px;
+      text-align: center;
+    }
+    .summary-box .num { font-size: 22pt; font-weight: 700; color: #059669; line-height: 1.1; }
+    .summary-box .lbl { font-size: 9pt; color: #555; margin-top: 2px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10pt;
+      margin-bottom: 4px;
+    }
+    th {
+      background: #1a1a1a;
+      color: #fff;
+      padding: 5px 8px;
+      text-align: left;
+      font-size: 9.5pt;
+    }
+    td { padding: 4px 8px; border-bottom: 1px solid #e5e5e5; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f9f9f9; }
+
+    .status-ready   { color: #059669; font-weight: 700; }
+    .status-pickup  { color: #6b7280; }
+    .status-pending { color: #d97706; font-weight: 700; }
+
+    .daily-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 5px;
+      margin-bottom: 4px;
+    }
+    .day-cell {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 5px 6px;
+      text-align: center;
+      font-size: 9.5pt;
+    }
+    .day-cell .d { color: #555; font-size: 8pt; }
+    .day-cell .c { font-weight: 700; font-size: 12pt; color: #059669; }
+    .day-cell .c.zero { color: #ccc; }
+
+    @page { size: letter; margin: 0.6in; }
+    @media print {
+      body { background: none; padding: 0; }
+      .screen-controls { display: none !important; }
+      .report-wrap { box-shadow: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="screen-controls">
+  <button class="btn btn-print" onclick="window.print()">🖨 Print</button>
+  <a class="btn btn-back" href="{{ url_for('admin.reports') }}?month={{ selected_month }}">← Back to Reports</a>
+</div>
+
+<div class="report-wrap">
+
+  <h1>Stringing Report</h1>
+  <div class="subtitle">{{ chart_month_label }} &nbsp;·&nbsp; SACC Tennis Shop</div>
+
+  <!-- Summary -->
+  {% set total_in = jobs | length %}
+  {% set total_done = jobs | selectattr('status', 'in', ['complete', 'picked_up']) | list | length %}
+  {% set total_pending = jobs | selectattr('status', 'equalto', 'pending') | list | length %}
+  <div class="summary-grid">
+    <div class="summary-box">
+      <div class="num">{{ total_in }}</div>
+      <div class="lbl">Total Brought In</div>
+    </div>
+    <div class="summary-box">
+      <div class="num">{{ total_done }}</div>
+      <div class="lbl">Completed</div>
+    </div>
+    {% if total_pending > 0 %}
+    <div class="summary-box">
+      <div class="num" style="color:#d97706;">{{ total_pending }}</div>
+      <div class="lbl">Still Pending</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Daily Intake -->
+  <h2>Racquets Brought In — Day by Day</h2>
+  <div class="daily-grid">
+    {% for d in chart_days %}
+    <div class="day-cell">
+      <div class="d">{{ d }}</div>
+      <div class="c{% if daily_map.get(d, 0) == 0 %} zero{% endif %}">{{ daily_map.get(d, 0) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Queue Depth -->
+  <h2>Queue Depth — Day by Day</h2>
+  <p style="font-size:9.5pt;color:#555;margin-bottom:8px;">Racquets in the shop (submitted but not yet finished) at end of each day.</p>
+  <div class="daily-grid">
+    {% for i in range(chart_days | length) %}
+    {% set depth = queue_depth[i] %}
+    <div class="day-cell">
+      <div class="d">{{ chart_days[i] }}</div>
+      <div class="c{% if depth == 0 %} zero{% endif %}" style="color:{% if depth == 0 %}#ccc{% else %}#d97706{% endif %};">{{ depth }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Turnaround by Stringer -->
+  {% if turnaround %}
+  <h2>Turnaround by Stringer</h2>
+  <table>
+    <thead><tr><th>Stringer</th><th>Jobs This Month</th><th>Avg Days</th></tr></thead>
+    <tbody>
+      {% for row in turnaround %}
+      <tr>
+        <td><strong>{{ row.strung_by }}</strong></td>
+        <td>{{ row.total_jobs }}</td>
+        <td>{{ row.avg_days if row.avg_days is not none else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Individual Jobs -->
+  {% if jobs %}
+  <h2>All Jobs — {{ chart_month_label }}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Date In</th>
+        <th>Customer</th>
+        <th>Racquet</th>
+        <th>String</th>
+        <th>Tension</th>
+        <th>Stringer</th>
+        <th>Status</th>
+        <th>Receipt</th>
+        <th>Charged</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in jobs %}
+      <tr>
+        <td style="white-space:nowrap;">{{ job.date_in }}</td>
+        <td>{{ job.customer_name }}</td>
+        <td>{{ job.racquet }}</td>
+        <td>{{ job.string }}</td>
+        <td>{{ job.tension }}</td>
+        <td>{{ job.strung_by or '—' }}</td>
+        <td class="{% if job.status == 'picked_up' %}status-pickup{% elif job.status == 'complete' %}status-ready{% else %}status-pending{% endif %}">
+          {% if job.status == 'picked_up' %}Picked Up
+          {% elif job.status == 'complete' %}Ready
+          {% else %}Pending{% endif %}
+        </td>
+        <td>{{ job.receipt or '—' }}</td>
+        <td>{{ job.charged or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#888;font-style:italic;margin-top:12px;">No restrings brought in this month.</p>
+  {% endif %}
+
+</div>
+</body>
+</html>

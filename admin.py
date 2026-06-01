@@ -1154,6 +1154,81 @@ def reports():
                            queue_depth=queue_depth)
 
 
+@admin_bp.route('/reports/print')
+@login_required
+def reports_print():
+    db = get_db()
+    from datetime import date
+    import calendar
+
+    today = date.today()
+    selected_month = request.args.get('month', today.strftime('%Y-%m'))
+    try:
+        year, mon = (int(x) for x in selected_month.split('-'))
+        if not (1 <= mon <= 12):
+            raise ValueError
+    except (ValueError, AttributeError):
+        year, mon = today.year, today.month
+        selected_month = f'{year:04d}-{mon:02d}'
+
+    days_in_month = calendar.monthrange(year, mon)[1]
+    chart_month_label = date(year, mon, 1).strftime('%B %Y')
+
+    daily_rows = db.execute(
+        """SELECT CAST(strftime('%d', date_in) AS INTEGER) AS day, COUNT(*) AS cnt
+           FROM restrings WHERE strftime('%Y-%m', date_in) = ?
+           GROUP BY day ORDER BY day""",
+        (selected_month,)
+    ).fetchall()
+    daily_map  = {r['day']: r['cnt'] for r in daily_rows}
+    chart_days = list(range(1, days_in_month + 1))
+
+    month_start = f'{year:04d}-{mon:02d}-01'
+    month_end   = f'{year:04d}-{mon:02d}-{days_in_month:02d}'
+    open_jobs = db.execute(
+        """SELECT date_in, completed_at FROM restrings
+           WHERE date_in <= ? AND (completed_at IS NULL OR DATE(completed_at) >= ?)""",
+        (month_end, month_start)
+    ).fetchall()
+    queue_depth = []
+    for d in chart_days:
+        day_str = f'{year:04d}-{mon:02d}-{d:02d}'
+        queue_depth.append(sum(
+            1 for r in open_jobs
+            if r['date_in'][:10] <= day_str and
+               (r['completed_at'] is None or r['completed_at'][:10] >= day_str)
+        ))
+
+    jobs = db.execute(
+        """SELECT date_in, customer_name, racquet, string, tension,
+                  strung_by, status, completed_at, receipt, charged
+           FROM restrings
+           WHERE strftime('%Y-%m', date_in) = ?
+           ORDER BY date_in ASC, created_at ASC""",
+        (selected_month,)
+    ).fetchall()
+
+    turnaround = db.execute(
+        """SELECT strung_by, COUNT(*) AS total_jobs,
+                  ROUND(AVG(julianday(completed_at)-julianday(date_in)),1) AS avg_days
+           FROM restrings
+           WHERE strftime('%Y-%m', date_in) = ?
+             AND status IN ('complete','picked_up') AND completed_at IS NOT NULL
+             AND strung_by IS NOT NULL AND strung_by != ''
+           GROUP BY strung_by ORDER BY total_jobs DESC""",
+        (selected_month,)
+    ).fetchall()
+
+    return render_template('admin/reports_print.html',
+                           chart_month_label=chart_month_label,
+                           selected_month=selected_month,
+                           chart_days=chart_days,
+                           daily_map=daily_map,
+                           queue_depth=queue_depth,
+                           jobs=jobs,
+                           turnaround=turnaround)
+
+
 @admin_bp.route('/label/<int:equipment_id>/download')
 @login_required
 def label_download(equipment_id):
