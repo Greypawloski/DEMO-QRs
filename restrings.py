@@ -181,7 +181,18 @@ def list_restrings():
         f = flag_data.get((r['customer_name'], r['member_number']), {'fn': False, 'fm': False})
         mflags[r['id']] = f
 
-    return render_template('admin/restrings_list.html', pending=pending, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids, stringer_names=stringer_names, staff_names=staff_names, mflags=mflags)
+    from collections import OrderedDict
+
+    def _ckey(r):
+        digits = ''.join(c for c in (r['phone'] or '') if c.isdigit())
+        return digits if len(digits) >= 10 else r['customer_name'].strip().lower()
+
+    grp_map = OrderedDict()
+    for r in pending:
+        grp_map.setdefault(_ckey(r), []).append(r)
+    pending_groups = list(grp_map.values())
+
+    return render_template('admin/restrings_list.html', pending=pending, pending_groups=pending_groups, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids, stringer_names=stringer_names, staff_names=staff_names, mflags=mflags)
 
 
 @restrings_bp.route('/new', methods=['GET', 'POST'])
@@ -318,6 +329,57 @@ def restring_delete(restring_id):
     staff = session.get('staff_name', 'Unknown')
     db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
                (staff, 'Delete Restring', f"{job['customer_name']} — {job['racquet']}"))
+    db.commit()
+    return redirect(url_for('restrings.list_restrings'))
+
+
+@restrings_bp.route('/bulk-mark-ready', methods=['POST'])
+@login_required
+def bulk_mark_ready():
+    from flask import session
+    ids_raw = request.form.get('ids', '')
+    ids = [int(x) for x in ids_raw.split(',') if x.strip().isdigit()]
+    if not ids:
+        return redirect(url_for('restrings.list_restrings'))
+    db = get_db()
+    placeholders = ','.join('?' * len(ids))
+    jobs = db.execute(
+        f"SELECT * FROM restrings WHERE id IN ({placeholders}) AND status='pending'",
+        ids
+    ).fetchall()
+    if not jobs:
+        return redirect(url_for('restrings.list_restrings'))
+
+    staff = session.get('staff_name', 'Unknown')
+    for job in jobs:
+        db.execute(
+            "UPDATE restrings SET status='complete', completed_at=datetime('now') WHERE id=?",
+            (job['id'],)
+        )
+        db.execute(
+            "INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
+            (staff, 'Marked Restring Ready', f"{job['customer_name']} — {job['racquet']}")
+        )
+
+    phone = next((j['phone'] for j in jobs if j['phone']), None)
+    no_sms = all(j['no_sms'] for j in jobs)
+    if phone and not no_sms:
+        first_name = jobs[0]['customer_name'].split()[0]
+        racquets = [j['racquet'] for j in jobs]
+        count = len(racquets)
+        if count == 1:
+            r_phrase = f"your {racquets[0]} is"
+        elif len(set(r.lower() for r in racquets)) == 1:
+            r_phrase = f"your {count} {racquets[0]} racquets are"
+        elif count == 2:
+            r_phrase = f"your {racquets[0]} and {racquets[1]} are"
+        else:
+            r_phrase = f"your {count} racquets are"
+        from sms import send_sms
+        send_sms(phone,
+                 f"Hi {first_name}, {r_phrase} ready for pickup at the SACC Tennis Shop. "
+                 f"Please stop by during business hours. Reply STOP to opt out.")
+
     db.commit()
     return redirect(url_for('restrings.list_restrings'))
 

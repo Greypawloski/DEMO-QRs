@@ -121,7 +121,8 @@
 
   <!-- Card view (default) -->
   <div id="card-view" style="display:flex;flex-direction:column;gap:10px;margin-bottom:40px;">
-    {% for row in pending %}
+    {% for group in pending_groups %}
+    {% if group|length == 1 %}{% set row = group[0] %}
       <div id="job-{{ row.id }}" class="restring-card anim-card {% if row.status == 'pending' %}restring-card-pending{% else %}restring-card-complete{% endif %}{% if row.id in overdue_ids %} card-overdue-amber{% endif %}" style="border:1px solid {% if row.id in overdue_ids %}#f59e0b{% else %}var(--border){% endif %};border-radius:10px;padding:14px 16px;animation-delay:{{ loop.index0 * 0.06 }}s;">
 
         <!-- Top: status + customer + actions -->
@@ -230,6 +231,96 @@
         {% endif %}
 
       </div>
+    {% else %}
+      <!-- ── Multi-racquet group card ── -->
+      <div class="restring-card anim-card" style="border:1px solid var(--border);border-radius:10px;padding:14px 16px;animation-delay:{{ loop.index0 * 0.06 }}s;">
+
+        <!-- Group header: customer + bulk action -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong style="font-size:1rem;">{{ group[0].customer_name }}</strong>
+            <span style="background:#dbeafe;color:#1e40af;font-size:0.75rem;padding:2px 8px;border-radius:20px;font-weight:700;">{{ group|length }} racquets</span>
+            {% if group[0].member_number == 'Non-member' %}
+              <span style="background:#fce7f3;color:#9d174d;font-size:0.75rem;padding:2px 6px;border-radius:4px;white-space:nowrap;">Non-member</span>
+            {% elif group[0].member_number %}
+              <span class="text-muted" style="font-size:0.85rem;">#{{ group[0].member_number }}</span>
+            {% endif %}
+            {% if group[0].phone %}<span style="color:var(--muted);font-size:0.85rem;">{{ group[0].phone }}</span>{% endif %}
+          </div>
+          {% set pending_rows = group | selectattr('status', 'equalto', 'pending') | list %}
+          {% if pending_rows | length >= 2 %}
+          <form method="post" action="{{ url_for('restrings.bulk_mark_ready') }}" style="display:inline;"
+                onsubmit="if(!confirm('Mark {{ pending_rows|length }} racquets ready and send 1 text to {{ group[0].customer_name.split()[0] | e }}?'))return false;sessionStorage.setItem('show_confetti','1');return true;">
+            <input type="hidden" name="ids" value="{{ pending_rows | map(attribute='id') | join(',') }}">
+            <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">✓ Bulk Mark Ready ({{ pending_rows|length }})</button>
+          </form>
+          {% endif %}
+        </div>
+
+        <!-- One row per racquet -->
+        {% for row in group %}
+        <div id="job-{{ row.id }}" style="padding:10px 0;{% if not loop.last %}border-bottom:1px solid var(--border);{% endif %}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:5px;">
+                {% if row.status == 'pending' %}
+                  <span class="status-badge status-out">Pending</span>
+                  <span class="pending-timer" data-date-in="{{ row.date_in }}" style="font-size:0.72rem;padding:2px 6px;border-radius:20px;font-weight:700;"></span>
+                {% elif row.status == 'complete' %}
+                  <span class="status-badge status-avail">Ready</span>
+                  {% if row.id in overdue_ids %}<span style="background:#fef3c7;color:#92400e;font-size:0.72rem;padding:2px 6px;border-radius:20px;font-weight:700;">7+ days</span>{% endif %}
+                {% endif %}
+                <strong>{{ row.racquet }}</strong>
+                <span style="color:var(--muted);font-size:0.88rem;">· {{ row.string }}{% if row.customer_own_string %} <span style="background:#fef3c7;color:#92400e;font-size:0.72rem;padding:1px 4px;border-radius:4px;">Own</span>{% endif %} @ {{ row.tension }}</span>
+              </div>
+              <div style="font-size:0.85rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;">
+                <span>In: {{ row.date_in }}</span>
+                <span>Due: {{ row.date_promised }}</span>
+                {% if row.strung_by %}<span>By: {{ row.strung_by }}</span>{% endif %}
+                {% if row.receipt %}<span>Receipt: {{ row.receipt }}</span>{% endif %}
+                {% if row.charged %}<span>Charged: {{ row.charged }}</span>{% endif %}
+              </div>
+              {% if row.notes %}<div style="margin-top:4px;"><span style="background:#fef9c3;color:#854d0e;padding:2px 6px;border-radius:6px;font-size:0.82rem;">{{ row.notes }}</span></div>{% endif %}
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0;">
+              <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+              <a href="{{ url_for('restrings.restring_print_slip', restring_id=row.id) }}" class="btn btn-secondary btn-sm" target="_blank">Print Slip</a>
+              {% if row.status == 'pending' %}
+                <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;"
+                      onsubmit="if(!confirm('Mark {{ row.racquet | e }} as ready?'))return false;sessionStorage.setItem('show_confetti','1');return true;">
+                  <input type="hidden" name="status" value="complete">
+                  <button type="submit" class="btn btn-primary btn-sm">Mark Ready</button>
+                </form>
+                <button type="button" class="btn btn-danger btn-sm"
+                        onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
+              {% elif row.status == 'complete' %}
+                <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;"
+                      onsubmit="if(!confirm('Mark {{ row.racquet | e }} as picked up?'))return false;sessionStorage.setItem('show_confetti','1');return true;">
+                  <input type="hidden" name="status" value="picked_up">
+                  <button type="submit" class="btn btn-danger btn-sm">Mark Picked Up</button>
+                </form>
+                <form method="post" action="{{ url_for('restrings.restring_unmark_ready', restring_id=row.id) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm"
+                          onclick="return confirm('Revert {{ row.racquet | e }} back to Pending?')">Unmark Ready</button>
+                </form>
+                {% if row.id in overdue_ids %}
+                  {% if row.pickup_reminder_sent_at %}
+                    <span style="background:#d1fae5;color:#065f46;font-size:0.75rem;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;">✓ Notified</span>
+                  {% elif not row.no_sms and row.phone %}
+                    <form method="post" action="{{ url_for('restrings.restring_send_pickup_reminder', restring_id=row.id) }}" style="display:inline;"
+                          onsubmit="return confirm('Send pickup reminder for {{ row.racquet | e }}?')">
+                      <button type="submit" class="btn btn-sm" style="background:#f59e0b;color:#fff;border-color:#f59e0b;white-space:nowrap;">Remind</button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    {% endif %}
     {% endfor %}
   </div><!-- end card-view -->
 {% else %}
