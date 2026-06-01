@@ -10,6 +10,7 @@
     .data-table { border-collapse: collapse; width: 100%; }
     .data-table th, .data-table td { border: 1px solid #ccc; padding: 8px 12px; }
     .report-card { break-inside: avoid; border: 1px solid #ccc !important; margin-bottom: 20px; }
+    .report-card.print-hidden { display: none !important; }
   }
   .print-header { display: none; text-align: center; margin-bottom: 20px; }
   .print-header h2 { font-size: 1.2rem; }
@@ -19,14 +20,14 @@
 <div class="no-print" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
   <h1 style="margin-bottom:0;">Stringing Report</h1>
   <div style="display:flex;gap:8px;">
-    <button onclick="window.print()" class="btn btn-secondary btn-sm">Print Report</button>
+    <button onclick="window.print()" class="btn btn-secondary btn-sm">Print All</button>
     <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">← Dashboard</a>
   </div>
 </div>
 
-<div class="print-header">
+<div class="print-header" id="print-header">
   <h2>Stringing Report</h2>
-  <p>Printed {{ now if now is defined else '' }}</p>
+  <p id="print-header-month"></p>
 </div>
 
 {% set month_names = ['','January','February','March','April','May','June','July','August','September','October','November','December'] %}
@@ -34,10 +35,16 @@
 {% if months %}
   {% for ym, stringers in months.items() %}
     {% set parts = ym.split('-') %}
-    <div class="report-card" style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:24px;">
-      <h2 style="font-size:1.05rem;font-weight:700;margin:0 0 16px;color:var(--accent);">
-        {{ month_names[parts[1]|int] }} {{ parts[0] }}
-      </h2>
+    <div class="report-card" data-ym="{{ ym }}" style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <h2 style="font-size:1.05rem;font-weight:700;margin:0;color:var(--accent);">
+          {{ month_names[parts[1]|int] }} {{ parts[0] }}
+        </h2>
+        <button class="btn btn-secondary btn-sm no-print"
+                onclick="printMonth('{{ ym }}', '{{ month_names[parts[1]|int] }} {{ parts[0] }}')">
+          🖨 Print This Month
+        </button>
+      </div>
       <div class="table-wrap">
         <table class="data-table">
           <thead>
@@ -67,4 +74,18 @@
     <p>No completed months to report yet. Reports appear once a month has fully passed.</p>
   </div>
 {% endif %}
+
+<script>
+function printMonth(ym, label) {
+  document.querySelectorAll('.report-card').forEach(function(c) {
+    c.classList.toggle('print-hidden', c.dataset.ym !== ym);
+  });
+  document.getElementById('print-header-month').textContent = label;
+  window.print();
+  document.querySelectorAll('.report-card').forEach(function(c) {
+    c.classList.remove('print-hidden');
+  });
+  document.getElementById('print-header-month').textContent = '';
+}
+</script>
 {% endblock %}
