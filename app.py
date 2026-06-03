@@ -87,6 +87,15 @@ def create_app():
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_non_members_name_lower ON non_members(LOWER(name));
             """)
+            # Normalize Tecnifibre Triax 16 misspellings
+            for bad in ('Technifibre Triax 16', 'Technifiber Triax 16',
+                        'technifibre triax 16', 'technifiber triax 16',
+                        'Tecnifiber Triax 16', 'tecnifiber triax 16'):
+                db.execute(
+                    "UPDATE restrings SET string=? WHERE LOWER(string)=LOWER(?)",
+                    ('Tecnifibre Triax 16', bad)
+                )
+            db.commit()
 
     @app.route('/')
     def home():
