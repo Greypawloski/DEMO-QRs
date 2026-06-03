@@ -144,7 +144,7 @@
       <tr>
         <td style="color:var(--muted);font-weight:700;">{{ loop.index }}</td>
         <td><strong>{{ row.string }}</strong></td>
-        <td>{{ row.total }}</td>
+        <td>{{ row.total | int if row.total % 1 == 0 else row.total | round(1) }}</td>
         <td>
           <div style="display:flex;align-items:center;gap:8px;">
             <div style="flex:1;max-width:120px;height:6px;background:var(--border);border-radius:3px;">

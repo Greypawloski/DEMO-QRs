@@ -1145,12 +1145,33 @@ def reports():
         )
         queue_depth.append(count)
 
-    string_freq = db.execute(
-        """SELECT string, COUNT(*) AS total
-           FROM restrings
-           WHERE string IS NOT NULL AND string != ''
-           GROUP BY string ORDER BY total DESC"""
+    # String usage frequency — combos (A / B) split 50/50 to each part
+    from collections import defaultdict
+    raw_strings = db.execute(
+        "SELECT string, COUNT(*) AS cnt FROM restrings "
+        "WHERE string IS NOT NULL AND string != '' GROUP BY string"
     ).fetchall()
+    singles = {r['string'].strip().lower(): r['string'].strip()
+               for r in raw_strings if '/' not in r['string']}
+    totals = defaultdict(float)
+    for row in raw_strings:
+        s = row['string'].strip()
+        cnt = row['cnt']
+        if '/' in s:
+            for part in [p.strip() for p in s.split('/', 1)]:
+                canon = singles.get(part.lower())
+                if canon is None:
+                    # Fallback: find shortest single that contains the part (or vice-versa)
+                    hits = [v for k, v in singles.items()
+                            if part.lower() in k or k in part.lower()]
+                    canon = hits[0] if hits else part
+                totals[canon] += cnt * 0.5
+        else:
+            totals[s] += cnt
+    string_freq = sorted(
+        [{'string': k, 'total': v} for k, v in totals.items()],
+        key=lambda x: x['total'], reverse=True
+    )
 
     return render_template('admin/reports.html',
                            popular=popular, durations=durations,
