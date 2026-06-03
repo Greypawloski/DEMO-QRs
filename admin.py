@@ -1145,13 +1145,21 @@ def reports():
         )
         queue_depth.append(count)
 
+    string_freq = db.execute(
+        """SELECT string, COUNT(*) AS total
+           FROM restrings
+           WHERE string IS NOT NULL AND string != ''
+           GROUP BY string ORDER BY total DESC"""
+    ).fetchall()
+
     return render_template('admin/reports.html',
                            popular=popular, durations=durations,
                            members=members, turnaround=turnaround,
                            chart_days=chart_days, chart_counts=chart_counts,
                            chart_month_label=chart_month_label,
                            selected_month=selected_month,
-                           queue_depth=queue_depth)
+                           queue_depth=queue_depth,
+                           string_freq=string_freq)
 
 
 @admin_bp.route('/reports/print')

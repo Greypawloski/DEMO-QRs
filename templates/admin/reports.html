@@ -125,6 +125,43 @@
   {% endif %}
 </div>
 
+<!-- String Type Frequency -->
+<h2 style="font-size:1.1rem;margin-bottom:12px;">String Usage Frequency</h2>
+<div class="table-wrap" style="margin-bottom:40px;">
+  {% if string_freq %}
+  {% set grand_total = string_freq | sum(attribute='total') %}
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>String</th>
+        <th>Times Used</th>
+        <th>Share</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in string_freq %}
+      <tr>
+        <td style="color:var(--muted);font-weight:700;">{{ loop.index }}</td>
+        <td><strong>{{ row.string }}</strong></td>
+        <td>{{ row.total }}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;max-width:120px;height:6px;background:var(--border);border-radius:3px;">
+              <div style="width:{{ ((row.total / grand_total) * 100) | round(1) }}%;height:100%;background:#059669;border-radius:3px;"></div>
+            </div>
+            <span style="font-size:0.82rem;color:var(--muted);">{{ ((row.total / grand_total) * 100) | round(1) }}%</span>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state"><p>No restring data yet.</p></div>
+  {% endif %}
+</div>
+
 <!-- Member Checkout Frequency -->
 <h2 style="font-size:1.1rem;margin-bottom:12px;">Member Checkout Frequency</h2>
 <div class="table-wrap">
