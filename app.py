@@ -95,6 +95,20 @@ def create_app():
                     "UPDATE restrings SET string=? WHERE LOWER(string)=LOWER(?)",
                     ('Tecnifibre Triax 16', bad)
                 )
+            # NXT 16 → Wilson NXT 16
+            db.execute(
+                "UPDATE restrings SET string='Wilson NXT 16' WHERE LOWER(TRIM(string))='nxt 16'"
+            )
+            # LXN brand abbreviation → Luxilon  ("LXN Alu Power" → "Luxilon Alu Power")
+            db.execute(
+                "UPDATE restrings SET string='Luxilon' || SUBSTR(string, 4) "
+                "WHERE string LIKE 'LXN %' OR LOWER(string)='lxn'"
+            )
+            # Luxillon / Luxillon misspelling → Luxilon
+            db.execute(
+                "UPDATE restrings SET string=REPLACE(string, 'Luxillon', 'Luxilon') "
+                "WHERE string LIKE '%Luxillon%'"
+            )
             db.commit()
 
     @app.route('/')
