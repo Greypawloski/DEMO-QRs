@@ -1149,7 +1149,11 @@ def reports():
     from collections import defaultdict
     raw_strings = db.execute(
         "SELECT string, COUNT(*) AS cnt FROM restrings "
-        "WHERE string IS NOT NULL AND string != '' GROUP BY string"
+        "WHERE string IS NOT NULL AND string != '' "
+        "  AND customer_own_string = 0 "
+        "  AND LOWER(string) NOT LIKE '%own%' "
+        "  AND LOWER(string) NOT LIKE '%brought%' "
+        "GROUP BY string"
     ).fetchall()
     singles = {r['string'].strip().lower(): r['string'].strip()
                for r in raw_strings if '/' not in r['string']}
