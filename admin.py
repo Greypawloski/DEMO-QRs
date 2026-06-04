@@ -1148,12 +1148,12 @@ def reports():
     # String usage frequency — combos (A / B) split 50/50 to each part
     from collections import defaultdict
     raw_strings = db.execute(
-        "SELECT string, COUNT(*) AS cnt FROM restrings "
+        "SELECT MIN(string) AS string, COUNT(*) AS cnt FROM restrings "
         "WHERE string IS NOT NULL AND string != '' "
         "  AND customer_own_string = 0 "
         "  AND LOWER(string) NOT LIKE '%own%' "
         "  AND LOWER(string) NOT LIKE '%brought%' "
-        "GROUP BY string"
+        "GROUP BY LOWER(string)"
     ).fetchall()
     singles = {r['string'].strip().lower(): r['string'].strip()
                for r in raw_strings if '/' not in r['string']}
