@@ -1181,6 +1181,14 @@ def reports():
     for bad in ('lxn', 'luxilon', 'luxillon'):
         # These are brand-only fragments; keep as-is, but map known combos to Luxilon brand
         pass
+    for bad in (
+        'head syn gut 16g', 'head syn gut psp 16', 'head synthetic gut ppp',
+        'head synthetic gut 16', 'head synthethic gut 16',
+        'head synthetic gut', 'head syn gut 16',
+        'head synthetic gut pps', 'head synthetic gut pps 16',
+        'head synthetic gut ppp 16',
+    ):
+        _COMBO_NORM[bad] = 'Head Synthetic Gut 16'
     for bad in ('technifibre triax 16', 'technifibre triax', 'technifiber triax 16', 'technifiber triax'):
         _COMBO_NORM[bad] = 'Tecnifibre Triax 16'
     for bad in ('nxt 16', 'wilson nxt', 'wilison nxt 16'):

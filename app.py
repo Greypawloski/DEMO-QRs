@@ -119,10 +119,21 @@ def create_app():
                 "SET string=TRIM(SUBSTR(string, 1, INSTR(string, ' (') - 1)) "
                 "WHERE INSTR(string, ' (') > 0 AND string LIKE '%)'"
             )
-            # Head Synthetic Gut PPS → Head Synthetic Gut (PPS was old name, dropped by Head)
+            # Head Synthetic Gut variants → Head Synthetic Gut 16
+            for bad in (
+                'head syn gut 16g', 'head syn gut psp 16', 'head synthetic gut ppp',
+                'head synthetic gut 16', 'head synthethic gut 16',
+                'head synthetic gut', 'head syn gut 16',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Head Synthetic Gut 16' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
+            # Head Synthetic Gut PPS/PPP → Head Synthetic Gut 16 (PPS/PPP was old name)
             db.execute(
-                "UPDATE restrings SET string=TRIM(REPLACE(string, ' PPS', '')) "
-                "WHERE LOWER(string) LIKE '%head%' AND string LIKE '% PPS%'"
+                "UPDATE restrings SET string='Head Synthetic Gut 16' "
+                "WHERE LOWER(string) LIKE '%head%' "
+                "  AND (string LIKE '% PPS%' OR string LIKE '% PPP%')"
             )
             # Wilson Synthetic Gut Power variants → canonical name
             # No gauge or gauge 16 → Wilson Synthetic Gut Power 16
