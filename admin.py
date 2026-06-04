@@ -1211,7 +1211,7 @@ def reports():
             for part in [p.strip() for p in s.split('/', 1)]:
                 totals[_canonicalize_part(part)] += cnt * 0.5
         else:
-            totals[s] += cnt
+            totals[_canonicalize_part(s)] += cnt
     string_freq = sorted(
         [{'string': k, 'total': v} for k, v in totals.items()],
         key=lambda x: x['total'], reverse=True
