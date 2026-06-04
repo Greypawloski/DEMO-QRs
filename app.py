@@ -95,6 +95,11 @@ def create_app():
                     "UPDATE restrings SET string=? WHERE LOWER(string)=LOWER(?)",
                     ('Tecnifibre Triax 16', bad)
                 )
+            # Any string containing "nxt 17" → Wilson NXT 17
+            db.execute(
+                "UPDATE restrings SET string='Wilson NXT 17' "
+                "WHERE LOWER(string) LIKE '%nxt 17%'"
+            )
             # Any string containing "nxt" (but not "nxt 17") → Wilson NXT 16
             db.execute(
                 "UPDATE restrings SET string='Wilson NXT 16' "
