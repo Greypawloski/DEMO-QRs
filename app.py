@@ -131,6 +131,11 @@ def create_app():
                 'wilson syn gut power', 'wilson synthetic gut',
                 'wilson gut power 16', 'wilson synthetic gut power 16',
                 'wilson syn gut power 16', 'wilson synthetic gut 16',
+                'wilson syn gut power 16g', 'wilson synthetic gut pwr 16',
+                'wilson syn gut 16', 'wilson syn gut 16g',
+                'wilson syn power 16', 'wilson sythetic gut black',
+                'wilson synthetic gut pwr', 'wilson syn gut pwr 16',
+                'wilson syn gut pwr', 'wilson syn power',
             ):
                 db.execute(
                     "UPDATE restrings SET string='Wilson Synthetic Gut Power 16' "
@@ -140,6 +145,8 @@ def create_app():
             for bad in (
                 'wilson gut power 17', 'wilson synthetic gut power 17',
                 'wilson syn gut power 17', 'wilson synthetic gut 17',
+                'wilson syn gut pwr 17', 'wilson synthetic gut pwr 17',
+                'wilson syn gut 17',
             ):
                 db.execute(
                     "UPDATE restrings SET string='Wilson Synthetic Gut Power 17' "
