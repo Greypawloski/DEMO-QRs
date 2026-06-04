@@ -99,16 +99,52 @@ def create_app():
             db.execute(
                 "UPDATE restrings SET string='Wilson NXT 16' WHERE LOWER(TRIM(string))='nxt 16'"
             )
+            # wilison NXT 16 (typo) → Wilson NXT 16
+            db.execute(
+                "UPDATE restrings SET string='Wilson NXT 16' WHERE LOWER(TRIM(string))='wilison nxt 16'"
+            )
             # LXN brand abbreviation → Luxilon  ("LXN Alu Power" → "Luxilon Alu Power")
             db.execute(
                 "UPDATE restrings SET string='Luxilon' || SUBSTR(string, 4) "
                 "WHERE string LIKE 'LXN %' OR LOWER(string)='lxn'"
             )
-            # Luxillon / Luxillon misspelling → Luxilon
+            # Luxillon misspelling → Luxilon
             db.execute(
                 "UPDATE restrings SET string=REPLACE(string, 'Luxillon', 'Luxilon') "
                 "WHERE string LIKE '%Luxillon%'"
             )
+            # Strip color annotations in parentheses: "Wilson NXT 16 (Black)" → "Wilson NXT 16"
+            db.execute(
+                "UPDATE restrings "
+                "SET string=TRIM(SUBSTR(string, 1, INSTR(string, ' (') - 1)) "
+                "WHERE INSTR(string, ' (') > 0 AND string LIKE '%)'"
+            )
+            # Head Synthetic Gut PPS → Head Synthetic Gut (PPS was old name, dropped by Head)
+            db.execute(
+                "UPDATE restrings SET string=TRIM(REPLACE(string, ' PPS', '')) "
+                "WHERE LOWER(string) LIKE '%head%' AND string LIKE '% PPS%'"
+            )
+            # Wilson Synthetic Gut Power variants → canonical name
+            # No gauge or gauge 16 → Wilson Synthetic Gut Power 16
+            for bad in (
+                'wilson gut power', 'wilson synthetic gut power',
+                'wilson syn gut power', 'wilson synthetic gut',
+                'wilson gut power 16', 'wilson synthetic gut power 16',
+                'wilson syn gut power 16', 'wilson synthetic gut 16',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Wilson Synthetic Gut Power 16' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
+            # Gauge 17 variants → Wilson Synthetic Gut Power 17
+            for bad in (
+                'wilson gut power 17', 'wilson synthetic gut power 17',
+                'wilson syn gut power 17', 'wilson synthetic gut 17',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Wilson Synthetic Gut Power 17' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
             db.commit()
 
     @app.route('/')
