@@ -1157,19 +1157,59 @@ def reports():
     ).fetchall()
     singles = {r['string'].strip().lower(): r['string'].strip()
                for r in raw_strings if '/' not in r['string']}
+
+    # Normalize abbreviated/variant names extracted from combo strings
+    _COMBO_NORM = {}
+    for bad in (
+        'wilson gut power', 'wilson synthetic gut power', 'wilson syn gut power',
+        'wilson synthetic gut', 'wilson gut power 16', 'wilson synthetic gut power 16',
+        'wilson syn gut power 16', 'wilson synthetic gut 16',
+        'wilson syn gut power 16g', 'wilson synthetic gut pwr 16',
+        'wilson syn gut 16', 'wilson syn gut 16g', 'wilson syn power 16',
+        'wilson sythetic gut black', 'wilson synthetic gut pwr', 'wilson syn gut pwr 16',
+        'wilson syn gut pwr', 'wilson syn power', 'wilson synthetic gut power16',
+        'wilson synthetic gut 16 power', 'wilson syn gut power16',
+        'wilson syn gut 16 power', 'wilson gut 16 power', 'wilson synthetic gut16',
+    ):
+        _COMBO_NORM[bad] = 'Wilson Synthetic Gut Power 16'
+    for bad in (
+        'wilson gut power 17', 'wilson synthetic gut power 17',
+        'wilson syn gut power 17', 'wilson synthetic gut 17',
+        'wilson syn gut pwr 17', 'wilson synthetic gut pwr 17', 'wilson syn gut 17',
+    ):
+        _COMBO_NORM[bad] = 'Wilson Synthetic Gut Power 17'
+    for bad in ('lxn', 'luxilon', 'luxillon'):
+        # These are brand-only fragments; keep as-is, but map known combos to Luxilon brand
+        pass
+    for bad in ('technifibre triax 16', 'technifibre triax', 'technifiber triax 16', 'technifiber triax'):
+        _COMBO_NORM[bad] = 'Tecnifibre Triax 16'
+    for bad in ('nxt 16', 'wilson nxt', 'wilison nxt 16'):
+        _COMBO_NORM[bad] = 'Wilson NXT 16'
+
+    def _canonicalize_part(part):
+        """Map a combo-extracted string part to its canonical name."""
+        key = part.strip().lower()
+        # Strip color annotations like "(Black)"
+        import re as _re
+        key = _re.sub(r'\s*\([^)]*\)\s*$', '', key).strip()
+        canon = _COMBO_NORM.get(key)
+        if canon:
+            return canon
+        # Try singles dict (exact)
+        c = singles.get(key)
+        if c:
+            return c
+        # Fallback: substring match against singles
+        hits = [v for k, v in singles.items() if key in k or k in key]
+        return hits[0] if hits else part.strip()
+
     totals = defaultdict(float)
     for row in raw_strings:
         s = row['string'].strip()
         cnt = row['cnt']
         if '/' in s:
             for part in [p.strip() for p in s.split('/', 1)]:
-                canon = singles.get(part.lower())
-                if canon is None:
-                    # Fallback: find shortest single that contains the part (or vice-versa)
-                    hits = [v for k, v in singles.items()
-                            if part.lower() in k or k in part.lower()]
-                    canon = hits[0] if hits else part
-                totals[canon] += cnt * 0.5
+                totals[_canonicalize_part(part)] += cnt * 0.5
         else:
             totals[s] += cnt
     string_freq = sorted(
