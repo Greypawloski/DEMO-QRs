@@ -1191,15 +1191,15 @@ def reports():
         _COMBO_NORM[bad] = 'Head Synthetic Gut 16'
     for bad in ('technifibre triax 16', 'technifibre triax', 'technifiber triax 16', 'technifiber triax'):
         _COMBO_NORM[bad] = 'Tecnifibre Triax 16'
-    for bad in ('nxt 16', 'wilson nxt', 'wilison nxt 16'):
-        _COMBO_NORM[bad] = 'Wilson NXT 16'
-
     def _canonicalize_part(part):
         """Map a combo-extracted string part to its canonical name."""
+        import re as _re
         key = part.strip().lower()
         # Strip color annotations like "(Black)"
-        import re as _re
         key = _re.sub(r'\s*\([^)]*\)\s*$', '', key).strip()
+        # Any name containing "nxt" → Wilson NXT 16
+        if 'nxt' in key:
+            return 'Wilson NXT 16'
         canon = _COMBO_NORM.get(key)
         if canon:
             return canon

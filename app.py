@@ -95,13 +95,9 @@ def create_app():
                     "UPDATE restrings SET string=? WHERE LOWER(string)=LOWER(?)",
                     ('Tecnifibre Triax 16', bad)
                 )
-            # NXT 16 → Wilson NXT 16
+            # Any string containing "nxt" → Wilson NXT 16
             db.execute(
-                "UPDATE restrings SET string='Wilson NXT 16' WHERE LOWER(TRIM(string))='nxt 16'"
-            )
-            # wilison NXT 16 (typo) → Wilson NXT 16
-            db.execute(
-                "UPDATE restrings SET string='Wilson NXT 16' WHERE LOWER(TRIM(string))='wilison nxt 16'"
+                "UPDATE restrings SET string='Wilson NXT 16' WHERE LOWER(string) LIKE '%nxt%'"
             )
             # LXN brand abbreviation → Luxilon  ("LXN Alu Power" → "Luxilon Alu Power")
             db.execute(
