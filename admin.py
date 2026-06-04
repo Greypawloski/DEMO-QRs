@@ -1197,8 +1197,8 @@ def reports():
         key = part.strip().lower()
         # Strip color annotations like "(Black)"
         key = _re.sub(r'\s*\([^)]*\)\s*$', '', key).strip()
-        # Any name containing "nxt" → Wilson NXT 16
-        if 'nxt' in key:
+        # Any name containing "nxt" (but not "nxt 17") → Wilson NXT 16
+        if 'nxt' in key and 'nxt 17' not in key:
             return 'Wilson NXT 16'
         canon = _COMBO_NORM.get(key)
         if canon:
