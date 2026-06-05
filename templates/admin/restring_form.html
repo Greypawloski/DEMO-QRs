@@ -185,8 +185,12 @@
     </label>
   </div>
 
+  {% if item %}
+  <input type="hidden" id="mark-ready-flag" name="mark_ready" value="">
+  {% endif %}
+
   <div style="display:flex;gap:12px;margin-top:8px;">
-    <button type="submit" form="restring-form" class="btn btn-primary" style="flex:1;">
+    <button type="submit" id="save-btn" class="btn btn-primary" style="flex:1;">
       {{ 'Save Changes' if item else 'Save Request' }}
     </button>
     {% if item %}
@@ -203,7 +207,6 @@
 </form>
 
 {% if item %}
-<input type="hidden" id="mark-ready-flag" name="mark_ready" value="">
 
 <!-- Confirmation modal -->
 <div id="mark-ready-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
@@ -233,6 +236,17 @@
 {% endif %}
 
 <script>
+  // Prevent double submission on slow network / mobile double-tap
+  document.getElementById('restring-form').addEventListener('submit', function() {
+    var btn = document.getElementById('save-btn');
+    if (btn) {
+      var orig = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      setTimeout(function() { btn.disabled = false; btn.textContent = orig; }, 10000);
+    }
+  });
+
   {% if not item %}
   (function() {
     var _d = new Date();
