@@ -1147,13 +1147,26 @@ def reports():
 
     # String usage frequency — combos (A / B) split 50/50 to each part
     from collections import defaultdict
+    string_year = request.args.get('string_year', '').strip()
+    # Validate: must be a 4-digit year present in the data, or empty for all-time
+    available_years = [r[0] for r in db.execute(
+        "SELECT DISTINCT strftime('%Y', date_in) AS yr FROM restrings "
+        "WHERE date_in IS NOT NULL ORDER BY yr DESC"
+    ).fetchall() if r[0]]
+    if string_year not in available_years:
+        string_year = ''
+
+    year_clause = " AND strftime('%Y', date_in) = ?" if string_year else ''
+    year_params = [string_year] if string_year else []
     raw_strings = db.execute(
         "SELECT MIN(string) AS string, COUNT(*) AS cnt FROM restrings "
         "WHERE string IS NOT NULL AND string != '' "
         "  AND customer_own_string = 0 "
         "  AND LOWER(string) NOT LIKE '%own%' "
         "  AND LOWER(string) NOT LIKE '%brought%' "
-        "GROUP BY LOWER(string)"
+        + year_clause +
+        " GROUP BY LOWER(string)",
+        year_params
     ).fetchall()
     singles = {r['string'].strip().lower(): r['string'].strip()
                for r in raw_strings if '/' not in r['string']}
@@ -1233,7 +1246,9 @@ def reports():
                            chart_month_label=chart_month_label,
                            selected_month=selected_month,
                            queue_depth=queue_depth,
-                           string_freq=string_freq)
+                           string_freq=string_freq,
+                           available_years=available_years,
+                           string_year=string_year)
 
 
 @admin_bp.route('/reports/print')

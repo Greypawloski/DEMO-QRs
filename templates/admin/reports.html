@@ -126,7 +126,21 @@
 </div>
 
 <!-- String Type Frequency -->
-<h2 style="font-size:1.1rem;margin-bottom:12px;">String Usage Frequency</h2>
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+  <h2 style="font-size:1.1rem;margin:0;">String Usage Frequency</h2>
+  {% if available_years %}
+  <form method="get" style="display:flex;align-items:center;gap:8px;margin:0;">
+    <input type="hidden" name="month" value="{{ selected_month }}">
+    <select name="string_year" onchange="this.form.submit()"
+            style="padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--card-bg);color:var(--text);">
+      <option value="" {% if not string_year %}selected{% endif %}>All Time</option>
+      {% for yr in available_years %}
+      <option value="{{ yr }}" {% if string_year == yr %}selected{% endif %}>{{ yr }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  {% endif %}
+</div>
 <div class="table-wrap" style="margin-bottom:40px;">
   {% if string_freq %}
   {% set grand_total = string_freq | sum(attribute='total') %}
