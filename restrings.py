@@ -28,7 +28,7 @@ def member_restring_history():
     rows = db.execute(
         """SELECT racquet, string, tension, date_in
            FROM restrings
-           WHERE member_number = ?
+           WHERE member_number = ? AND status = 'picked_up'
            ORDER BY id DESC
            LIMIT 10""",
         (member_number,)
@@ -111,7 +111,7 @@ def non_member_restring_history():
     rows = db.execute(
         """SELECT racquet, string, tension, date_in
            FROM restrings
-           WHERE member_number = 'Non-member' AND LOWER(customer_name) = LOWER(?)
+           WHERE member_number = 'Non-member' AND LOWER(customer_name) = LOWER(?) AND status = 'picked_up'
            ORDER BY id DESC
            LIMIT 10""",
         (name,)
