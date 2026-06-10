@@ -1240,6 +1240,8 @@ def reports():
             return 'Wilson NXT 16'
         if 'triax' in key and 'triax 17' not in key:
             return 'Tecnifibre Triax 16'
+        if 'nrg' in key and '16' in key:
+            return 'Tecnifibre NRG2 16'
         canon = _COMBO_NORM.get(key)
         if canon:
             return canon

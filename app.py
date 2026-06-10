@@ -93,6 +93,11 @@ def create_app():
                     "UPDATE restrings SET string=REPLACE(string,?,'/') "
                     "WHERE INSTR(string,?)>0", (uc_slash, uc_slash)
                 )
+            # Any string containing "nrg" and "16" → Tecnifibre NRG2 16
+            db.execute(
+                "UPDATE restrings SET string='Tecnifibre NRG2 16' "
+                "WHERE LOWER(string) LIKE '%nrg%' AND LOWER(string) LIKE '%16%'"
+            )
             # Any string containing "triax" without a 17 gauge → Tecnifibre Triax 16
             db.execute(
                 "UPDATE restrings SET string='Tecnifibre Triax 16' "
