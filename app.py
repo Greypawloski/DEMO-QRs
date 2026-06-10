@@ -170,7 +170,6 @@ def create_app():
                 'wilson gut power 16', 'wilson synthetic gut power 16',
                 'wilson syn gut power 16', 'wilson synthetic gut 16',
                 'wilson syn gut power 16g', 'wilson synthetic gut pwr 16',
-                'wilson syn gut 16', 'wilson syn gut 16g',
                 'wilson syn power 16', 'wilson sythetic gut black',
                 'wilson synthetic gut pwr', 'wilson syn gut pwr 16',
                 'wilson syn gut pwr', 'wilson syn power',
@@ -182,12 +181,20 @@ def create_app():
                     "UPDATE restrings SET string='Wilson Synthetic Gut Power 16' "
                     "WHERE LOWER(TRIM(string))=?", (bad,)
                 )
+            # Wilson Synthetic Gut 16 (no Power) variants
+            for bad in (
+                'wilson syn gut 16', 'wilson syn gut 16g',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Wilson Synthetic Gut 16' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
             # Gauge 17 variants → Wilson Synthetic Gut Power 17
             for bad in (
                 'wilson gut power 17', 'wilson synthetic gut power 17',
                 'wilson syn gut power 17', 'wilson synthetic gut 17',
                 'wilson syn gut pwr 17', 'wilson synthetic gut pwr 17',
-                'wilson syn gut 17',
+                'wilson syn gut 17', 'synthetic gut 17',
             ):
                 db.execute(
                     "UPDATE restrings SET string='Wilson Synthetic Gut Power 17' "
