@@ -1257,7 +1257,7 @@ def reports():
     for row in raw_strings:
         s = row['string'].strip()
         # Normalise Unicode slash variants so combo detection works
-        for _uc in ('∕', '⁄', '╱'):
+        for _uc in ('∕', '⁄', '╱', '／', '⧸', '⧹'):
             s = s.replace(_uc, '/')
         cnt = row['cnt']
         if '/' in s:
@@ -1265,11 +1265,24 @@ def reports():
                 totals[_canonicalize_part(part)] += cnt * 0.5
         else:
             totals[_canonicalize_part(s)] += cnt
-    # Re-canonicalize keys: merge any case/variant duplicates that slipped through
+    # Re-canonicalize keys: merge case/variant duplicates and handle any
+    # known combos that slipped through without a slash separator
+    _UNSPLIT_COMBOS = [
+        ({'savage', 'synthetic gut power 17'}, 'Luxilon Savage', 'Wilson Synthetic Gut Power 17'),
+    ]
     final_totals = defaultdict(float)
     for k, v in totals.items():
-        canon = _COMBO_NORM.get(k.strip().lower(), k.strip())
-        final_totals[canon] += v
+        k_lower = k.strip().lower()
+        matched = False
+        for keywords, left_canon, right_canon in _UNSPLIT_COMBOS:
+            if all(kw in k_lower for kw in keywords):
+                final_totals[left_canon]  += v * 0.5
+                final_totals[right_canon] += v * 0.5
+                matched = True
+                break
+        if not matched:
+            canon = _COMBO_NORM.get(k_lower, k.strip())
+            final_totals[canon] += v
     string_freq = sorted(
         [{'string': k, 'total': v} for k, v in final_totals.items()],
         key=lambda x: x['total'], reverse=True
