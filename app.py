@@ -116,9 +116,28 @@ def create_app():
             for bad in (
                 'luxilon savage black', 'luxilon savage 16', 'luxilon savge',
                 'luxilon shavage', 'wilson luxilon savage', 'luxillo savage',
+                'lux savage', 'lxn savage',
             ):
                 db.execute(
                     "UPDATE restrings SET string='Luxilon Savage' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
+            # Luxilon Alu Power gauge variant → Luxilon Alu Power
+            for bad in ('luxilon alu power 16',):
+                db.execute(
+                    "UPDATE restrings SET string='Luxilon Alu Power' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
+            # Luxilon Alu Power Rough variants → Luxilon Alu Power Rough
+            # ('lxn ...' may already be expanded to 'luxilon ...' by the LXN rule above,
+            #  so match both forms. Big Banger 125 + Rough 125 both collapse here.)
+            for bad in (
+                'lxn alu rough 16', 'luxilon alu rough 16',
+                'luxilon alu power rough 125',
+                'luxilon big banger alu power 125',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Luxilon Alu Power Rough' "
                     "WHERE LOWER(TRIM(string))=?", (bad,)
                 )
             # Strip color annotations in parentheses: "Wilson NXT 16 (Black)" → "Wilson NXT 16"

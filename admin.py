@@ -1205,8 +1205,17 @@ def reports():
     for bad in (
         'luxilon savage black', 'luxilon savage 16', 'luxilon savge',
         'luxilon shavage', 'wilson luxilon savage', 'luxillo savage',
+        'lux savage', 'lxn savage',
     ):
         _COMBO_NORM[bad] = 'Luxilon Savage'
+    for bad in ('luxilon alu power 16',):
+        _COMBO_NORM[bad] = 'Luxilon Alu Power'
+    for bad in (
+        'lxn alu rough 16', 'luxilon alu rough 16',
+        'luxilon alu power rough 125',
+        'luxilon big banger alu power 125',
+    ):
+        _COMBO_NORM[bad] = 'Luxilon Alu Power Rough'
     def _canonicalize_part(part):
         """Map a combo-extracted string part to its canonical name."""
         import re as _re
