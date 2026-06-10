@@ -193,6 +193,15 @@ def create_app():
                     "UPDATE restrings SET string='Wilson Synthetic Gut Power 17' "
                     "WHERE LOWER(TRIM(string))=?", (bad,)
                 )
+            # Wilson Sensation 16 variants
+            for bad in (
+                'wlison sensation 16', 'wilson sensation', 'wilson sensation 16 blue',
+                'wilson sensation16', 'wison sensation 16',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Wilson Sensation 16' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
             db.commit()
 
     @app.route('/')

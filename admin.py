@@ -1216,6 +1216,11 @@ def reports():
         'luxilon big banger alu power 125',
     ):
         _COMBO_NORM[bad] = 'Luxilon Alu Power Rough'
+    for bad in (
+        'wlison sensation 16', 'wilson sensation', 'wilson sensation 16 blue',
+        'wilson sensation16', 'wison sensation 16',
+    ):
+        _COMBO_NORM[bad] = 'Wilson Sensation 16'
     def _canonicalize_part(part):
         """Map a combo-extracted string part to its canonical name."""
         import re as _re
