@@ -126,20 +126,30 @@
 </div>
 
 <!-- String Type Frequency -->
+<div id="string-freq-section">
 <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
   <h2 style="font-size:1.1rem;margin:0;">String Usage Frequency</h2>
-  {% if available_years %}
-  <form method="get" style="display:flex;align-items:center;gap:8px;margin:0;">
-    <input type="hidden" name="month" value="{{ selected_month }}">
-    <select name="string_year" onchange="this.form.submit()"
-            style="padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--card-bg);color:var(--text);">
-      <option value="" {% if not string_year %}selected{% endif %}>All Time</option>
-      {% for yr in available_years %}
-      <option value="{{ yr }}" {% if string_year == yr %}selected{% endif %}>{{ yr }}</option>
-      {% endfor %}
-    </select>
-  </form>
-  {% endif %}
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    {% if available_years %}
+    <form method="get" style="display:flex;align-items:center;gap:8px;margin:0;" class="no-print">
+      <input type="hidden" name="month" value="{{ selected_month }}">
+      <select name="string_year" onchange="this.form.submit()"
+              style="padding:6px 10px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:inherit;background:var(--card-bg);color:var(--text);">
+        <option value="" {% if not string_year %}selected{% endif %}>All Time</option>
+        {% for yr in available_years %}
+        <option value="{{ yr }}" {% if string_year == yr %}selected{% endif %}>{{ yr }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    {% endif %}
+    {% if string_freq %}
+    <button onclick="window.print()" class="btn btn-secondary btn-sm no-print">🖨 Print</button>
+    {% endif %}
+  </div>
+</div>
+<div class="string-freq-print-header" style="display:none;">
+  <h2 style="margin:0 0 2px;">String Usage Frequency</h2>
+  <p style="margin:0 0 16px;color:#666;font-size:0.9rem;">{{ string_year if string_year else 'All Time' }}</p>
 </div>
 <div class="table-wrap" style="margin-bottom:40px;">
   {% if string_freq %}
@@ -175,6 +185,29 @@
   <div class="empty-state"><p>No restring data yet.</p></div>
   {% endif %}
 </div>
+</div><!-- end #string-freq-section -->
+
+<style>
+@media print {
+  .no-print { display: none !important; }
+  .string-freq-print-header { display: block !important; }
+  body * { visibility: hidden; }
+  #string-freq-section,
+  #string-freq-section * { visibility: visible; }
+  #string-freq-section {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+  }
+  /* Keep progress bars visible and solid for print */
+  #string-freq-section .data-table td div div {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
 
 <!-- Member Checkout Frequency -->
 <h2 style="font-size:1.1rem;margin-bottom:12px;">Member Checkout Frequency</h2>
