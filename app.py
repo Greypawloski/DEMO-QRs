@@ -176,19 +176,18 @@ def create_app():
                 'wilson synthetic gut power16', 'wilson synthetic gut 16 power',
                 'wilson syn gut power16', 'wilson syn gut 16 power',
                 'wilson gut 16 power', 'wilson synthetic gut16',
+                'wilson syn gut 16', 'wilson syn gut 16g',
             ):
                 db.execute(
                     "UPDATE restrings SET string='Wilson Synthetic Gut Power 16' "
                     "WHERE LOWER(TRIM(string))=?", (bad,)
                 )
-            # Wilson Synthetic Gut 16 (no Power) variants
-            for bad in (
-                'wilson syn gut 16', 'wilson syn gut 16g',
-            ):
-                db.execute(
-                    "UPDATE restrings SET string='Wilson Synthetic Gut 16' "
-                    "WHERE LOWER(TRIM(string))=?", (bad,)
-                )
+            # Migrate any rows previously normalised to the now-removed
+            # 'Wilson Synthetic Gut 16' canonical
+            db.execute(
+                "UPDATE restrings SET string='Wilson Synthetic Gut Power 16' "
+                "WHERE string='Wilson Synthetic Gut 16'"
+            )
             # Gauge 17 variants → Wilson Synthetic Gut Power 17
             for bad in (
                 'wilson gut power 17', 'wilson synthetic gut power 17',
