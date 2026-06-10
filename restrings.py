@@ -17,6 +17,14 @@ def _fmt_central(dt_str):
 restrings_bp = Blueprint('restrings', __name__, url_prefix='/admin/restrings')
 
 
+def _back_to_list():
+    """Redirect to the restring list, staying on the pending-only view if that's where the action came from."""
+    ref = request.referrer or ''
+    if 'view=pending' in ref:
+        return redirect(url_for('restrings.list_restrings', view='pending'))
+    return redirect(url_for('restrings.list_restrings'))
+
+
 @restrings_bp.route('/member-history')
 @login_required
 def member_restring_history():
@@ -124,14 +132,12 @@ def non_member_restring_history():
     } for r in rows])
 
 
-@restrings_bp.route('/')
-@login_required
-def list_restrings():
+def _list_context(q='', qb='', view=''):
+    """Build the full template context for restrings_list.html."""
     db = get_db()
-    q  = request.args.get('q',  '').strip()
-    qb = request.args.get('qb', '').strip()
 
-    where_pending   = "status != 'picked_up'"
+    # view=pending: only jobs not yet strung (excludes Ready), no picked-up section
+    where_pending   = "status = 'pending'" if view == 'pending' else "status != 'picked_up'"
     where_completed = "status = 'picked_up'"
     params_pending   = []
     params_completed = []
@@ -154,11 +160,14 @@ def list_restrings():
         f"SELECT * FROM restrings WHERE {where_pending} ORDER BY CASE WHEN status='pending' THEN 0 ELSE 1 END, date_promised ASC",
         params_pending
     ).fetchall()
-    where_completed += " AND date(COALESCE(picked_up_at, date_in)) >= date('now', '-7 days')"
-    completed = db.execute(
-        f"SELECT * FROM restrings WHERE {where_completed} ORDER BY COALESCE(picked_up_at, date_in) DESC",
-        params_completed
-    ).fetchall()
+    if view == 'pending':
+        completed = []
+    else:
+        where_completed += " AND date(COALESCE(picked_up_at, date_in)) >= date('now', '-7 days')"
+        completed = db.execute(
+            f"SELECT * FROM restrings WHERE {where_completed} ORDER BY COALESCE(picked_up_at, date_in) DESC",
+            params_completed
+        ).fetchall()
     from datetime import datetime
     from zoneinfo import ZoneInfo
     today_central = datetime.now(ZoneInfo('America/Chicago')).strftime('%Y-%m-%d')
@@ -192,7 +201,18 @@ def list_restrings():
         grp_map.setdefault(_ckey(r), []).append(r)
     pending_groups = list(grp_map.values())
 
-    return render_template('admin/restrings_list.html', pending=pending, pending_groups=pending_groups, completed=completed, q=q, qb=qb, stats=stats, overdue_ids=overdue_ids, stringer_names=stringer_names, staff_names=staff_names, mflags=mflags)
+    return dict(pending=pending, pending_groups=pending_groups, completed=completed,
+                q=q, qb=qb, view=view, stats=stats, overdue_ids=overdue_ids,
+                stringer_names=stringer_names, staff_names=staff_names, mflags=mflags)
+
+
+@restrings_bp.route('/')
+@login_required
+def list_restrings():
+    q  = request.args.get('q',  '').strip()
+    qb = request.args.get('qb', '').strip()
+    view = 'pending' if request.args.get('view') == 'pending' else ''
+    return render_template('admin/restrings_list.html', **_list_context(q, qb, view))
 
 
 @restrings_bp.route('/new', methods=['GET', 'POST'])
@@ -247,7 +267,7 @@ def restring_edit(restring_id):
     db = get_db()
     item = db.execute("SELECT * FROM restrings WHERE id = ?", (restring_id,)).fetchone()
     if item is None:
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
 
     if request.method == 'POST':
         member = 'Non-member' if request.form.get('non_member') == '1' else request.form.get('member_number', '').strip()
@@ -299,10 +319,10 @@ def restring_edit(restring_id):
                 send_sms(phone,
                          f"Hi {customer_name.split()[0]}, your racquet is ready for pickup at the SACC Tennis Shop. "
                          f"Please stop by during business hours. Reply STOP to opt out.")
-            return redirect(url_for('restrings.list_restrings'))
+            return _back_to_list()
         db.commit()
         sync_member_phone(db, member, phone)
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
     staff_names = [r['name'] for r in get_db().execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
     return render_template('admin/restring_form.html', item=item,
                            staff_names=staff_names)
@@ -315,14 +335,13 @@ def restring_delete(restring_id):
     db = get_db()
     job = db.execute("SELECT customer_name, racquet, status FROM restrings WHERE id=?", (restring_id,)).fetchone()
     if job is None:
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
     pin = request.form.get('pin', '')
     from flask import current_app
     if pin != current_app.config.get('RETIRE_PIN', ''):
-        pending = db.execute("SELECT * FROM restrings WHERE status != 'picked_up' ORDER BY date_promised ASC").fetchall()
-        completed = db.execute("SELECT * FROM restrings WHERE status = 'picked_up' AND date(COALESCE(picked_up_at, date_in)) >= date('now', '-7 days') ORDER BY COALESCE(picked_up_at, date_in) DESC").fetchall()
-        return render_template('admin/restrings_list.html', pending=pending, completed=completed,
-                               q='', qb='', delete_pin_error=True,
+        view = 'pending' if 'view=pending' in (request.referrer or '') else ''
+        return render_template('admin/restrings_list.html', **_list_context(view=view),
+                               delete_pin_error=True,
                                delete_pin_error_id=restring_id,
                                delete_pin_error_name=f"{job['customer_name']} — {job['racquet']}")
     db.execute("DELETE FROM restrings WHERE id=?", (restring_id,))
@@ -330,7 +349,7 @@ def restring_delete(restring_id):
     db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
                (staff, 'Delete Restring', f"{job['customer_name']} — {job['racquet']}"))
     db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return _back_to_list()
 
 
 @restrings_bp.route('/bulk-mark-ready', methods=['POST'])
@@ -340,7 +359,7 @@ def bulk_mark_ready():
     ids_raw = request.form.get('ids', '')
     ids = [int(x) for x in ids_raw.split(',') if x.strip().isdigit()]
     if not ids:
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
     db = get_db()
     placeholders = ','.join('?' * len(ids))
     jobs = db.execute(
@@ -348,7 +367,7 @@ def bulk_mark_ready():
         ids
     ).fetchall()
     if not jobs:
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
 
     staff = session.get('staff_name', 'Unknown')
     for job in jobs:
@@ -381,7 +400,7 @@ def bulk_mark_ready():
                  f"Please stop by during business hours. Reply STOP to opt out.")
 
     db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return _back_to_list()
 
 
 @restrings_bp.route('/<int:restring_id>/unmark-ready', methods=['POST'])
@@ -396,7 +415,7 @@ def restring_unmark_ready(restring_id):
         db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
                    (staff, 'Unmark Restring Ready', f"{job['customer_name']} — {job['racquet']}"))
     db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return _back_to_list()
 
 
 @restrings_bp.route('/<int:restring_id>/undo-pickup', methods=['POST'])
@@ -411,7 +430,7 @@ def restring_undo_pickup(restring_id):
         db.execute("INSERT INTO activity_log (staff_name, action, details) VALUES (?, ?, ?)",
                    (staff, 'Undo Pickup', f"{job['customer_name']} — {job['racquet']}"))
     db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return _back_to_list()
 
 
 @restrings_bp.route('/<int:restring_id>/update-billing', methods=['POST'])
@@ -578,7 +597,7 @@ def restring_status(restring_id):
                      f"Hi {job['customer_name'].split()[0]}, your racquet is ready for pickup at the SACC Tennis Shop. "
                      f"Please stop by during business hours. Reply STOP to opt out.")
     db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return _back_to_list()
 
 
 @restrings_bp.route('/<int:restring_id>/print-slip')
@@ -587,7 +606,7 @@ def restring_print_slip(restring_id):
     db = get_db()
     job = db.execute("SELECT * FROM restrings WHERE id=?", (restring_id,)).fetchone()
     if job is None:
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
     return render_template('admin/restring_print_slip.html', job=job)
 
 
@@ -612,7 +631,7 @@ def restring_send_pickup_reminder(restring_id):
             (staff, 'Pickup Reminder Sent', f"{job['customer_name']} — {job['racquet']}")
         )
         db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return _back_to_list()
 
 
 @restrings_bp.route('/<int:restring_id>/mark-notified', methods=['POST'])
@@ -632,7 +651,7 @@ def restring_mark_notified(restring_id):
             (staff, 'Marked Notified (In Person/Phone)', f"{job['customer_name']} — {job['racquet']}")
         )
         db.commit()
-    return redirect(url_for('restrings.list_restrings'))
+    return _back_to_list()
 
 
 @restrings_bp.route('/<int:restring_id>/string-label')
@@ -641,7 +660,7 @@ def restring_string_label(restring_id):
     db = get_db()
     job = db.execute("SELECT * FROM restrings WHERE id=?", (restring_id,)).fetchone()
     if job is None:
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
     from qr_utils import generate_string_label, LABEL_DIR
     filename = generate_string_label(
         restring_id,
@@ -663,7 +682,7 @@ def restring_quick_update(restring_id):
     field = request.form.get('field')
     value = request.form.get('value', '').strip()
     if field not in ('strung_by', 'receipt', 'charged', 'additional_charges'):
-        return redirect(url_for('restrings.list_restrings'))
+        return _back_to_list()
     db = get_db()
     db.execute(f"UPDATE restrings SET {field}=? WHERE id=?", (value or None, restring_id))
     db.commit()

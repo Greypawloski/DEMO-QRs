@@ -1,6 +1,6 @@
 {% extends "base_admin.html" %}
 
-{% block title %}Restringing{% endblock %}
+{% block title %}{{ 'Need to be Strung' if view|default('') == 'pending' else 'Restringing' }}{% endblock %}
 
 {% block content %}
 
@@ -51,16 +51,18 @@
 </div>
 
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-  <h1 style="margin-bottom:0;">Restringing</h1>
+  <h1 style="margin-bottom:0;">{{ '⏳ Need to be Strung' if view|default('') == 'pending' else 'Restringing' }}</h1>
   <div style="display:flex;gap:8px;flex-wrap:wrap;">
     <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if view|default('') == 'pending' %}<input type="hidden" name="view" value="pending">{% endif %}
       <input type="text" name="q" value="{{ q }}" placeholder="Search by last name or member #"
              style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;width:220px;">
       <input type="hidden" name="qb" value="{{ qb }}">
       <button type="submit" class="btn btn-primary btn-sm">Search</button>
-      {% if q or qb %}<a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
+      {% if q or qb %}<a href="{{ url_for('restrings.list_restrings', view=view|default('') or None) }}" class="btn btn-secondary btn-sm">Clear</a>{% endif %}
     </form>
     <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if view|default('') == 'pending' %}<input type="hidden" name="view" value="pending">{% endif %}
       <input type="hidden" name="q" value="{{ q }}">
       <select name="qb" onchange="this.form.submit()"
               style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;background:var(--card-bg,#fff);color:var(--text);">
@@ -70,6 +72,9 @@
         {% endfor %}
       </select>
     </form>
+    {% if view|default('') == 'pending' %}
+    <a href="{{ url_for('restrings.list_restrings') }}" class="btn btn-secondary btn-sm">View All Restrings</a>
+    {% endif %}
     <button type="button" onclick="toggleCompact()" id="compact-btn"
             class="btn btn-secondary btn-sm">Compact View</button>
     <a href="{{ url_for('restrings.restring_new') }}" class="btn btn-primary btn-sm">+ New Request</a>
@@ -88,7 +93,7 @@
 {% endif %}
 
 {% if pending %}
-  <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--green);">Active</h2>
+  <h2 style="font-size:1.1rem;margin-bottom:12px;color:var(--green);">{{ 'Waiting to be Strung' if view|default('') == 'pending' else 'Active' }}</h2>
 
   <!-- Compact table view (hidden by default) -->
   <div id="compact-view" style="display:none;margin-bottom:40px;">
@@ -325,7 +330,7 @@
   </div><!-- end card-view -->
 {% else %}
   <div class="empty-state" style="margin-bottom:40px;">
-    <p>No active restringing requests.</p>
+    <p>{{ 'No racquets waiting to be strung. 🎉' if view|default('') == 'pending' else 'No active restringing requests.' }}</p>
   </div>
 {% endif %}
 
