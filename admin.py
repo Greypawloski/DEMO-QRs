@@ -1202,6 +1202,11 @@ def reports():
         'head synthetic gut ppp 16',
     ):
         _COMBO_NORM[bad] = 'Head Synthetic Gut 16'
+    for bad in (
+        'luxilon savage black', 'luxilon savage 16', 'luxilon savge',
+        'luxilon shavage', 'wilson luxilon savage', 'luxillo savage',
+    ):
+        _COMBO_NORM[bad] = 'Luxilon Savage'
     def _canonicalize_part(part):
         """Map a combo-extracted string part to its canonical name."""
         import re as _re

@@ -112,6 +112,15 @@ def create_app():
                 "UPDATE restrings SET string=REPLACE(string, 'Luxillon', 'Luxilon') "
                 "WHERE string LIKE '%Luxillon%'"
             )
+            # Luxilon Savage variants/misspellings → Luxilon Savage
+            for bad in (
+                'luxilon savage black', 'luxilon savage 16', 'luxilon savge',
+                'luxilon shavage', 'wilson luxilon savage', 'luxillo savage',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Luxilon Savage' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
             # Strip color annotations in parentheses: "Wilson NXT 16 (Black)" → "Wilson NXT 16"
             db.execute(
                 "UPDATE restrings "
