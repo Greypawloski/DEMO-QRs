@@ -1185,7 +1185,7 @@ def reports():
     ):
         _COMBO_NORM[bad] = 'Wilson Synthetic Gut Power 16'
     for bad in (
-        'wilson syn gut 16', 'wilson syn gut 16g', 'wilson synthetic gut 16',
+        'wilson syn gut 16g', 'wilson synthetic gut 16',
         'wlison syn gut 16g',
     ):
         _COMBO_NORM[bad] = 'Wilson Synthetic Gut 16'
@@ -1225,6 +1225,7 @@ def reports():
     for bad in (
         'wlison sensation 16', 'wilson sensation', 'wilson sensation 16 blue',
         'wilson sensation16', 'wison sensation 16', 'wilson sen 16',
+        'wilsom sensation 16', 'wilson syn gut 16',
     ):
         _COMBO_NORM[bad] = 'Wilson Sensation 16'
     def _canonicalize_part(part):
