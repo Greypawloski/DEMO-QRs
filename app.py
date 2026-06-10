@@ -87,6 +87,12 @@ def create_app():
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_non_members_name_lower ON non_members(LOWER(name));
             """)
+            # Normalize Unicode slash variants to ASCII '/' so combo strings split correctly
+            for uc_slash in ('∕', '⁄', '╱'):
+                db.execute(
+                    "UPDATE restrings SET string=REPLACE(string,?,'/') "
+                    "WHERE INSTR(string,?)>0", (uc_slash, uc_slash)
+                )
             # Any string containing "triax" without a 17 gauge → Tecnifibre Triax 16
             db.execute(
                 "UPDATE restrings SET string='Tecnifibre Triax 16' "

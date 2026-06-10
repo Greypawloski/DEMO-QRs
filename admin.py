@@ -1249,14 +1249,22 @@ def reports():
     totals = defaultdict(float)
     for row in raw_strings:
         s = row['string'].strip()
+        # Normalise Unicode slash variants so combo detection works
+        for _uc in ('∕', '⁄', '╱'):
+            s = s.replace(_uc, '/')
         cnt = row['cnt']
         if '/' in s:
             for part in [p.strip() for p in s.split('/', 1)]:
                 totals[_canonicalize_part(part)] += cnt * 0.5
         else:
             totals[_canonicalize_part(s)] += cnt
+    # Re-canonicalize keys: merge any case/variant duplicates that slipped through
+    final_totals = defaultdict(float)
+    for k, v in totals.items():
+        canon = _COMBO_NORM.get(k.strip().lower(), k.strip())
+        final_totals[canon] += v
     string_freq = sorted(
-        [{'string': k, 'total': v} for k, v in totals.items()],
+        [{'string': k, 'total': v} for k, v in final_totals.items()],
         key=lambda x: x['total'], reverse=True
     )
 
