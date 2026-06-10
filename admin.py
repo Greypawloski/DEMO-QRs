@@ -1176,8 +1176,7 @@ def reports():
     for bad in (
         'wilson gut power', 'wilson synthetic gut power', 'wilson syn gut power',
         'wilson synthetic gut', 'wilson gut power 16', 'wilson synthetic gut power 16',
-        'wilson syn gut power 16', 'wilson synthetic gut 16',
-        'wilson syn gut power 16g', 'wilson synthetic gut pwr 16',
+        'wilson syn gut power 16', 'wilson synthetic gut pwr 16',
         'wilson syn power 16',
         'wilson sythetic gut black', 'wilson synthetic gut pwr', 'wilson syn gut pwr 16',
         'wilson syn gut pwr', 'wilson syn power', 'wilson synthetic gut power16',
@@ -1185,7 +1184,7 @@ def reports():
         'wilson syn gut 16 power', 'wilson gut 16 power', 'wilson synthetic gut16',
     ):
         _COMBO_NORM[bad] = 'Wilson Synthetic Gut Power 16'
-    for bad in ('wilson syn gut 16', 'wilson syn gut 16g'):
+    for bad in ('wilson syn gut 16', 'wilson syn gut 16g', 'wilson synthetic gut 16'):
         _COMBO_NORM[bad] = 'Wilson Synthetic Gut 16'
     for bad in (
         'wilson gut power 17', 'wilson synthetic gut power 17',
