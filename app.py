@@ -174,26 +174,27 @@ def create_app():
                 'wilson gut power', 'wilson synthetic gut power',
                 'wilson syn gut power', 'wilson synthetic gut',
                 'wilson gut power 16', 'wilson synthetic gut power 16',
-                'wilson syn gut power 16', 'wilson synthetic gut 16',
-                'wilson syn gut power 16g', 'wilson synthetic gut pwr 16',
+                'wilson syn gut power 16', 'wilson synthetic gut pwr 16',
                 'wilson syn power 16', 'wilson sythetic gut black',
                 'wilson synthetic gut pwr', 'wilson syn gut pwr 16',
                 'wilson syn gut pwr', 'wilson syn power',
                 'wilson synthetic gut power16', 'wilson synthetic gut 16 power',
                 'wilson syn gut power16', 'wilson syn gut 16 power',
                 'wilson gut 16 power', 'wilson synthetic gut16',
-                'wilson syn gut 16', 'wilson syn gut 16g',
             ):
                 db.execute(
                     "UPDATE restrings SET string='Wilson Synthetic Gut Power 16' "
                     "WHERE LOWER(TRIM(string))=?", (bad,)
                 )
-            # Migrate any rows previously normalised to the now-removed
-            # 'Wilson Synthetic Gut 16' canonical
-            db.execute(
-                "UPDATE restrings SET string='Wilson Synthetic Gut Power 16' "
-                "WHERE string='Wilson Synthetic Gut 16'"
-            )
+            # Wilson Synthetic Gut 16 (no Power) variants
+            for bad in (
+                'wilson syn gut 16', 'wilson syn gut 16g', 'wilson synthetic gut 16',
+                'wlison syn gut 16g',
+            ):
+                db.execute(
+                    "UPDATE restrings SET string='Wilson Synthetic Gut 16' "
+                    "WHERE LOWER(TRIM(string))=?", (bad,)
+                )
             # Gauge 17 variants → Wilson Synthetic Gut Power 17
             for bad in (
                 'wilson gut power 17', 'wilson synthetic gut power 17',
@@ -208,7 +209,7 @@ def create_app():
             # Wilson Sensation 16 variants
             for bad in (
                 'wlison sensation 16', 'wilson sensation', 'wilson sensation 16 blue',
-                'wilson sensation16', 'wison sensation 16',
+                'wilson sensation16', 'wison sensation 16', 'wilson sen 16',
             ):
                 db.execute(
                     "UPDATE restrings SET string='Wilson Sensation 16' "
