@@ -281,11 +281,22 @@
               <div style="font-size:0.85rem;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;">
                 <span>In: {{ row.date_in }}</span>
                 <span>Due: {{ row.date_promised }}</span>
-                {% if row.strung_by %}<span>By: {{ row.strung_by }}</span>{% endif %}
-                {% if row.receipt %}<span>Receipt: {{ row.receipt }}</span>{% endif %}
-                {% if row.charged %}<span>Charged: {{ row.charged }}</span>{% endif %}
               </div>
               {% if row.notes %}<div style="margin-top:4px;"><span style="background:#fef9c3;color:#854d0e;padding:2px 6px;border-radius:6px;font-size:0.82rem;">{{ row.notes }}</span></div>{% endif %}
+              <div style="display:flex;flex-wrap:wrap;gap:4px 16px;font-size:0.82rem;margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">
+                <span><span style="color:var(--muted);">Strung By:</span>
+                  {% if row.strung_by %}{{ row.strung_by }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'strung_by')">—</span>{% endif %}
+                </span>
+                <span><span style="color:var(--muted);">Receipt:</span>
+                  <span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'receipt', '{{ row.receipt | e }}')">{{ row.receipt or '—' }}</span>
+                </span>
+                <span><span style="color:var(--muted);">Charged:</span>
+                  {% if row.charged %}{{ row.charged }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'charged')">—</span>{% endif %}
+                </span>
+                <span><span style="color:var(--muted);">Additional:</span>
+                  {% if row.additional_charges %}{{ row.additional_charges }}{% else %}<span class="quick-edit-trigger" onclick="openQuickEdit(this, {{ row.id }}, 'additional_charges')">—</span>{% endif %}
+                </span>
+              </div>
             </div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0;">
               <a href="{{ url_for('restrings.restring_edit', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Edit</a>
