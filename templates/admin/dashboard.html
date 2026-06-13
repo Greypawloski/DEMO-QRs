@@ -589,7 +589,7 @@
   function qcoToggleNonMember(cb) {
     var m = document.getElementById('qco-member');
     m.value    = cb.checked ? 'Non-member' : '';
-    m.disabled = cb.checked;
+    m.readOnly = cb.checked;
     if (cb.checked) {
       document.getElementById('qco-search').value = '';
       document.getElementById('qco-dropdown').style.display = 'none';
