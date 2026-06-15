@@ -833,6 +833,14 @@ def member_profile(member_id):
     else:
         back_kwargs['focus'] = 'last'
     back_url = url_for('admin.member_search_page', **back_kwargs)
+    # Auto-populate strings_used from restring history on first profile view
+    if not member['strings_used'] and restrings:
+        from collections import Counter
+        string_counts = Counter(r['string'] for r in restrings)
+        strings_val = ', '.join(s for s, _ in string_counts.most_common())
+        db.execute("UPDATE members_contact SET strings_used=? WHERE id=?", (strings_val, member_id))
+        db.commit()
+        member = db.execute("SELECT * FROM members_contact WHERE id=?", (member_id,)).fetchone()
     return render_template('admin/member_profile.html',
                            member=member, restrings=restrings, checkouts=checkouts,
                            back_url=back_url)
