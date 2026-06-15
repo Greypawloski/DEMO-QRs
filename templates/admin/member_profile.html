@@ -29,7 +29,8 @@
             data-skirt="{{ member.skirt_short_size or '' }}"
             data-hat="{{ member.hat_size or '' }}"
             data-brand="{{ member.clothing_brand or '' }}"
-            data-grip="{{ member.grip_size or '' }}">Edit Info</button>
+            data-grip="{{ member.grip_size or '' }}"
+            data-strings="{{ member.strings_used or '' }}">Edit Info</button>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:0.9rem;">
     <div><span style="color:var(--muted);">Phone 1</span><br>{{ member.phone1 or '—' }}</div>
@@ -43,7 +44,7 @@
     <span style="background:#fef9c3;color:#854d0e;font-size:0.88rem;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:4px;">{{ member.notes }}</span>
   </div>
   {% endif %}
-  {% if member.racquet_used or member.shoe_size or member.skirt_short_size or member.hat_size or member.clothing_brand %}
+  {% if member.racquet_used or member.shoe_size or member.skirt_short_size or member.hat_size or member.clothing_brand or member.strings_used %}
   <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
     <span style="color:var(--muted);font-size:0.85rem;font-weight:600;display:block;margin-bottom:8px;">Preferences</span>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;font-size:0.9rem;">
@@ -53,6 +54,7 @@
       {% if member.skirt_short_size %}<div><span style="color:var(--muted);">Skirt/Short Size</span><br>{{ member.skirt_short_size }}</div>{% endif %}
       {% if member.hat_size %}<div><span style="color:var(--muted);">Hat Size</span><br>{{ member.hat_size }}</div>{% endif %}
       {% if member.clothing_brand %}<div><span style="color:var(--muted);">Fav. Clothing Brand</span><br>{{ member.clothing_brand }}</div>{% endif %}
+      {% if member.strings_used %}<div style="grid-column:1/-1;"><span style="color:var(--muted);">Strings Used</span><br>{{ member.strings_used }}</div>{% endif %}
     </div>
   </div>
   {% endif %}
@@ -164,6 +166,7 @@
         <div class="form-group"><label>Hat Size</label><input type="text" id="edit-hat" name="hat_size" style="width:100%;" placeholder="e.g. S/M"></div>
         <div class="form-group"><label>Fav. Clothing Brand</label><input type="text" id="edit-brand" name="clothing_brand" style="width:100%;" placeholder="e.g. Nike"></div>
       </div>
+      <div class="form-group"><label>Strings Used</label><input type="text" id="edit-strings" name="strings_used" style="width:100%;" placeholder="e.g. Wilson NXT 16, Luxilon Alu Power"></div>
       <div style="display:flex;gap:12px;margin-top:8px;">
         <button type="submit" class="btn btn-primary" style="flex:1;">Save Changes</button>
         <button type="button" class="btn btn-secondary" style="flex:1;"
@@ -192,6 +195,7 @@
     document.getElementById('edit-hat').value           = btn.dataset.hat || '';
     document.getElementById('edit-brand').value         = btn.dataset.brand || '';
     document.getElementById('edit-grip').value          = btn.dataset.grip || '';
+    document.getElementById('edit-strings').value       = btn.dataset.strings || '';
     document.getElementById('member-edit-form').action  = '/admin/members/' + btn.dataset.id + '/edit';
     document.getElementById('member-edit-modal').style.display = 'flex';
   });

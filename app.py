@@ -221,6 +221,34 @@ def create_app():
                     "UPDATE restrings SET string='Wilson Sensation 16' "
                     "WHERE LOWER(TRIM(string))=?", (bad,)
                 )
+            # Add strings_used column to members_contact if it doesn't exist
+            try:
+                db.execute("ALTER TABLE members_contact ADD COLUMN strings_used TEXT")
+            except Exception:
+                pass
+            # One-time population: fill strings_used from restring history for members who don't have it set
+            members_to_update = db.execute(
+                """SELECT mc.id, mc.member_number
+                   FROM members_contact mc
+                   WHERE mc.strings_used IS NULL
+                     AND mc.member_number IS NOT NULL
+                     AND mc.member_number != 'Non-member'
+                     AND EXISTS (SELECT 1 FROM restrings r WHERE r.member_number = mc.member_number)"""
+            ).fetchall()
+            for mc in members_to_update:
+                string_rows = db.execute(
+                    """SELECT string, COUNT(*) AS cnt
+                       FROM restrings
+                       WHERE member_number = ?
+                       GROUP BY LOWER(TRIM(string))
+                       ORDER BY cnt DESC""",
+                    (mc['member_number'],)
+                ).fetchall()
+                if string_rows:
+                    db.execute(
+                        "UPDATE members_contact SET strings_used=? WHERE id=?",
+                        (', '.join(r['string'] for r in string_rows), mc['id'])
+                    )
             db.commit()
 
     @app.route('/')

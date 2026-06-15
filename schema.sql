@@ -90,7 +90,8 @@ CREATE TABLE IF NOT EXISTS members_contact (
     skirt_short_size TEXT,
     hat_size      TEXT,
     clothing_brand TEXT,
-    grip_size     TEXT
+    grip_size     TEXT,
+    strings_used  TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_members_contact_name   ON members_contact(member_name);
