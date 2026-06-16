@@ -244,9 +244,10 @@ def create_app():
             ORDER BY e.category, e.name
             """
         ).fetchall()
-        racquets = [r for r in rows if r['category'] == 'racquet']
-        paddles  = [r for r in rows if r['category'] == 'paddle']
-        return render_template('demos.html', racquets=racquets, paddles=paddles)
+        racquets    = [r for r in rows if r['category'] == 'racquet']
+        paddles     = [r for r in rows if r['category'] == 'paddle']
+        cool_towels = [r for r in rows if r['category'] == 'cool towel']
+        return render_template('demos.html', racquets=racquets, paddles=paddles, cool_towels=cool_towels)
 
     @app.route('/admin/checkout/<int:equipment_id>', methods=['GET', 'POST'])
     def admin_checkout(equipment_id):
