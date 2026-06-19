@@ -310,6 +310,7 @@
                 <button type="button" class="btn btn-danger btn-sm"
                         onclick="openDeleteModal({{ row.id }}, '{{ row.customer_name | e }} — {{ row.racquet | e }}')">Delete</button>
               {% elif row.status == 'complete' %}
+                <a href="{{ url_for('restrings.restring_string_label', restring_id=row.id) }}" class="btn btn-secondary btn-sm">Download Label</a>
                 <form method="post" action="{{ url_for('restrings.restring_status', restring_id=row.id) }}" style="display:inline;"
                       onsubmit="if(!confirm('Mark {{ row.racquet | e }} as picked up?'))return false;sessionStorage.setItem('show_confetti','1');return true;">
                   <input type="hidden" name="status" value="picked_up">
