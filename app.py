@@ -96,22 +96,22 @@ def create_app():
             # Any string containing "nrg" and "16" → Tecnifibre NRG2 16
             db.execute(
                 "UPDATE restrings SET string='Tecnifibre NRG2 16' "
-                "WHERE LOWER(string) LIKE '%nrg%' AND LOWER(string) LIKE '%16%'"
+                "WHERE LOWER(string) LIKE '%nrg%' AND LOWER(string) LIKE '%16%' AND INSTR(string, '/') = 0"
             )
             # Any string containing "triax" without a 17 gauge → Tecnifibre Triax 16
             db.execute(
                 "UPDATE restrings SET string='Tecnifibre Triax 16' "
-                "WHERE LOWER(string) LIKE '%triax%' AND LOWER(string) NOT LIKE '%triax 17%'"
+                "WHERE LOWER(string) LIKE '%triax%' AND LOWER(string) NOT LIKE '%triax 17%' AND INSTR(string, '/') = 0"
             )
             # Any string containing "nxt 17" → Wilson NXT 17
             db.execute(
                 "UPDATE restrings SET string='Wilson NXT 17' "
-                "WHERE LOWER(string) LIKE '%nxt 17%'"
+                "WHERE LOWER(string) LIKE '%nxt 17%' AND INSTR(string, '/') = 0"
             )
             # Any string containing "nxt" (but not "nxt 17") → Wilson NXT 16
             db.execute(
                 "UPDATE restrings SET string='Wilson NXT 16' "
-                "WHERE LOWER(string) LIKE '%nxt%' AND LOWER(string) NOT LIKE '%nxt 17%'"
+                "WHERE LOWER(string) LIKE '%nxt%' AND LOWER(string) NOT LIKE '%nxt 17%' AND INSTR(string, '/') = 0"
             )
             # LXN brand abbreviation → Luxilon  ("LXN Alu Power" → "Luxilon Alu Power")
             db.execute(
