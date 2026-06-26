@@ -560,29 +560,39 @@
     }
   });
 
-  document.getElementById('quick-edit-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var form = this;
-    // Inject ajax marker into FormData only — not into the DOM form so fallback submit stays clean
-    var ajaxInput = document.createElement('input');
-    ajaxInput.type = 'hidden'; ajaxInput.name = 'ajax'; ajaxInput.value = '1';
-    form.appendChild(ajaxInput);
-    fetch(form.action, { method: 'POST', body: new FormData(form) })
-    .then(function(r) { return r.json(); })
-    .then(function(json) {
-      form.removeChild(ajaxInput);
-      if (json.ok && _qeTrigger) {
-        _qeTrigger.textContent = json.value || '—';
-        if (_qeTrigger.dataset) _qeTrigger.dataset.val = json.value || '';
-      }
-      document.getElementById('quick-edit-modal').style.display = 'none';
-    })
-    .catch(function() {
-      form.removeChild(ajaxInput);
-      sessionStorage.setItem('qe_scroll', window.scrollY);
-      form.submit();
+  // The #quick-edit-form element appears later in the document than this script,
+  // so defer attaching the submit handler until the DOM is fully parsed.
+  function attachQuickEditSubmit() {
+    var form = document.getElementById('quick-edit-form');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      // Inject ajax marker into FormData only — not into the DOM form so fallback submit stays clean
+      var ajaxInput = document.createElement('input');
+      ajaxInput.type = 'hidden'; ajaxInput.name = 'ajax'; ajaxInput.value = '1';
+      form.appendChild(ajaxInput);
+      fetch(form.action, { method: 'POST', body: new FormData(form) })
+      .then(function(r) { return r.json(); })
+      .then(function(json) {
+        form.removeChild(ajaxInput);
+        if (json.ok && _qeTrigger) {
+          _qeTrigger.textContent = json.value || '—';
+          if (_qeTrigger.dataset) _qeTrigger.dataset.val = json.value || '';
+        }
+        document.getElementById('quick-edit-modal').style.display = 'none';
+      })
+      .catch(function() {
+        form.removeChild(ajaxInput);
+        sessionStorage.setItem('qe_scroll', window.scrollY);
+        form.submit();
+      });
     });
-  });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', attachQuickEditSubmit);
+  } else {
+    attachQuickEditSubmit();
+  }
 
   document.addEventListener('click', function(e) {
     var el = e.target.closest('.quick-edit-trigger[data-field]');
