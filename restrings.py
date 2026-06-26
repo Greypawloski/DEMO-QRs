@@ -683,13 +683,13 @@ def restring_quick_update(restring_id):
     field = request.form.get('field')
     value = request.form.get('value', '').strip()
     if field not in ('strung_by', 'receipt', 'charged', 'additional_charges'):
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        if request.form.get('ajax') == '1':
             return jsonify({'ok': False}), 400
         return _back_to_list()
     db = get_db()
     db.execute(f"UPDATE restrings SET {field}=? WHERE id=?", (value or None, restring_id))
     db.commit()
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    if request.form.get('ajax') == '1':
         return jsonify({'ok': True, 'value': value})
     return redirect(url_for('restrings.list_restrings') + f'#job-{restring_id}')
 

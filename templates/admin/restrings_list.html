@@ -550,22 +550,27 @@
     document.getElementById('quick-edit-modal').style.display = 'flex';
   }
 
-  // Restore scroll position if a fallback full-submit happened
-  (function() {
+  // Restore scroll after fallback full-submit — must run after browser hash-scroll
+  window.addEventListener('load', function() {
     var y = sessionStorage.getItem('qe_scroll');
-    if (y !== null) { window.scrollTo(0, parseInt(y, 10)); sessionStorage.removeItem('qe_scroll'); }
-  })();
+    if (y !== null) {
+      sessionStorage.removeItem('qe_scroll');
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      requestAnimationFrame(function() { window.scrollTo(0, parseInt(y, 10)); });
+    }
+  });
 
   document.getElementById('quick-edit-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var form = this;
-    fetch(form.action, {
-      method: 'POST',
-      headers: { 'X-Requested-With': 'XMLHttpRequest' },
-      body: new FormData(form)
-    })
+    // Inject ajax marker into FormData only — not into the DOM form so fallback submit stays clean
+    var ajaxInput = document.createElement('input');
+    ajaxInput.type = 'hidden'; ajaxInput.name = 'ajax'; ajaxInput.value = '1';
+    form.appendChild(ajaxInput);
+    fetch(form.action, { method: 'POST', body: new FormData(form) })
     .then(function(r) { return r.json(); })
     .then(function(json) {
+      form.removeChild(ajaxInput);
       if (json.ok && _qeTrigger) {
         _qeTrigger.textContent = json.value || '—';
         if (_qeTrigger.dataset) _qeTrigger.dataset.val = json.value || '';
@@ -573,6 +578,7 @@
       document.getElementById('quick-edit-modal').style.display = 'none';
     })
     .catch(function() {
+      form.removeChild(ajaxInput);
       sessionStorage.setItem('qe_scroll', window.scrollY);
       form.submit();
     });
