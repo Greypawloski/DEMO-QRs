@@ -679,13 +679,18 @@ def restring_string_label(restring_id):
 @restrings_bp.route('/<int:restring_id>/quick-update', methods=['POST'])
 @login_required
 def restring_quick_update(restring_id):
+    from flask import jsonify
     field = request.form.get('field')
     value = request.form.get('value', '').strip()
     if field not in ('strung_by', 'receipt', 'charged', 'additional_charges'):
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'ok': False}), 400
         return _back_to_list()
     db = get_db()
     db.execute(f"UPDATE restrings SET {field}=? WHERE id=?", (value or None, restring_id))
     db.commit()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'ok': True, 'value': value})
     return redirect(url_for('restrings.list_restrings') + f'#job-{restring_id}')
 
 

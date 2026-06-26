@@ -526,7 +526,10 @@
       pinEl.addEventListener('animationend', function() { pinEl.classList.remove('shake'); }, { once: true });
     })();
   {% endif %}
+  var _qeTrigger = null;
+
   function openQuickEdit(trigger, id, field, currentVal) {
+    _qeTrigger = trigger || null;
     var labels = { strung_by: 'Strung By', receipt: 'Receipt', charged: 'Charged', additional_charges: 'Additional Charges' };
     document.getElementById('quick-edit-title').textContent = labels[field] || field;
     document.getElementById('quick-edit-form').action = '/admin/restrings/' + id + '/quick-update';
@@ -546,6 +549,27 @@
     }
     document.getElementById('quick-edit-modal').style.display = 'flex';
   }
+
+  document.getElementById('quick-edit-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var form = this;
+    fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      body: new FormData(form)
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      if (json.ok && _qeTrigger) {
+        _qeTrigger.textContent = json.value || '—';
+        if (_qeTrigger.dataset) _qeTrigger.dataset.val = json.value || '';
+      }
+      document.getElementById('quick-edit-modal').style.display = 'none';
+    })
+    .catch(function() {
+      form.submit();
+    });
+  });
 
   document.addEventListener('click', function(e) {
     var el = e.target.closest('.quick-edit-trigger[data-field]');
