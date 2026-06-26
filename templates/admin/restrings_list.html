@@ -547,6 +547,8 @@
       input.value = currentVal || '';
       input.focus();
     }
+    var saveBtn = document.querySelector('#quick-edit-form button[type="submit"]');
+    if (saveBtn) { saveBtn.classList.remove('btn-loading'); saveBtn.disabled = false; }
     document.getElementById('quick-edit-modal').style.display = 'flex';
   }
 
@@ -567,10 +569,14 @@
     if (!form) return;
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+      var saveBtn = form.querySelector('button[type="submit"]');
       // Inject ajax marker into FormData only — not into the DOM form so fallback submit stays clean
       var ajaxInput = document.createElement('input');
       ajaxInput.type = 'hidden'; ajaxInput.name = 'ajax'; ajaxInput.value = '1';
       form.appendChild(ajaxInput);
+      function resetSaveBtn() {
+        if (saveBtn) { saveBtn.classList.remove('btn-loading'); saveBtn.disabled = false; }
+      }
       fetch(form.action, { method: 'POST', body: new FormData(form) })
       .then(function(r) { return r.json(); })
       .then(function(json) {
@@ -579,10 +585,12 @@
           _qeTrigger.textContent = json.value || '—';
           if (_qeTrigger.dataset) _qeTrigger.dataset.val = json.value || '';
         }
+        resetSaveBtn();
         document.getElementById('quick-edit-modal').style.display = 'none';
       })
       .catch(function() {
         form.removeChild(ajaxInput);
+        resetSaveBtn();
         sessionStorage.setItem('qe_scroll', window.scrollY);
         form.submit();
       });
