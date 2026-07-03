@@ -911,10 +911,14 @@ def member_send_sms(member_id):
     message = request.form.get('message', '').strip()
     if member and member['phone1'] and message:
         from sms import send_sms
-        send_sms(member['phone1'], message)
-        _log('Custom SMS', f"To {member['member_name']} ({member['phone1']}): {message}")
+        ok, err = send_sms(member['phone1'], message)
+        if ok:
+            _log('Custom SMS', f"To {member['member_name']} ({member['phone1']}): {message}")
+            db.commit()
+            return redirect(url_for('admin.member_profile', member_id=member_id, sms_sent='1'))
+        _log('Custom SMS FAILED', f"To {member['member_name']} ({member['phone1']}): {err}")
         db.commit()
-        return redirect(url_for('admin.member_profile', member_id=member_id, sms_sent='1'))
+        return redirect(url_for('admin.member_profile', member_id=member_id, sms_error=(err or 'Unknown error')[:200]))
     return redirect(url_for('admin.member_profile', member_id=member_id))
 
 

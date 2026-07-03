@@ -32,6 +32,11 @@
   <div style="background:#d1fae5;color:#065f46;font-size:0.88rem;font-weight:600;padding:8px 12px;border-radius:8px;margin-bottom:12px;">
     ✓ Text message sent to {{ member.phone1 }}
   </div>
+  {% elif request.args.get('sms_error') %}
+  <div style="background:#fee2e2;color:#991b1b;font-size:0.88rem;font-weight:600;padding:8px 12px;border-radius:8px;margin-bottom:12px;">
+    ✕ Text failed to send to {{ member.phone1 }}<br>
+    <span style="font-weight:400;font-size:0.82rem;">{{ request.args.get('sms_error') }}</span>
+  </div>
   {% endif %}
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap;">
     <span style="font-size:1rem;font-weight:700;color:var(--accent);">Member #{{ member.member_number }}</span>
