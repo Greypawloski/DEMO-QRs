@@ -28,8 +28,18 @@
 
 <!-- Member info card -->
 <div style="background:var(--card-bg,#fff);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:32px;max-width:560px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+  {% if request.args.get('sms_sent') == '1' %}
+  <div style="background:#d1fae5;color:#065f46;font-size:0.88rem;font-weight:600;padding:8px 12px;border-radius:8px;margin-bottom:12px;">
+    ✓ Text message sent to {{ member.phone1 }}
+  </div>
+  {% endif %}
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap;">
     <span style="font-size:1rem;font-weight:700;color:var(--accent);">Member #{{ member.member_number }}</span>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    {% if member.phone1 %}
+    <button type="button" class="btn btn-primary btn-sm"
+            onclick="document.getElementById('send-sms-modal').style.display='flex';document.getElementById('sms-message-input').focus()">💬 Send Text</button>
+    {% endif %}
     <button type="button" class="btn btn-secondary btn-sm member-edit-btn"
             data-id="{{ member.id }}"
             data-name="{{ member.member_name }}"
@@ -46,6 +56,7 @@
             data-brand="{{ member.clothing_brand or '' }}"
             data-grip="{{ member.grip_size or '' }}"
             data-strings="{{ member.strings_used or '' }}">Edit Info</button>
+    </div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:0.9rem;">
     <div><span style="color:var(--muted);">Phone 1</span><br>{{ member.phone1 or '—' }}</div>
@@ -152,6 +163,29 @@
 </div>
 {% else %}
 <div class="empty-state"><p>No demo checkout history.</p></div>
+{% endif %}
+
+<!-- Send custom text modal -->
+{% if member.phone1 %}
+<div id="send-sms-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:420px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:6px;">Send Text to {{ member.member_name }}</h2>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:16px;">Will be sent to {{ member.phone1 }}</p>
+    <form method="post" action="{{ url_for('admin.member_send_sms', member_id=member.id) }}"
+          onsubmit="return confirm('Send this text to {{ member.phone1 }}?')">
+      <div class="form-group">
+        <textarea id="sms-message-input" name="message" required rows="4" maxlength="480"
+                  placeholder="Type your message…"
+                  style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Send Text</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('send-sms-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endif %}
 
 <!-- Reuse the edit modal from member_search -->

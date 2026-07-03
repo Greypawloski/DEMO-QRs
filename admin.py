@@ -901,6 +901,23 @@ def member_edit(member_id):
     return redirect(url_for('admin.member_search_page', q=q))
 
 
+@admin_bp.route('/members/<int:member_id>/send-sms', methods=['POST'])
+@login_required
+def member_send_sms(member_id):
+    db = get_db()
+    member = db.execute(
+        "SELECT member_name, phone1 FROM members_contact WHERE id=?", (member_id,)
+    ).fetchone()
+    message = request.form.get('message', '').strip()
+    if member and member['phone1'] and message:
+        from sms import send_sms
+        send_sms(member['phone1'], message)
+        _log('Custom SMS', f"To {member['member_name']} ({member['phone1']}): {message}")
+        db.commit()
+        return redirect(url_for('admin.member_profile', member_id=member_id, sms_sent='1'))
+    return redirect(url_for('admin.member_profile', member_id=member_id))
+
+
 @admin_bp.route('/members/add', methods=['POST'])
 @login_required
 def member_add():
