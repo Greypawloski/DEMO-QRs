@@ -151,12 +151,9 @@ def create_app():
                     "UPDATE restrings SET string='Luxilon Alu Power Rough' "
                     "WHERE LOWER(TRIM(string))=?", (bad,)
                 )
-            # Strip color annotations in parentheses: "Wilson NXT 16 (Black)" → "Wilson NXT 16"
-            db.execute(
-                "UPDATE restrings "
-                "SET string=TRIM(SUBSTR(string, 1, INSTR(string, ' (') - 1)) "
-                "WHERE INSTR(string, ' (') > 0 AND string LIKE '%)'"
-            )
+            # NOTE: color annotations in parentheses, e.g. "Wilson NXT 16 (Blue)",
+            # are preserved on the record as typed. The reports layer
+            # (_canonicalize_part in admin.py) strips them when merging usage totals.
             # Head Synthetic Gut variants → Head Synthetic Gut 16
             for bad in (
                 'head syn gut 16g', 'head syn gut psp 16', 'head synthetic gut ppp',
