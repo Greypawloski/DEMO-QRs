@@ -255,6 +255,7 @@ def restring_new():
         'member_number': request.args.get('member_number', ''),
         'customer_name': request.args.get('customer_name', ''),
         'phone':         request.args.get('phone', ''),
+        'demo_racquet':  request.args.get('demo_racquet', ''),
     }
     staff_names = [r['name'] for r in get_db().execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
     demo_racquets = [r['name'] for r in get_db().execute(

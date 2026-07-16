@@ -577,9 +577,6 @@
       memberField.style.cursor  = 'not-allowed';
       if (nonMemberCb) { nonMemberCb.checked = true; }
 
-      document.getElementById('receipt').value = 'PROMO';
-      document.getElementById('charged').value = 'PROMO';
-
       searchWrap.style.display  = 'none';
       modeToggle.style.display  = 'none';
     } else {
@@ -606,11 +603,6 @@
       memberField.style.cursor  = '';
       if (nonMemberCb) { nonMemberCb.checked = false; }
 
-      var receiptField = document.getElementById('receipt');
-      var chargedField = document.getElementById('charged');
-      if (receiptField.value === 'PROMO') receiptField.value = '';
-      if (chargedField.value === 'PROMO') chargedField.value = '';
-
       searchWrap.style.display = '';
       modeToggle.style.display = '';
     }
@@ -630,6 +622,12 @@
       loadMemberHistory({{ prefill.member_number | tojson }});
     {% endif %}
     {% if prefill.phone %}document.getElementById('phone').value = {{ prefill.phone | tojson }};{% endif %}
+    {% if prefill.demo_racquet %}
+      var demoCb = document.getElementById('demo_check');
+      demoCb.checked = true;
+      toggleDemo(demoCb);
+      document.getElementById('racquet_select').value = {{ prefill.demo_racquet | tojson }};
+    {% endif %}
   })();
   {% endif %}
 </script>
