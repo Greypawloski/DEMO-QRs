@@ -103,7 +103,9 @@
       <div class="demo-item {% if specs %}has-specs{% endif %}" data-name="{{ item.name | lower }}"
            onclick="{% if specs %}toggleSpecs(this){% endif %}">
         <div class="demo-item-header">
-          <span class="demo-item-name">{{ item.name }}</span>
+          <span class="demo-item-name">{{ item.name }}
+            {% if item.last_restrung %}<span style="display:block;color:var(--muted,#888);font-size:0.76rem;font-weight:400;">Restrung {{ item.last_restrung }}</span>{% endif %}
+          </span>
           {% if item.under_maintenance %}
             <span class="badge-out" style="background:#fef3c7;color:#92400e;" onclick="event.stopPropagation()">Under Maintenance</span>
           {% elif item.is_checked_out %}

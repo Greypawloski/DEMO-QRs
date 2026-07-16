@@ -1,0 +1,67 @@
+{% extends "base_admin.html" %}
+
+{% block title %}Demos Due for Restring{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">Demos Due for Restring</h1>
+  <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary btn-sm">← Dashboard</a>
+</div>
+
+<p style="color:var(--muted);font-size:0.9rem;margin-bottom:20px;">
+  Demo racquets whose last restring was 180 or more days ago.
+</p>
+
+{% if due %}
+<div class="table-wrap" style="margin-bottom:40px;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Racquet</th>
+        <th>Last Restrung</th>
+        <th>Days Since</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in due %}
+      <tr>
+        <td><strong>{{ r.name }}</strong></td>
+        <td style="white-space:nowrap;">{{ r.last_restrung }}</td>
+        <td><span style="background:#fee2e2;color:#991b1b;font-size:0.82rem;font-weight:700;padding:2px 8px;border-radius:20px;">{{ r.days }} days</span></td>
+        <td style="white-space:nowrap;">
+          <a href="{{ url_for('restrings.restring_new') }}" class="btn btn-primary btn-sm">+ New Restring</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state" style="margin-bottom:40px;"><p>No demos are due for restring. 🎉</p></div>
+{% endif %}
+
+{% if never %}
+<h2 style="font-size:1.1rem;margin-bottom:6px;">No Restring on Record</h2>
+<p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px;">
+  These demo racquets have never had a demo restring logged, so their last restring date is unknown.
+</p>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>Racquet</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in never %}
+      <tr>
+        <td><strong>{{ r.name }}</strong></td>
+        <td style="white-space:nowrap;">
+          <a href="{{ url_for('restrings.restring_new') }}" class="btn btn-secondary btn-sm">+ New Restring</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

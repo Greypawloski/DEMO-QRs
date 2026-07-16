@@ -234,7 +234,11 @@ def create_app():
                    e.spec1_label, e.spec1_value, e.spec2_label, e.spec2_value,
                    e.spec3_label, e.spec3_value, e.spec4_label, e.spec4_value,
                    e.spec5_label, e.spec5_value,
-                   CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
+                   CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out,
+                   date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
+                         WHERE r.customer_name='Demo'
+                           AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
+                           AND r.status IN ('complete','picked_up'))) AS last_restrung
             FROM equipment e
             LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
             WHERE e.active = 1

@@ -29,6 +29,11 @@
           <tr>
             <td>
               <strong>{{ item.name }}</strong>
+              {% if item.category == 'racquet' %}
+                <div style="color:var(--muted);font-size:0.8rem;margin-top:2px;">
+                  Last restrung: {{ item.last_restrung or 'no record' }}
+                </div>
+              {% endif %}
               {% if item.notes %}
                 <div style="color:#e63946;font-size:0.82rem;margin-top:2px;">{{ item.notes }}</div>
               {% endif %}

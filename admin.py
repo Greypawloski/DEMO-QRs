@@ -161,6 +161,16 @@ def dashboard():
         FROM restrings
     """).fetchone()
 
+    demos_due_restring = db.execute("""
+        SELECT COUNT(*) FROM equipment e
+        WHERE e.category='racquet' AND e.active=1
+          AND date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
+                    WHERE r.customer_name='Demo'
+                      AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
+                      AND r.status IN ('complete','picked_up')))
+              <= date('now','-180 days')
+    """).fetchone()[0]
+
     flag_map = member_flags(db, [(g['customer_name'], g['member_number']) for g in active])
     for g in active:
         f = flag_map.get((g['customer_name'], g['member_number']), {'fn': False, 'fm': False})
@@ -182,6 +192,7 @@ def dashboard():
                            staff_names=current_app.config.get('STAFF_NAMES', []),
                            current_staff=session.get('staff_name', ''),
                            restring_stats=restring_stats,
+                           demos_due_restring=demos_due_restring,
                            available_equipment=available_equipment)
 
 
@@ -423,7 +434,11 @@ def equipment_list():
     rows = db.execute(
         """
         SELECT e.*,
-               CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out
+               CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out,
+               date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
+                     WHERE r.customer_name='Demo'
+                       AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
+                       AND r.status IN ('complete','picked_up'))) AS last_restrung
         FROM equipment e
         LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
         ORDER BY e.active DESC, e.category, e.name
@@ -433,6 +448,35 @@ def equipment_list():
     return render_template('admin/equipment_list.html', equipment=rows,
                            staff_names=current_app.config.get('STAFF_NAMES', []),
                            current_staff=session.get('staff_name', ''))
+
+
+@admin_bp.route('/demos-due-restring')
+@login_required
+def demos_due_restring():
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT e.id, e.name,
+               date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
+                     WHERE r.customer_name='Demo'
+                       AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
+                       AND r.status IN ('complete','picked_up'))) AS last_restrung
+        FROM equipment e
+        WHERE e.category='racquet' AND e.active=1
+        ORDER BY last_restrung ASC
+        """
+    ).fetchall()
+    today = datetime.now(timezone.utc).date()
+    due, never = [], []
+    for r in rows:
+        if r['last_restrung']:
+            days = (today - datetime.strptime(r['last_restrung'], '%Y-%m-%d').date()).days
+            if days >= 180:
+                due.append({'id': r['id'], 'name': r['name'],
+                            'last_restrung': r['last_restrung'], 'days': days})
+        else:
+            never.append({'id': r['id'], 'name': r['name']})
+    return render_template('admin/demos_due_restring.html', due=due, never=never)
 
 
 @admin_bp.route('/equipment/new', methods=['GET', 'POST'])

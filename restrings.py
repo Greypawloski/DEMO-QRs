@@ -257,8 +257,11 @@ def restring_new():
         'phone':         request.args.get('phone', ''),
     }
     staff_names = [r['name'] for r in get_db().execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
+    demo_racquets = [r['name'] for r in get_db().execute(
+        "SELECT name FROM equipment WHERE category='racquet' AND active=1 ORDER BY name ASC"
+    ).fetchall()]
     return render_template('admin/restring_form.html', item=None, prefill=prefill,
-                           staff_names=staff_names)
+                           staff_names=staff_names, demo_racquets=demo_racquets)
 
 
 @restrings_bp.route('/<int:restring_id>/edit', methods=['GET', 'POST'])
@@ -324,8 +327,11 @@ def restring_edit(restring_id):
         sync_member_phone(db, member, phone)
         return _back_to_list()
     staff_names = [r['name'] for r in get_db().execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
+    demo_racquets = [r['name'] for r in get_db().execute(
+        "SELECT name FROM equipment WHERE category='racquet' AND active=1 ORDER BY name ASC"
+    ).fetchall()]
     return render_template('admin/restring_form.html', item=item,
-                           staff_names=staff_names)
+                           staff_names=staff_names, demo_racquets=demo_racquets)
 
 
 @restrings_bp.route('/<int:restring_id>/delete', methods=['POST'])

@@ -103,6 +103,12 @@
     <label for="racquet">Racquet *</label>
     <input type="text" id="racquet" name="racquet" value="{{ item.racquet if item else (prefill.customer_name and '') or '' }}" placeholder="e.g. Wilson Blade 104" required
            oninput="acSuggest('racquet',this.value)" autocomplete="off">
+    <select id="racquet_select" style="display:none;width:100%;">
+      <option value="">— Select demo racquet —</option>
+      {% for name in demo_racquets or [] %}
+      <option value="{{ name }}" {% if item and item.racquet == name %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
     <div id="racquet-dropdown" style="display:none;position:absolute;left:0;right:0;background:var(--card-bg,#fff);border:2px solid var(--border);border-radius:8px;z-index:500;max-height:200px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);"></div>
   </div>
 
@@ -537,10 +543,27 @@
     var modeToggle  = searchWrap.previousElementSibling;
     var nonMemberCb = document.getElementById('non_member_check');
 
+    var racInput  = document.getElementById('racquet');
+    var racSelect = document.getElementById('racquet_select');
+
     if (cb.checked) {
       nameField.value    = 'Demo';
       nameField.readOnly = true;
       nameField.style.opacity = '0.5';
+
+      // Racquet: swap free-text input for demo dropdown
+      if (racSelect) {
+        if (racInput.value) {
+          for (var i = 0; i < racSelect.options.length; i++) {
+            if (racSelect.options[i].value === racInput.value) { racSelect.value = racInput.value; break; }
+          }
+        }
+        racInput.style.display = 'none';
+        racInput.name = ''; racInput.required = false;
+        document.getElementById('racquet-dropdown').style.display = 'none';
+        racSelect.style.display = '';
+        racSelect.name = 'racquet'; racSelect.required = true;
+      }
 
       phoneField.value    = '';
       phoneField.required = false;
@@ -563,6 +586,15 @@
       nameField.value    = '';
       nameField.readOnly = false;
       nameField.style.opacity = '';
+
+      // Racquet: restore free-text input
+      if (racSelect) {
+        if (racSelect.value && !racInput.value) racInput.value = racSelect.value;
+        racSelect.style.display = 'none';
+        racSelect.name = ''; racSelect.required = false;
+        racInput.style.display = '';
+        racInput.name = 'racquet'; racInput.required = true;
+      }
 
       phoneField.disabled = false;
       phoneField.required = true;
