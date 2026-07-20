@@ -501,6 +501,31 @@ def demos_due_restring():
                            due=data['due'], never=data['never'], exempt=data['exempt'])
 
 
+@admin_bp.route('/equipment/<int:equipment_id>/manual-restring-date', methods=['POST'])
+@login_required
+def equipment_manual_restring_date(equipment_id):
+    db = get_db()
+    date_str = request.form.get('restrung_date', '').strip()
+    item = db.execute(
+        "SELECT name FROM equipment WHERE id=? AND category='racquet'", (equipment_id,)
+    ).fetchone()
+    if item and date_str:
+        try:
+            datetime.strptime(date_str, '%Y-%m-%d')
+        except ValueError:
+            return redirect(url_for('admin.demos_due_restring'))
+        db.execute(
+            """INSERT INTO restrings
+                 (date_in, customer_name, phone, member_number, racquet,
+                  string, tension, date_promised, status, completed_at, no_sms)
+               VALUES (?, 'Demo', '', 'Non-member', ?, 'Manual Entry', '—', ?, 'picked_up', ?, 1)""",
+            (date_str, item['name'], date_str, date_str)
+        )
+        _log('Manual Demo Restring Date', f"{item['name']} — {date_str}")
+        db.commit()
+    return redirect(url_for('admin.demos_due_restring'))
+
+
 @admin_bp.route('/equipment/<int:equipment_id>/restring-exempt', methods=['POST'])
 @login_required
 def equipment_restring_exempt(equipment_id):
@@ -1273,6 +1298,7 @@ def reports():
         "  AND customer_own_string = 0 "
         "  AND LOWER(string) NOT LIKE '%own%' "
         "  AND LOWER(string) NOT LIKE '%brought%' "
+        "  AND LOWER(string) != 'manual entry' "
         + year_clause +
         " GROUP BY LOWER(string)",
         year_params

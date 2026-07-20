@@ -74,6 +74,13 @@
         <td><strong>{{ r.name }}</strong></td>
         <td>{{ r.recent_checkouts }}</td>
         <td style="white-space:nowrap;">
+          <form method="post" action="{{ url_for('admin.equipment_manual_restring_date', equipment_id=r.id) }}"
+                style="display:inline-flex;align-items:center;gap:6px;"
+                onsubmit="return confirm('Set last restring date for {{ r.name | e }}?')">
+            <input type="date" name="restrung_date" required
+                   style="padding:5px 8px;border:2px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:inherit;background:var(--card-bg);color:var(--text);">
+            <button type="submit" class="btn btn-secondary btn-sm">Set Last Restrung</button>
+          </form>
           <a href="{{ url_for('restrings.restring_new', demo_racquet=r.name) }}" class="btn btn-secondary btn-sm">+ New Restring</a>
           <form method="post" action="{{ url_for('admin.equipment_restring_exempt', equipment_id=r.id) }}" style="display:inline;"
                 onsubmit="return confirm('Remove {{ r.name | e }} from restring tracking? You can re-add it from the bottom of this page.')">
