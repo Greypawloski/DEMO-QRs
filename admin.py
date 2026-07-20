@@ -161,15 +161,7 @@ def dashboard():
         FROM restrings
     """).fetchone()
 
-    demos_due_restring = db.execute("""
-        SELECT COUNT(*) FROM equipment e
-        WHERE e.category='racquet' AND e.active=1
-          AND date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
-                    WHERE r.customer_name='Demo'
-                      AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
-                      AND r.status IN ('complete','picked_up')))
-              <= date('now','-180 days')
-    """).fetchone()[0]
+    demos_due_restring = len(_demos_due_data(db)['due'])
 
     flag_map = member_flags(db, [(g['customer_name'], g['member_number']) for g in active])
     for g in active:
@@ -450,33 +442,76 @@ def equipment_list():
                            current_staff=session.get('staff_name', ''))
 
 
-@admin_bp.route('/demos-due-restring')
-@login_required
-def demos_due_restring():
-    db = get_db()
+def _demos_due_data(db):
+    """Tiered demos-due-for-restring data.
+
+    Tiers by checkouts in the last 12 months:
+      popular (5+)    -> due after 180 days since last demo restring
+      occasional (1-4) -> due after 365 days
+      dormant (0)      -> never listed
+    Tecnifibre racquets are excluded entirely; restring_exempt racquets
+    are manually removed and listed separately for re-enabling.
+    """
     rows = db.execute(
         """
-        SELECT e.id, e.name,
+        SELECT e.id, e.name, e.restring_exempt,
+               (SELECT COUNT(*) FROM checkouts c
+                WHERE c.equipment_id = e.id
+                  AND c.checked_out_at >= datetime('now','-365 days')) AS recent_checkouts,
                date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
                      WHERE r.customer_name='Demo'
                        AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
                        AND r.status IN ('complete','picked_up'))) AS last_restrung
         FROM equipment e
         WHERE e.category='racquet' AND e.active=1
+          AND LOWER(e.name) NOT LIKE '%tecnifibre%'
+          AND LOWER(e.name) NOT LIKE '%technifibre%'
         ORDER BY last_restrung ASC
         """
     ).fetchall()
     today = datetime.now(timezone.utc).date()
-    due, never = [], []
+    due, never, exempt = [], [], []
     for r in rows:
+        entry = {'id': r['id'], 'name': r['name'],
+                 'last_restrung': r['last_restrung'],
+                 'recent_checkouts': r['recent_checkouts']}
+        if r['restring_exempt']:
+            exempt.append(entry)
+            continue
+        co = r['recent_checkouts']
+        if co == 0:
+            continue  # dormant: not tracked
+        tier, threshold = ('popular', 180) if co >= 5 else ('occasional', 365)
+        entry['tier'] = tier
         if r['last_restrung']:
             days = (today - datetime.strptime(r['last_restrung'], '%Y-%m-%d').date()).days
-            if days >= 180:
-                due.append({'id': r['id'], 'name': r['name'],
-                            'last_restrung': r['last_restrung'], 'days': days})
+            if days >= threshold:
+                entry['days'] = days
+                due.append(entry)
         else:
-            never.append({'id': r['id'], 'name': r['name']})
-    return render_template('admin/demos_due_restring.html', due=due, never=never)
+            never.append(entry)
+    return {'due': due, 'never': never, 'exempt': exempt}
+
+
+@admin_bp.route('/demos-due-restring')
+@login_required
+def demos_due_restring():
+    data = _demos_due_data(get_db())
+    return render_template('admin/demos_due_restring.html',
+                           due=data['due'], never=data['never'], exempt=data['exempt'])
+
+
+@admin_bp.route('/equipment/<int:equipment_id>/restring-exempt', methods=['POST'])
+@login_required
+def equipment_restring_exempt(equipment_id):
+    db = get_db()
+    val = 1 if request.form.get('exempt') == '1' else 0
+    item = db.execute("SELECT name FROM equipment WHERE id=?", (equipment_id,)).fetchone()
+    if item:
+        db.execute("UPDATE equipment SET restring_exempt=? WHERE id=?", (val, equipment_id))
+        _log('Restring Tracking ' + ('Off' if val else 'On'), item['name'])
+        db.commit()
+    return redirect(url_for('admin.demos_due_restring'))
 
 
 @admin_bp.route('/equipment/new', methods=['GET', 'POST'])

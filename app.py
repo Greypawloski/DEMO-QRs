@@ -223,6 +223,11 @@ def create_app():
                 db.execute("ALTER TABLE members_contact ADD COLUMN strings_used TEXT")
             except Exception:
                 pass
+            # Add restring_exempt flag to equipment (manual removal from demos-due list)
+            try:
+                db.execute("ALTER TABLE equipment ADD COLUMN restring_exempt INTEGER NOT NULL DEFAULT 0")
+            except Exception:
+                pass
             db.commit()
 
     @app.route('/')

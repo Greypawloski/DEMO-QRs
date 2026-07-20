@@ -9,7 +9,9 @@
 </div>
 
 <p style="color:var(--muted);font-size:0.9rem;margin-bottom:20px;">
-  Demo racquets whose last restring was 180 or more days ago.
+  Popular demos (5+ checkouts in the last 12 months) are due 180 days after their last restring;
+  occasional demos (1–4 checkouts) after 365 days. Demos with no checkouts in the last 12 months
+  and Tecnifibre racquets aren't tracked.
 </p>
 
 {% if due %}
@@ -18,6 +20,8 @@
     <thead>
       <tr>
         <th>Racquet</th>
+        <th>Usage</th>
+        <th>Checkouts (12 mo)</th>
         <th>Last Restrung</th>
         <th>Days Since</th>
         <th></th>
@@ -27,10 +31,23 @@
       {% for r in due %}
       <tr>
         <td><strong>{{ r.name }}</strong></td>
+        <td>
+          {% if r.tier == 'popular' %}
+            <span style="background:#dbeafe;color:#1e40af;font-size:0.78rem;font-weight:700;padding:2px 8px;border-radius:20px;">Popular</span>
+          {% else %}
+            <span style="background:#f3f4f6;color:#4b5563;font-size:0.78rem;font-weight:700;padding:2px 8px;border-radius:20px;">Occasional</span>
+          {% endif %}
+        </td>
+        <td>{{ r.recent_checkouts }}</td>
         <td style="white-space:nowrap;">{{ r.last_restrung }}</td>
         <td><span style="background:#fee2e2;color:#991b1b;font-size:0.82rem;font-weight:700;padding:2px 8px;border-radius:20px;">{{ r.days }} days</span></td>
         <td style="white-space:nowrap;">
           <a href="{{ url_for('restrings.restring_new', demo_racquet=r.name) }}" class="btn btn-primary btn-sm">+ New Restring</a>
+          <form method="post" action="{{ url_for('admin.equipment_restring_exempt', equipment_id=r.id) }}" style="display:inline;"
+                onsubmit="return confirm('Remove {{ r.name | e }} from restring tracking? You can re-add it from the bottom of this page.')">
+            <input type="hidden" name="exempt" value="1">
+            <button type="submit" class="btn btn-secondary btn-sm">Remove from List</button>
+          </form>
         </td>
       </tr>
       {% endfor %}
@@ -44,19 +61,53 @@
 {% if never %}
 <h2 style="font-size:1.1rem;margin-bottom:6px;">No Restring on Record</h2>
 <p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px;">
-  These demo racquets have never had a demo restring logged, so their last restring date is unknown.
+  These demos have recent checkouts but no demo restring logged, so their last restring date is unknown.
 </p>
-<div class="table-wrap">
+<div class="table-wrap" style="margin-bottom:40px;">
   <table class="data-table">
     <thead>
-      <tr><th>Racquet</th><th></th></tr>
+      <tr><th>Racquet</th><th>Checkouts (12 mo)</th><th></th></tr>
     </thead>
     <tbody>
       {% for r in never %}
       <tr>
         <td><strong>{{ r.name }}</strong></td>
+        <td>{{ r.recent_checkouts }}</td>
         <td style="white-space:nowrap;">
           <a href="{{ url_for('restrings.restring_new', demo_racquet=r.name) }}" class="btn btn-secondary btn-sm">+ New Restring</a>
+          <form method="post" action="{{ url_for('admin.equipment_restring_exempt', equipment_id=r.id) }}" style="display:inline;"
+                onsubmit="return confirm('Remove {{ r.name | e }} from restring tracking? You can re-add it from the bottom of this page.')">
+            <input type="hidden" name="exempt" value="1">
+            <button type="submit" class="btn btn-secondary btn-sm">Remove from List</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if exempt %}
+<h2 style="font-size:1.1rem;margin-bottom:6px;">Removed from Tracking</h2>
+<p style="color:var(--muted);font-size:0.85rem;margin-bottom:12px;">
+  Manually removed from the due-for-restring list. Re-enable tracking anytime.
+</p>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr><th>Racquet</th><th>Last Restrung</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for r in exempt %}
+      <tr>
+        <td><strong>{{ r.name }}</strong></td>
+        <td style="white-space:nowrap;">{{ r.last_restrung or '—' }}</td>
+        <td style="white-space:nowrap;">
+          <form method="post" action="{{ url_for('admin.equipment_restring_exempt', equipment_id=r.id) }}" style="display:inline;">
+            <input type="hidden" name="exempt" value="0">
+            <button type="submit" class="btn btn-secondary btn-sm">Re-enable Tracking</button>
+          </form>
         </td>
       </tr>
       {% endfor %}
