@@ -64,6 +64,7 @@ def dashboard():
     sql = """
         SELECT c.id, c.customer_name, c.member_number, c.phone, c.checked_out_at,
                c.checkout_notes, c.photo_filename, c.reminder_sent_at, c.second_reminder_sent_at,
+               c.quantity,
                e.id AS equipment_id, e.name AS equipment_name, e.category
         FROM checkouts c
         JOIN equipment e ON c.equipment_id = e.id
@@ -108,6 +109,7 @@ def dashboard():
             'equipment_id':             row['equipment_id'],
             'equipment_name':           row['equipment_name'],
             'category':                 row['category'],
+            'quantity':                 row['quantity'],
             'due_label':                due_label,
             'is_overdue':               is_overdue,
             'days_out':                 days_out,
@@ -170,11 +172,11 @@ def dashboard():
         g['flag_number'] = f['fm']
 
     available_equipment = db.execute(
-        """SELECT e.id, e.name, e.category FROM equipment e
+        """SELECT e.id, e.name, e.category, e.multi_unit FROM equipment e
            WHERE e.active = 1 AND e.under_maintenance = 0
-           AND NOT EXISTS (
+           AND (e.multi_unit = 1 OR NOT EXISTS (
                SELECT 1 FROM checkouts c WHERE c.equipment_id = e.id AND c.returned_at IS NULL
-           )
+           ))
            ORDER BY e.category, e.name"""
     ).fetchall()
 
@@ -200,17 +202,25 @@ def quick_checkout():
     if not equipment_id or not name or not member:
         return redirect(url_for('admin.dashboard'))
     equipment_id = int(equipment_id)
+    equip = db.execute("SELECT multi_unit FROM equipment WHERE id=?", (equipment_id,)).fetchone()
+    is_multi = bool(equip and equip['multi_unit'])
+    try:
+        quantity = max(1, int(request.form.get('quantity', '1')))
+    except ValueError:
+        quantity = 1
+    if not is_multi:
+        quantity = 1
     existing = db.execute(
         "SELECT id FROM checkouts WHERE equipment_id=? AND returned_at IS NULL", (equipment_id,)
     ).fetchone()
-    if not existing:
+    if is_multi or not existing:
         db.execute(
-            "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?,?,?,?,?)",
-            (equipment_id, name, member, phone or None, notes or None)
+            "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes, quantity) VALUES (?,?,?,?,?,?)",
+            (equipment_id, name, member, phone or None, notes or None, quantity)
         )
         db.commit()
         sync_member_phone(db, member, phone)
-        _log('quick_checkout', f'{name} ({member}) — equipment {equipment_id}')
+        _log('quick_checkout', f'{name} ({member}) — equipment {equipment_id}' + (f' ×{quantity}' if quantity > 1 else ''))
     return redirect(url_for('admin.dashboard'))
 
 
@@ -426,13 +436,15 @@ def equipment_list():
     rows = db.execute(
         """
         SELECT e.*,
-               CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out,
+               CASE WHEN e.multi_unit = 1 THEN 0
+                    WHEN EXISTS (SELECT 1 FROM checkouts c
+                                 WHERE c.equipment_id = e.id AND c.returned_at IS NULL)
+                    THEN 1 ELSE 0 END AS is_checked_out,
                date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
                      WHERE r.customer_name='Demo'
                        AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
                        AND r.status IN ('complete','picked_up'))) AS last_restrung
         FROM equipment e
-        LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
         ORDER BY e.active DESC, e.category, e.name
         """
     ).fetchall()

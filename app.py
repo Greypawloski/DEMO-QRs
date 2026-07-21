@@ -228,6 +228,17 @@ def create_app():
                 db.execute("ALTER TABLE equipment ADD COLUMN restring_exempt INTEGER NOT NULL DEFAULT 0")
             except Exception:
                 pass
+            # Multi-unit equipment: many identical units under one entry; checkouts
+            # carry a quantity and the item never becomes unavailable
+            try:
+                db.execute("ALTER TABLE checkouts ADD COLUMN quantity INTEGER NOT NULL DEFAULT 1")
+            except Exception:
+                pass
+            try:
+                db.execute("ALTER TABLE equipment ADD COLUMN multi_unit INTEGER NOT NULL DEFAULT 0")
+            except Exception:
+                pass
+            db.execute("UPDATE equipment SET multi_unit=1 WHERE LOWER(TRIM(name))='diadem paddle'")
             db.commit()
 
     @app.route('/')
@@ -239,13 +250,15 @@ def create_app():
                    e.spec1_label, e.spec1_value, e.spec2_label, e.spec2_value,
                    e.spec3_label, e.spec3_value, e.spec4_label, e.spec4_value,
                    e.spec5_label, e.spec5_value,
-                   CASE WHEN c.id IS NOT NULL THEN 1 ELSE 0 END AS is_checked_out,
+                   CASE WHEN e.multi_unit = 1 THEN 0
+                        WHEN EXISTS (SELECT 1 FROM checkouts c
+                                     WHERE c.equipment_id = e.id AND c.returned_at IS NULL)
+                        THEN 1 ELSE 0 END AS is_checked_out,
                    date((SELECT MAX(COALESCE(r.completed_at, r.date_in)) FROM restrings r
                          WHERE r.customer_name='Demo'
                            AND LOWER(TRIM(r.racquet))=LOWER(TRIM(e.name))
                            AND r.status IN ('complete','picked_up'))) AS last_restrung
             FROM equipment e
-            LEFT JOIN checkouts c ON e.id = c.equipment_id AND c.returned_at IS NULL
             WHERE e.active = 1
             ORDER BY e.category, e.name
             """
@@ -269,6 +282,8 @@ def create_app():
             "SELECT id FROM checkouts WHERE equipment_id = ? AND returned_at IS NULL",
             (equipment_id,)
         ).fetchone()
+        if item['multi_unit']:
+            existing = None  # multi-unit items never become unavailable
 
         if request.method == 'POST':
             if existing:
@@ -290,9 +305,15 @@ def create_app():
                 )
             notes = request.form.get('checkout_notes', '').strip()
             phone = format_phone(request.form.get('phone', '').strip())
+            try:
+                quantity = max(1, int(request.form.get('quantity', '1')))
+            except ValueError:
+                quantity = 1
+            if not item['multi_unit']:
+                quantity = 1
             cur = db.execute(
-                "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?, ?, ?, ?, ?)",
-                (equipment_id, name, member, phone or None, notes or None)
+                "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes, quantity) VALUES (?, ?, ?, ?, ?, ?)",
+                (equipment_id, name, member, phone or None, notes or None, quantity)
             )
             checkout_id = cur.lastrowid
             photo_file = request.files.get('condition_photo')
@@ -325,6 +346,8 @@ def create_app():
             "SELECT id FROM checkouts WHERE equipment_id = ? AND returned_at IS NULL",
             (equipment_id,)
         ).fetchone()
+        if item['multi_unit']:
+            existing = None  # multi-unit items never become unavailable
 
         if request.method == 'POST':
             if existing:
@@ -346,9 +369,15 @@ def create_app():
                 )
             notes = request.form.get('checkout_notes', '').strip()
             phone = format_phone(request.form.get('phone', '').strip())
+            try:
+                quantity = max(1, int(request.form.get('quantity', '1')))
+            except ValueError:
+                quantity = 1
+            if not item['multi_unit']:
+                quantity = 1
             cur = db.execute(
-                "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes) VALUES (?, ?, ?, ?, ?)",
-                (equipment_id, name, member, phone or None, notes or None)
+                "INSERT INTO checkouts (equipment_id, customer_name, member_number, phone, checkout_notes, quantity) VALUES (?, ?, ?, ?, ?, ?)",
+                (equipment_id, name, member, phone or None, notes or None, quantity)
             )
             checkout_id = cur.lastrowid
             photo_file = request.files.get('condition_photo')

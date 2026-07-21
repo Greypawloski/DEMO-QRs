@@ -64,7 +64,7 @@
               <strong style="font-size:1rem;">{{ g.customer_name }}</strong>
               <span style="background:#e0e7ff;color:#3730a3;font-size:0.75rem;padding:1px 7px;border-radius:12px;margin-left:6px;font-weight:700;">{{ g.checkouts|length }} demos</span>
             {% else %}
-              <strong style="font-size:1rem;">{{ solo.equipment_name }}</strong>
+              <strong style="font-size:1rem;">{{ solo.equipment_name }}{% if solo.quantity and solo.quantity > 1 %} <span style="background:#e0e7ff;color:#3730a3;font-size:0.78rem;padding:1px 7px;border-radius:12px;font-weight:700;">×{{ solo.quantity }}</span>{% endif %}</strong>
               <span style="color:var(--muted);font-size:0.82rem;margin-left:8px;">{{ solo.category }}</span>
             {% endif %}
           </div>
@@ -94,7 +94,7 @@
         <div style="margin-bottom:8px;display:flex;flex-direction:column;gap:4px;">
           {% for item in g.checkouts %}
           <div style="display:flex;align-items:center;gap:10px;font-size:0.9rem;background:var(--border);border-radius:6px;padding:4px 10px;">
-            <span style="font-weight:600;">{{ item.equipment_name }}</span>
+            <span style="font-weight:600;">{{ item.equipment_name }}{% if item.quantity and item.quantity > 1 %} ×{{ item.quantity }}{% endif %}</span>
             <span style="color:var(--muted);font-size:0.82rem;">{{ item.category }}</span>
             <span style="color:var(--muted);font-size:0.82rem;">Out: {{ item.checked_out_at | central }}</span>
             <span style="margin-left:auto;font-size:0.82rem;">
@@ -326,12 +326,18 @@
     <form method="post" action="{{ url_for('admin.quick_checkout') }}">
       <div class="form-group">
         <label>Equipment</label>
-        <select name="equipment_id" required style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;background:var(--card-bg,#fff);color:var(--text);">
+        <select name="equipment_id" id="qco-equipment" required onchange="qcoEquipChange(this)"
+                style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;background:var(--card-bg,#fff);color:var(--text);">
           <option value="">— Select available item —</option>
           {% for item in available_equipment %}
-            <option value="{{ item.id }}">{{ item.name }} ({{ item.category }})</option>
+            <option value="{{ item.id }}" data-multi="{{ item.multi_unit or 0 }}">{{ item.name }} ({{ item.category }})</option>
           {% endfor %}
         </select>
+      </div>
+      <div class="form-group" id="qco-qty-wrap" style="display:none;">
+        <label>Quantity</label>
+        <input type="number" id="qco-qty" name="quantity" value="1" min="1" max="50"
+               style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;background:var(--card-bg,#fff);color:var(--text);">
       </div>
       <div class="form-group" style="position:relative;">
         <label>Member Search</label>
@@ -393,7 +399,7 @@
       label.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.9rem;background:var(--card-bg,#fff);';
       label.innerHTML = '<input type="checkbox" name="checkout_ids" value="' + item.id + '" checked'
         + ' style="width:auto;appearance:auto;-webkit-appearance:auto;padding:0;border:none;box-shadow:none;flex-shrink:0;">'
-        + '<span><strong>' + item.equipment_name + '</strong>'
+        + '<span><strong>' + item.equipment_name + (item.quantity > 1 ? ' ×' + item.quantity : '') + '</strong>'
         + '<span style="color:var(--muted);margin-left:8px;font-size:0.82rem;">' + item.category + '</span></span>';
       container.appendChild(label);
     });
@@ -600,6 +606,13 @@
     }
   }
 
+  function qcoEquipChange(sel) {
+    var opt = sel.options[sel.selectedIndex];
+    var isMulti = opt && opt.dataset.multi === '1';
+    document.getElementById('qco-qty-wrap').style.display = isMulti ? '' : 'none';
+    if (!isMulti) document.getElementById('qco-qty').value = 1;
+  }
+
   function openQcoModal() {
     document.getElementById('qco-search').value  = '';
     document.getElementById('qco-name').value    = '';
@@ -607,6 +620,9 @@
     document.getElementById('qco-phone').value   = '';
     document.getElementById('qco-nonmember').checked  = false;
     document.getElementById('qco-member').disabled    = false;
+    document.getElementById('qco-qty').value = 1;
+    document.getElementById('qco-qty-wrap').style.display = 'none';
+    document.getElementById('qco-equipment').selectedIndex = 0;
     document.getElementById('qco-dropdown').style.display = 'none';
     document.getElementById('quick-checkout-modal').querySelector('h2').textContent = 'Quick Check Out';
     document.getElementById('quick-checkout-modal').style.display = 'flex';

@@ -113,6 +113,13 @@
     >
   </div>
 
+  {% if item.multi_unit %}
+  <div class="form-group">
+    <label for="quantity">How many?</label>
+    <input type="number" id="quantity" name="quantity" value="1" min="1" max="50" style="font-size:1rem;">
+  </div>
+  {% endif %}
+
   <div class="form-group">
     <label for="checkout_notes">Notes <span class="text-muted">(optional)</span></label>
     <textarea id="checkout_notes" name="checkout_notes" rows="2"
