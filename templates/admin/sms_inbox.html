@@ -7,10 +7,17 @@
   <h1 style="margin-bottom:0;">SMS Inbox</h1>
   <a href="{{ url_for('admin.sms_inbox') }}" class="btn btn-secondary btn-sm">↻ Refresh</a>
 </div>
-<p style="color:var(--muted);font-size:0.9rem;margin-bottom:20px;">
-  Text messages received by the shop's Twilio number, newest first (last 100).
-  Note: "STOP" replies opt the sender out of texts until they reply "START".
-</p>
+
+{% if request.args.get('sms_sent') == '1' %}
+<div style="background:#d1fae5;color:#065f46;font-size:0.88rem;font-weight:600;padding:8px 12px;border-radius:8px;margin-bottom:12px;">
+  ✓ Text message sent
+</div>
+{% elif request.args.get('sms_error') %}
+<div style="background:#fee2e2;color:#991b1b;font-size:0.88rem;font-weight:600;padding:8px 12px;border-radius:8px;margin-bottom:12px;">
+  ✕ Text failed to send<br>
+  <span style="font-weight:400;font-size:0.82rem;">{{ request.args.get('sms_error') }}</span>
+</div>
+{% endif %}
 
 {% if error %}
 <div style="background:#fee2e2;color:#991b1b;font-size:0.88rem;font-weight:600;padding:10px 14px;border-radius:8px;margin-bottom:16px;">
@@ -18,31 +25,145 @@
 </div>
 {% endif %}
 
-{% if messages %}
-<div class="table-wrap">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Received</th>
-        <th>From</th>
-        <th>Message</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for m in messages %}
-      <tr>
-        <td style="white-space:nowrap;">{{ m.date | central }}</td>
-        <td style="white-space:nowrap;">
-          {% if m.name %}<strong>{{ m.name }}</strong><br><span style="color:var(--muted);font-size:0.82rem;">{{ m.from }}</span>
-          {% else %}{{ m.from }}{% endif %}
-        </td>
-        <td>{{ m.body }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<!-- Tabs -->
+<div style="display:flex;gap:0;margin-bottom:20px;border:2px solid var(--accent);border-radius:8px;overflow:hidden;max-width:420px;">
+  <button type="button" id="tab-received-btn" onclick="smsTab('received')"
+          style="flex:1;padding:9px;font-size:0.92rem;font-weight:700;background:var(--accent);color:#fff;border:none;cursor:pointer;">Received Messages</button>
+  <button type="button" id="tab-sent-btn" onclick="smsTab('sent')"
+          style="flex:1;padding:9px;font-size:0.92rem;font-weight:700;background:var(--card-bg,#fff);color:var(--accent);border:none;cursor:pointer;">Sent Messages</button>
 </div>
-{% elif not error %}
-<div class="empty-state"><p>No incoming messages yet.</p></div>
-{% endif %}
+
+<!-- Received tab -->
+<div id="tab-received">
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px;">
+    Texts received by the shop's Twilio number, newest first (last 100).
+    "STOP" replies opt the sender out of texts until they reply "START".
+  </p>
+  {% if messages %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Received</th>
+          <th>From</th>
+          <th>Message</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in messages %}
+        <tr>
+          <td style="white-space:nowrap;">{{ m.date | central }}</td>
+          <td style="white-space:nowrap;">
+            {% if m.name %}<strong>{{ m.name }}</strong><br><span style="color:var(--muted);font-size:0.82rem;">{{ m.from }}</span>
+            {% else %}{{ m.from }}{% endif %}
+          </td>
+          <td>{{ m.body }}</td>
+          <td style="white-space:nowrap;">
+            <button type="button" class="btn btn-primary btn-sm"
+                    onclick="openReplyModal('{{ m.from | e }}', '{{ (m.name or m.from) | e }}')">↩ Reply</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% elif not error %}
+  <div class="empty-state"><p>No incoming messages yet.</p></div>
+  {% endif %}
+</div>
+
+<!-- Sent tab -->
+<div id="tab-sent" style="display:none;">
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:16px;">
+    Custom texts sent from the website, newest first. Automated notifications
+    (restring ready, demo reminders) are not listed here.
+  </p>
+  {% if sent %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Sent</th>
+          <th>To</th>
+          <th>By</th>
+          <th>Message</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in sent %}
+        <tr>
+          <td style="white-space:nowrap;">{{ m.date | central }}</td>
+          <td style="white-space:nowrap;">
+            {% if m.to_name and m.to_name != m.to_phone %}<strong>{{ m.to_name }}</strong><br><span style="color:var(--muted);font-size:0.82rem;">{{ m.to_phone or '' }}</span>
+            {% else %}{{ m.to_phone or m.to_name or '—' }}{% endif %}
+          </td>
+          <td>{{ m.staff }}</td>
+          <td>
+            {% if m.failed %}<span style="background:#fee2e2;color:#991b1b;font-size:0.75rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:4px;">FAILED</span>{% endif %}
+            {{ m.body }}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if m.to_phone %}
+            <button type="button" class="btn btn-secondary btn-sm"
+                    onclick="openReplyModal('{{ m.to_phone | e }}', '{{ (m.to_name or m.to_phone) | e }}')">Send Again</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><p>No custom texts sent yet.</p></div>
+  {% endif %}
+</div>
+
+<!-- Reply modal -->
+<div id="reply-sms-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:var(--card-bg,#fff);color:var(--text);border-radius:12px;padding:28px 24px;max-width:420px;width:90%;">
+    <h2 style="font-size:1.1rem;margin-bottom:6px;">Send Text to <span id="reply-to-label"></span></h2>
+    <p id="reply-to-phone-label" style="color:var(--muted);font-size:0.88rem;margin-bottom:16px;"></p>
+    <form method="post" action="{{ url_for('admin.sms_inbox_send') }}"
+          onsubmit="return confirm('Send this text?')">
+      <input type="hidden" id="reply-phone" name="phone">
+      <input type="hidden" id="reply-to-name" name="to_name">
+      <div class="form-group">
+        <textarea id="reply-message-input" name="message" required rows="4" maxlength="480"
+                  placeholder="Type your message…"
+                  style="width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-size:1rem;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;">Send Text</button>
+        <button type="button" class="btn btn-secondary" style="flex:1;"
+                onclick="document.getElementById('reply-sms-modal').style.display='none'">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function smsTab(which) {
+    var received = which === 'received';
+    document.getElementById('tab-received').style.display = received ? '' : 'none';
+    document.getElementById('tab-sent').style.display     = received ? 'none' : '';
+    var rBtn = document.getElementById('tab-received-btn');
+    var sBtn = document.getElementById('tab-sent-btn');
+    rBtn.style.background = received ? 'var(--accent)' : 'var(--card-bg, #fff)';
+    rBtn.style.color      = received ? '#fff' : 'var(--accent)';
+    sBtn.style.background = received ? 'var(--card-bg, #fff)' : 'var(--accent)';
+    sBtn.style.color      = received ? 'var(--accent)' : '#fff';
+  }
+
+  function openReplyModal(phone, name) {
+    document.getElementById('reply-phone').value = phone;
+    document.getElementById('reply-to-name').value = name;
+    document.getElementById('reply-to-label').textContent = name;
+    document.getElementById('reply-to-phone-label').textContent = 'Will be sent to ' + phone;
+    document.getElementById('reply-message-input').value = '';
+    document.getElementById('reply-sms-modal').style.display = 'flex';
+    document.getElementById('reply-message-input').focus();
+  }
+</script>
 {% endblock %}

@@ -1058,7 +1058,44 @@ def sms_inbox():
             })
     except Exception as e:
         error = str(e)
-    return render_template('admin/sms_inbox.html', messages=messages, error=error)
+
+    # Sent custom texts, from the activity log ("To {name} ({phone}): {message}")
+    import re as _re
+    sent = []
+    for row in db.execute(
+        "SELECT staff_name, action, details, created_at FROM activity_log "
+        "WHERE action LIKE 'Custom SMS%' ORDER BY created_at DESC LIMIT 200"
+    ).fetchall():
+        m = _re.match(r'^To (.*?) \((.*?)\): (.*)$', row['details'] or '', _re.DOTALL)
+        sent.append({
+            'to_name':  m.group(1) if m else None,
+            'to_phone': m.group(2) if m else None,
+            'body':     m.group(3) if m else (row['details'] or ''),
+            'staff':    row['staff_name'],
+            'date':     row['created_at'],
+            'failed':   'FAILED' in row['action'],
+        })
+    return render_template('admin/sms_inbox.html', messages=messages, sent=sent, error=error)
+
+
+@admin_bp.route('/sms-inbox/send', methods=['POST'])
+@login_required
+def sms_inbox_send():
+    db = get_db()
+    phone   = request.form.get('phone', '').strip()
+    to_name = request.form.get('to_name', '').strip() or phone
+    message = request.form.get('message', '').strip()
+    if phone and message:
+        from sms import send_sms
+        ok, err = send_sms(phone, message)
+        if ok:
+            _log('Custom SMS', f"To {to_name} ({phone}): {message}")
+            db.commit()
+            return redirect(url_for('admin.sms_inbox', sms_sent='1'))
+        _log('Custom SMS FAILED', f"To {to_name} ({phone}): {err}")
+        db.commit()
+        return redirect(url_for('admin.sms_inbox', sms_error=(err or 'Unknown error')[:200]))
+    return redirect(url_for('admin.sms_inbox'))
 
 
 @admin_bp.route('/members/<int:member_id>/send-sms', methods=['POST'])
@@ -1213,7 +1250,8 @@ def equipment_service(equipment_id):
 @login_required
 def activity_log():
     rows = get_db().execute(
-        "SELECT * FROM activity_log ORDER BY created_at DESC LIMIT 200"
+        "SELECT * FROM activity_log WHERE action NOT LIKE 'Custom SMS%' "
+        "ORDER BY created_at DESC LIMIT 200"
     ).fetchall()
     return render_template('admin/activity_log.html', rows=rows)
 
