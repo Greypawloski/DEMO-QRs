@@ -1017,6 +1017,50 @@ def member_edit(member_id):
     return redirect(url_for('admin.member_search_page', q=q))
 
 
+@admin_bp.route('/sms-inbox')
+@login_required
+def sms_inbox():
+    import config as app_config
+    db = get_db()
+
+    def norm(p):
+        digits = ''.join(c for c in (p or '') if c.isdigit())
+        return digits[-10:] if len(digits) >= 10 else None
+
+    # Map known phone numbers to names: members first, then non-members/restring customers
+    names = {}
+    for row in db.execute("SELECT member_name, phone1, phone2 FROM members_contact").fetchall():
+        for p in (row['phone1'], row['phone2']):
+            n = norm(p)
+            if n and n not in names:
+                names[n] = row['member_name']
+    for row in db.execute("SELECT name, phone FROM non_members WHERE phone IS NOT NULL").fetchall():
+        n = norm(row['phone'])
+        if n and n not in names:
+            names[n] = f"{row['name']} (non-member)"
+    for row in db.execute(
+        "SELECT DISTINCT customer_name, phone FROM restrings WHERE phone != ''"
+    ).fetchall():
+        n = norm(row['phone'])
+        if n and n not in names:
+            names[n] = row['customer_name']
+
+    messages, error = [], None
+    try:
+        from twilio.rest import Client
+        client = Client(app_config.TWILIO_ACCOUNT_SID, app_config.TWILIO_AUTH_TOKEN)
+        for m in client.messages.list(to=app_config.TWILIO_FROM_NUMBER, limit=100):
+            messages.append({
+                'from':  m.from_,
+                'name':  names.get(norm(m.from_)),
+                'body':  m.body,
+                'date':  m.date_sent.strftime('%Y-%m-%d %H:%M:%S') if m.date_sent else None,
+            })
+    except Exception as e:
+        error = str(e)
+    return render_template('admin/sms_inbox.html', messages=messages, error=error)
+
+
 @admin_bp.route('/members/<int:member_id>/send-sms', methods=['POST'])
 @login_required
 def member_send_sms(member_id):

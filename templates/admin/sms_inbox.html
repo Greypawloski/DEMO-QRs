@@ -1,0 +1,48 @@
+{% extends "base_admin.html" %}
+
+{% block title %}SMS Inbox{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:12px;">
+  <h1 style="margin-bottom:0;">SMS Inbox</h1>
+  <a href="{{ url_for('admin.sms_inbox') }}" class="btn btn-secondary btn-sm">↻ Refresh</a>
+</div>
+<p style="color:var(--muted);font-size:0.9rem;margin-bottom:20px;">
+  Text messages received by the shop's Twilio number, newest first (last 100).
+  Note: "STOP" replies opt the sender out of texts until they reply "START".
+</p>
+
+{% if error %}
+<div style="background:#fee2e2;color:#991b1b;font-size:0.88rem;font-weight:600;padding:10px 14px;border-radius:8px;margin-bottom:16px;">
+  Couldn't load messages from Twilio: {{ error }}
+</div>
+{% endif %}
+
+{% if messages %}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Received</th>
+        <th>From</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in messages %}
+      <tr>
+        <td style="white-space:nowrap;">{{ m.date | central }}</td>
+        <td style="white-space:nowrap;">
+          {% if m.name %}<strong>{{ m.name }}</strong><br><span style="color:var(--muted);font-size:0.82rem;">{{ m.from }}</span>
+          {% else %}{{ m.from }}{% endif %}
+        </td>
+        <td>{{ m.body }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% elif not error %}
+<div class="empty-state"><p>No incoming messages yet.</p></div>
+{% endif %}
+{% endblock %}
