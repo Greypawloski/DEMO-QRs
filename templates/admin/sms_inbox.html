@@ -88,7 +88,6 @@
           <th>To</th>
           <th>By</th>
           <th>Message</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -103,12 +102,6 @@
           <td>
             {% if m.failed %}<span style="background:#fee2e2;color:#991b1b;font-size:0.75rem;font-weight:700;padding:1px 6px;border-radius:10px;margin-right:4px;">FAILED</span>{% endif %}
             {{ m.body }}
-          </td>
-          <td style="white-space:nowrap;">
-            {% if m.to_phone %}
-            <button type="button" class="btn btn-secondary btn-sm"
-                    onclick="openReplyModal('{{ m.to_phone | e }}', '{{ (m.to_name or m.to_phone) | e }}')">Send Again</button>
-            {% endif %}
           </td>
         </tr>
         {% endfor %}
