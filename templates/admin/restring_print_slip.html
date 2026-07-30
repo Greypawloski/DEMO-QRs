@@ -146,6 +146,13 @@
     @page { size: 4in 6in; margin: 0; }
 
     @media print {
+      /* Pin the document to exactly one 4x6 page so nothing can
+         paginate, shift, or bottom-anchor. */
+      html, body {
+        width: 4in;
+        height: 6in;
+        overflow: hidden;
+      }
       body { background: none; padding: 0; margin: 0; display: block; }
       .screen-controls { display: none !important; }
       /* Match the @page box exactly. Viewport units (vh) resolve
