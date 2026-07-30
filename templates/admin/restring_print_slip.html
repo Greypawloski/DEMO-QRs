@@ -148,12 +148,15 @@
     @media print {
       body { background: none; padding: 0; margin: 0; display: block; }
       .screen-controls { display: none !important; }
+      /* Match the @page box exactly. Viewport units (vh) resolve
+         inconsistently in print and can blow the slip past one page. */
       .slip {
         width: 4in;
-        min-height: 100vh;
+        height: 6in;
         padding: 0.18in;
         box-shadow: none;
         page-break-after: avoid;
+        overflow: hidden;
       }
     }
   </style>
