@@ -142,8 +142,15 @@ def dashboard():
         if r['is_overdue']:
             g['is_overdue'] = True
         if r['days_out'] > g['days_out']:
+            # This row becomes the group's representative checkout. Carry its
+            # per-checkout fields along with the id, otherwise Edit Info and
+            # photo upload post to this row while the card displays another
+            # row's values, making saved edits look like they were discarded.
             g['days_out'] = r['days_out']
             g['id'] = r['id']
+            g['checkout_notes']  = r['checkout_notes']
+            g['phone']           = r['phone']
+            g['photo_filename']  = r['photo_filename']
         if r['reminder_sent_at'] and (not g['reminder_sent_at'] or r['reminder_sent_at'] > g['reminder_sent_at']):
             g['reminder_sent_at'] = r['reminder_sent_at']
             g['days_since_reminder'] = (now_utc - datetime.fromisoformat(r['reminder_sent_at']).replace(tzinfo=timezone.utc)).total_seconds() / 86400
