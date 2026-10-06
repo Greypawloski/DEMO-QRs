@@ -56,6 +56,17 @@ def _log(action, details=None):
     )
 
 
+def _roster_names(db):
+    """Staff names from the Roster page (the staff table).
+
+    Falls back to the STAFF_NAMES config value only when the roster is
+    empty, so an unseeded install still shows the configured names.
+    """
+    names = [r['name'] for r in
+             db.execute("SELECT name FROM staff ORDER BY name ASC").fetchall()]
+    return names or current_app.config.get('STAFF_NAMES', [])
+
+
 @admin_bp.route('/')
 @login_required
 def dashboard():
@@ -190,7 +201,7 @@ def dashboard():
     from flask import session
     return render_template('admin/dashboard.html', active=active, q=q,
                            waitlist_members=waitlist_members,
-                           staff_names=current_app.config.get('STAFF_NAMES', []),
+                           staff_names=_roster_names(db),
                            current_staff=session.get('staff_name', ''),
                            restring_stats=restring_stats,
                            demos_due_restring=demos_due_restring,
@@ -457,7 +468,7 @@ def equipment_list():
     ).fetchall()
     from flask import session
     return render_template('admin/equipment_list.html', equipment=rows,
-                           staff_names=current_app.config.get('STAFF_NAMES', []),
+                           staff_names=_roster_names(db),
                            current_staff=session.get('staff_name', ''))
 
 
@@ -1222,7 +1233,7 @@ def equipment_delete(equipment_id):
                ORDER BY e.active DESC, e.category, e.name"""
         ).fetchall()
         return render_template('admin/equipment_list.html', equipment=rows,
-                               staff_names=current_app.config.get('STAFF_NAMES', []),
+                               staff_names=_roster_names(db),
                                current_staff=session.get('staff_name', ''),
                                delete_equip_error=True,
                                delete_equip_error_id=equipment_id,
